@@ -6,13 +6,13 @@ import com.bicap.backend.dto.request.AssignRoleRequest;
 import com.bicap.backend.dto.request.CreateUserRequest;
 import com.bicap.backend.dto.request.UpdateProfileRequest;
 import com.bicap.backend.dto.response.ApiResponse;
+import com.bicap.backend.dto.response.UserProfileResponse;
 import com.bicap.backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -55,7 +55,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}/profile")
-    public ApiResponse<Map<String, Object>> getProfile(@PathVariable Long id) {
+    public ApiResponse<UserProfileResponse> getProfile(@PathVariable Long id) {
         return ApiResponse.success(userService.getProfile(id));
     }
 }

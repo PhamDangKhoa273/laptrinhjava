@@ -1,13 +1,9 @@
 package com.bicap.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 
 @Entity
 @Table(name = "retailers")
-@Getter
-@Setter
 public class Retailer {
 
     @Id
@@ -33,4 +29,60 @@ public class Retailer {
 
     @Column(name = "status", nullable = false, length = 30)
     private String status = "ACTIVE";
+
+    public Long getRetailerId() {
+        return retailerId;
+    }
+
+    public void setRetailerId(Long retailerId) {
+        this.retailerId = retailerId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public String getRetailerCode() {
+        return retailerCode;
+    }
+
+    public void setRetailerCode(String retailerCode) {
+        this.retailerCode = retailerCode;
+    }
+
+    public String getRetailerName() {
+        return retailerName;
+    }
+
+    public void setRetailerName(String retailerName) {
+        this.retailerName = retailerName;
+    }
+
+    public String getBusinessLicenseNo() {
+        return businessLicenseNo;
+    }
+
+    public void setBusinessLicenseNo(String businessLicenseNo) {
+        this.businessLicenseNo = businessLicenseNo;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }

@@ -1,12 +1,12 @@
 package com.bicap.backend.controller;
 
+import com.bicap.backend.dto.UserResponse;
 import com.bicap.backend.dto.auth.LoginRequest;
 import com.bicap.backend.dto.auth.LoginResponse;
 import com.bicap.backend.dto.auth.RefreshTokenRequest;
 import com.bicap.backend.dto.auth.RegisterRequest;
 import com.bicap.backend.dto.auth.TokenRefreshResponse;
 import com.bicap.backend.dto.response.ApiResponse;
-import com.bicap.backend.dto.UserResponse;
 import com.bicap.backend.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

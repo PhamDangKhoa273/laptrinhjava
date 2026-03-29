@@ -7,22 +7,24 @@ import com.bicap.backend.dto.auth.RefreshTokenRequest;
 import com.bicap.backend.dto.auth.RegisterRequest;
 import com.bicap.backend.dto.auth.TokenRefreshResponse;
 import com.bicap.backend.entity.User;
-import com.bicap.backend.entity.UserRole;
 import com.bicap.backend.exception.BusinessException;
-import com.bicap.backend.repository.RoleRepository;
 import com.bicap.backend.repository.UserRepository;
 import com.bicap.backend.repository.UserRoleRepository;
-import com.bicap.backend.security.SecurityUtils;
 import com.bicap.backend.security.CustomUserPrincipal;
 import com.bicap.backend.security.JwtTokenProvider;
+import com.bicap.backend.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.bicap.backend.enums.RoleName.GUEST;
 
 @Service
 @RequiredArgsConstructor
@@ -31,33 +33,19 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
     private final UserService userService;
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmailIgnoreCase(request.getEmail().trim())) {
-            throw new BusinessException("Email đã tồn tại");
-        }
-
-        User user = new User();
-        user.setFullName(request.getFullName().trim());
-        user.setEmail(request.getEmail().trim().toLowerCase());
-        user.setPasswordHash(userService.encodePassword(request.getPassword()));
-        user.setPhone(request.getPhone());
-        user.setAvatarUrl(request.getAvatarUrl());
-        user.setStatus("ACTIVE");
-
-        User savedUser = userRepository.save(user);
-
-        var guestRole = roleRepository.findByRoleName("GUEST")
-                .orElseThrow(() -> new BusinessException("Không tìm thấy role GUEST"));
-
-        UserRole userRole = new UserRole();
-        userRole.setUser(savedUser);
-        userRole.setRole(guestRole);
-        userRoleRepository.save(userRole);
+        User savedUser = userService.createUser(
+                request.getFullName(),
+                request.getEmail(),
+                request.getPassword(),
+                request.getPhone(),
+                request.getAvatarUrl(),
+                GUEST
+        );
 
         return userService.getUserById(savedUser.getUserId());
     }
@@ -71,7 +59,7 @@ public class AuthService {
         );
 
         CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-        String token = jwtTokenProvider.generateToken(principal);
+        String accessToken = jwtTokenProvider.generateToken(principal);
         String refreshToken = jwtTokenProvider.generateRefreshToken(principal);
 
         User user = userRepository.findById(principal.getUserId())
@@ -84,7 +72,7 @@ public class AuthService {
                 .toList();
 
         return LoginResponse.builder()
-                .token(token)
+                .token(accessToken)
                 .tokenType("Bearer")
                 .expiresIn(jwtTokenProvider.getJwtExpirationMs())
                 .refreshToken(refreshToken)
@@ -122,7 +110,7 @@ public class AuthService {
                 user.getEmail(),
                 user.getPasswordHash(),
                 user.getStatus(),
-                roles.stream().map(org.springframework.security.core.authority.SimpleGrantedAuthority::new).toList()
+                roles.stream().map(SimpleGrantedAuthority::new).toList()
         );
 
         return TokenRefreshResponse.builder()
