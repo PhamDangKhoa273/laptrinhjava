@@ -3,8 +3,6 @@ package com.bicap.backend.dto;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
-
 @Data
 @Builder
 public class RetailerResponse {
@@ -13,9 +11,7 @@ public class RetailerResponse {
     private String retailerName;
     private String businessLicenseNo;
     private String address;
-    private String province;
+    private String status;
     private Long userId;
     private String userFullName;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

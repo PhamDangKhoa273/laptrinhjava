@@ -1,15 +1,15 @@
 package com.bicap.backend.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
 
 @Data
 public class CreateFarmSubscriptionRequest {
-    private Long farmId;
+
+    @NotNull(message = "packageId không được để trống")
     private Long packageId;
-    private Long subscribedByUserId;
+
     private LocalDate startDate;
-    private LocalDate endDate;
-    private String subscriptionStatus;
 }
