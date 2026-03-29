@@ -142,6 +142,10 @@ public class UserService {
                 .orElseThrow(() -> new BusinessException("Không tìm thấy user"));
     }
 
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
+
     private UserResponse toResponse(User user) {
         UserStatus status;
         try {
