@@ -12,11 +12,14 @@ public class FarmResponse {
     private String farmCode;
     private String farmName;
     private String businessLicenseNo;
+    private String certificationStatus;
+    private String approvalStatus;
     private String address;
     private String province;
     private String description;
     private Long ownerUserId;
     private String ownerFullName;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Long reviewedByUserId;
+    private String reviewedByFullName;
+    private LocalDateTime reviewedAt;
 }

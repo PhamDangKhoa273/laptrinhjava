@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -16,7 +15,6 @@ public class ServicePackageResponse {
     private Integer durationDays;
     private Integer maxSeasons;
     private Integer maxListings;
+    private String description;
     private String status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

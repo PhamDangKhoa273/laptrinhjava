@@ -18,11 +18,11 @@ public class SubscriptionPayment {
     @Column(name = "subscription_payment_id")
     private Long subscriptionPaymentId;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscription_id", nullable = false)
-    private FarmSubscription subscription;
+    private FarmSubscription farmSubscription;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payer_user_id", nullable = false)
     private User payerUser;
 
@@ -33,9 +33,9 @@ public class SubscriptionPayment {
     private String method;
 
     @Column(name = "payment_status", nullable = false, length = 30)
-    private String paymentStatus = "PENDING";
+    private String paymentStatus;
 
-    @Column(name = "transaction_ref", length = 100, unique = true)
+    @Column(name = "transaction_ref", length = 100)
     private String transactionRef;
 
     @Column(name = "paid_at")

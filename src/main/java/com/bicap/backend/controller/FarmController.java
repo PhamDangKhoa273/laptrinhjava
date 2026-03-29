@@ -1,12 +1,18 @@
 package com.bicap.backend.controller;
 
+import com.bicap.backend.dto.CreateFarmRequest;
+import com.bicap.backend.dto.FarmResponse;
+import com.bicap.backend.dto.UpdateFarmRequest;
 import com.bicap.backend.dto.request.FarmReviewRequest;
 import com.bicap.backend.dto.response.ApiResponse;
-import com.bicap.backend.entity.Farm;
+import com.bicap.backend.security.SecurityUtils;
 import com.bicap.backend.service.FarmService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/farms")
@@ -16,39 +22,53 @@ public class FarmController {
     private final FarmService farmService;
 
     @PostMapping
-    public ApiResponse<Farm> createFarm(@RequestBody Farm farm,
-                                        @RequestParam Long ownerUserId) {
-        return ApiResponse.success("Tạo farm thành công",
-                farmService.createFarm(farm, ownerUserId));
+    @PreAuthorize("hasAnyRole('FARM','ADMIN')")
+    public ApiResponse<FarmResponse> createFarm(@Valid @RequestBody CreateFarmRequest request) {
+        return ApiResponse.success(
+                "Tạo farm thành công",
+                farmService.createFarm(request, SecurityUtils.getCurrentUserId())
+        );
     }
 
     @GetMapping
-    public ApiResponse<?> getAllFarms() {
+    @PreAuthorize("hasAnyRole('ADMIN','SHIPPING_MANAGER')")
+    public ApiResponse<List<FarmResponse>> getAllFarms() {
         return ApiResponse.success(farmService.getAllFarms());
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<Farm> getFarmById(@PathVariable Long id) {
+    public ApiResponse<FarmResponse> getFarmById(@PathVariable Long id) {
         return ApiResponse.success(farmService.getFarmById(id));
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('FARM','ADMIN')")
+    public ApiResponse<FarmResponse> getMyFarm() {
+        return ApiResponse.success(farmService.getMyFarm(SecurityUtils.getCurrentUserId()));
+    }
+
     @PutMapping("/{id}")
-    public ApiResponse<Farm> updateFarm(@PathVariable Long id,
-                                        @RequestBody Farm farm) {
-        return ApiResponse.success("Cập nhật farm thành công",
-                farmService.updateFarm(id, farm));
+    @PreAuthorize("hasAnyRole('FARM','ADMIN')")
+    public ApiResponse<FarmResponse> updateFarm(@PathVariable Long id,
+                                                @Valid @RequestBody UpdateFarmRequest request) {
+        return ApiResponse.success(
+                "Cập nhật farm thành công",
+                farmService.updateFarm(id, request, SecurityUtils.getCurrentUserId())
+        );
     }
 
     @PutMapping("/{id}/review")
-    public ApiResponse<Farm> reviewFarm(@PathVariable Long id,
-                                        @RequestParam Long reviewerUserId,
-                                        @Valid @RequestBody FarmReviewRequest request) {
-        return ApiResponse.success("Duyệt farm thành công",
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<FarmResponse> reviewFarm(@PathVariable Long id,
+                                                @Valid @RequestBody FarmReviewRequest request) {
+        return ApiResponse.success(
+                "Duyệt farm thành công",
                 farmService.reviewFarm(
                         id,
-                        reviewerUserId,
+                        SecurityUtils.getCurrentUserId(),
                         request.getApprovalStatus(),
                         request.getCertificationStatus()
-                ));
+                )
+        );
     }
 }

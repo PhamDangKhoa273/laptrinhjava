@@ -12,6 +12,7 @@ public class FarmSubscriptionResponse {
     private Long farmId;
     private String farmName;
     private Long packageId;
+    private String packageCode;
     private String packageName;
     private Long subscribedByUserId;
     private String subscribedByFullName;

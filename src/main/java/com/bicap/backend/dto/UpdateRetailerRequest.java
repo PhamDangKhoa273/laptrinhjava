@@ -6,12 +6,14 @@ import lombok.Data;
 @Data
 public class UpdateRetailerRequest {
 
-    @NotBlank(message = "Retailer name không được để trống")
+    @NotBlank(message = "retailerName không được để trống")
     private String retailerName;
 
-    @NotBlank(message = "Business license không được để trống")
+    @NotBlank(message = "businessLicenseNo không được để trống")
     private String businessLicenseNo;
 
+    @NotBlank(message = "address không được để trống")
     private String address;
-    private String province;
+
+    private String status;
 }

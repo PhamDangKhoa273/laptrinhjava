@@ -1,7 +1,6 @@
 package com.bicap.backend.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
@@ -19,7 +18,4 @@ public class CreateFarmRequest {
     private String address;
     private String province;
     private String description;
-
-    @NotNull(message = "Owner user id không được để trống")
-    private Long ownerUserId;
 }

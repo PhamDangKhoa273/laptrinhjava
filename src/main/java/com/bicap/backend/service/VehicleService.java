@@ -1,5 +1,8 @@
 package com.bicap.backend.service;
 
+import com.bicap.backend.dto.CreateVehicleRequest;
+import com.bicap.backend.dto.UpdateVehicleRequest;
+import com.bicap.backend.dto.VehicleResponse;
 import com.bicap.backend.entity.User;
 import com.bicap.backend.entity.Vehicle;
 import com.bicap.backend.enums.RoleName;
@@ -8,6 +11,7 @@ import com.bicap.backend.repository.UserRepository;
 import com.bicap.backend.repository.VehicleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,53 +22,94 @@ public class VehicleService {
     private final VehicleRepository vehicleRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final AuditLogService auditLogService;
 
-    public Vehicle createVehicle(Vehicle vehicle, Long managerUserId) {
-        User manager = userRepository.findById(managerUserId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy manager"));
+    @Transactional
+    public VehicleResponse createVehicle(CreateVehicleRequest request, Long currentUserId) {
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
 
-        if (!userService.hasRole(manager, RoleName.SHIPPING_MANAGER)) {
-            throw new BusinessException("manager_user_id phải là SHIPPING_MANAGER");
+        if (!userService.hasRole(currentUser, RoleName.SHIPPING_MANAGER)) {
+            throw new BusinessException("Chỉ SHIPPING_MANAGER mới được tạo vehicle");
         }
 
-        if (vehicleRepository.existsByPlateNo(vehicle.getPlateNo())) {
+        if (vehicleRepository.existsByPlateNo(request.getPlateNo().trim())) {
             throw new BusinessException("Biển số xe đã tồn tại");
         }
 
-        vehicle.setManagerUser(manager);
-        return vehicleRepository.save(vehicle);
+        Vehicle vehicle = new Vehicle();
+        vehicle.setManagerUser(currentUser);
+        vehicle.setPlateNo(request.getPlateNo().trim());
+        vehicle.setVehicleType(request.getVehicleType().trim());
+        vehicle.setCapacity(request.getCapacity());
+        vehicle.setStatus(normalizeStatus(request.getStatus()));
+
+        Vehicle saved = vehicleRepository.save(vehicle);
+
+        auditLogService.log(currentUserId, "CREATE_VEHICLE", "VEHICLE", saved.getVehicleId());
+
+        return toResponse(saved);
     }
 
-    public List<Vehicle> getAll() {
-        return vehicleRepository.findAll();
+    public List<VehicleResponse> getAll() {
+        return vehicleRepository.findAll().stream()
+                .map(this::toResponse)
+                .toList();
     }
 
-    public Vehicle getById(Long id) {
+    public VehicleResponse getById(Long id) {
+        return toResponse(getEntityById(id));
+    }
+
+    @Transactional
+    public VehicleResponse update(Long id, UpdateVehicleRequest request, Long currentUserId) {
+        Vehicle vehicle = getEntityById(id);
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+
+        boolean isAdmin = userService.hasRole(currentUser, RoleName.ADMIN);
+        boolean isManagerOwner = vehicle.getManagerUser() != null
+                && vehicle.getManagerUser().getUserId().equals(currentUserId);
+
+        if (!isAdmin && !isManagerOwner) {
+            throw new BusinessException("Bạn không có quyền cập nhật vehicle này");
+        }
+
+        vehicle.setVehicleType(request.getVehicleType().trim());
+        vehicle.setCapacity(request.getCapacity());
+
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            vehicle.setStatus(request.getStatus().trim().toUpperCase());
+        }
+
+        Vehicle saved = vehicleRepository.save(vehicle);
+
+        auditLogService.log(currentUserId, "UPDATE_VEHICLE", "VEHICLE", saved.getVehicleId());
+
+        return toResponse(saved);
+    }
+
+    public Vehicle getEntityById(Long id) {
         return vehicleRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy vehicle"));
     }
 
-    public Vehicle update(Long id, Vehicle request, Long managerUserId) {
-        Vehicle vehicle = getById(id);
+    private VehicleResponse toResponse(Vehicle vehicle) {
+        return VehicleResponse.builder()
+                .vehicleId(vehicle.getVehicleId())
+                .plateNo(vehicle.getPlateNo())
+                .vehicleType(vehicle.getVehicleType())
+                .capacity(vehicle.getCapacity())
+                .status(vehicle.getStatus())
+                .managerUserId(vehicle.getManagerUser() != null ? vehicle.getManagerUser().getUserId() : null)
+                .managerFullName(vehicle.getManagerUser() != null ? vehicle.getManagerUser().getFullName() : null)
+                .build();
+    }
 
-        User manager = userRepository.findById(managerUserId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy manager"));
-
-        if (!userService.hasRole(manager, RoleName.SHIPPING_MANAGER)) {
-            throw new BusinessException("manager_user_id phải là SHIPPING_MANAGER");
+    private String normalizeStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return "ACTIVE";
         }
-
-        if (!vehicle.getPlateNo().equalsIgnoreCase(request.getPlateNo())
-                && vehicleRepository.existsByPlateNo(request.getPlateNo())) {
-            throw new BusinessException("Biển số xe đã tồn tại");
-        }
-
-        vehicle.setManagerUser(manager);
-        vehicle.setPlateNo(request.getPlateNo());
-        vehicle.setVehicleType(request.getVehicleType());
-        vehicle.setCapacity(request.getCapacity());
-        vehicle.setStatus(request.getStatus());
-
-        return vehicleRepository.save(vehicle);
+        return status.trim().toUpperCase();
     }
 }

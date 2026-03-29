@@ -17,15 +17,15 @@ public class FarmSubscription {
     @Column(name = "subscription_id")
     private Long subscriptionId;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "farm_id", nullable = false)
     private Farm farm;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "package_id", nullable = false)
     private ServicePackage servicePackage;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscribed_by_user_id", nullable = false)
     private User subscribedByUser;
 
@@ -36,5 +36,5 @@ public class FarmSubscription {
     private LocalDate endDate;
 
     @Column(name = "subscription_status", nullable = false, length = 30)
-    private String subscriptionStatus = "ACTIVE";
+    private String subscriptionStatus;
 }
