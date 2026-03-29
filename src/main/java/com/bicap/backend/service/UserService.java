@@ -5,6 +5,7 @@ import com.bicap.backend.dto.UserResponse;
 import com.bicap.backend.dto.request.AssignRoleRequest;
 import com.bicap.backend.dto.request.CreateUserRequest;
 import com.bicap.backend.dto.request.UpdateProfileRequest;
+import com.bicap.backend.dto.response.UserProfileResponse;
 import com.bicap.backend.entity.Role;
 import com.bicap.backend.entity.User;
 import com.bicap.backend.entity.UserRole;
@@ -19,9 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -34,29 +33,41 @@ public class UserService {
 
     @Transactional
     public UserResponse createUser(CreateUserRequest request) {
-        if (userRepository.existsByEmailIgnoreCase(request.getEmail().trim())) {
+        User savedUser = createUser(
+                request.getFullName(),
+                request.getEmail(),
+                request.getPassword(),
+                request.getPhone(),
+                request.getAvatarUrl(),
+                RoleName.GUEST
+        );
+
+        return toResponse(savedUser);
+    }
+
+    @Transactional
+    public User createUser(String fullName,
+                           String email,
+                           String rawPassword,
+                           String phone,
+                           String avatarUrl,
+                           RoleName defaultRole) {
+        String normalizedEmail = normalizeEmail(email);
+        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             throw new BusinessException("Email đã tồn tại");
         }
 
         User user = new User();
-        user.setFullName(request.getFullName().trim());
-        user.setEmail(request.getEmail().trim().toLowerCase());
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setPhone(request.getPhone());
-        user.setAvatarUrl(request.getAvatarUrl());
+        user.setFullName(normalizeText(fullName));
+        user.setEmail(normalizedEmail);
+        user.setPasswordHash(passwordEncoder.encode(rawPassword));
+        user.setPhone(normalizeText(phone));
+        user.setAvatarUrl(normalizeText(avatarUrl));
         user.setStatus(UserStatus.ACTIVE.name());
 
         User savedUser = userRepository.save(user);
-
-        Role guestRole = roleRepository.findByRoleName(RoleName.GUEST.name())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy role GUEST"));
-
-        UserRole userRole = new UserRole();
-        userRole.setUser(savedUser);
-        userRole.setRole(guestRole);
-        userRoleRepository.save(userRole);
-
-        return toResponse(savedUser);
+        assignDefaultRole(savedUser, defaultRole);
+        return savedUser;
     }
 
     public List<UserResponse> getAllUsers() {
@@ -73,23 +84,23 @@ public class UserService {
     public UserResponse updateProfile(Long userId, UpdateProfileRequest request) {
         User user = getUserEntityById(userId);
 
-        if (request.getEmail() != null
-                && !request.getEmail().equalsIgnoreCase(user.getEmail())
-                && userRepository.existsByEmailIgnoreCase(request.getEmail().trim())) {
-            throw new BusinessException("Email đã tồn tại");
+        if (request.getEmail() != null) {
+            String normalizedEmail = normalizeEmail(request.getEmail());
+            if (!normalizedEmail.equalsIgnoreCase(user.getEmail())
+                    && userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
+                throw new BusinessException("Email đã tồn tại");
+            }
+            user.setEmail(normalizedEmail);
         }
 
         if (request.getFullName() != null) {
-            user.setFullName(request.getFullName().trim());
-        }
-        if (request.getEmail() != null) {
-            user.setEmail(request.getEmail().trim().toLowerCase());
+            user.setFullName(normalizeText(request.getFullName()));
         }
         if (request.getPhone() != null) {
-            user.setPhone(request.getPhone().trim());
+            user.setPhone(normalizeText(request.getPhone()));
         }
         if (request.getAvatarUrl() != null) {
-            user.setAvatarUrl(request.getAvatarUrl().trim());
+            user.setAvatarUrl(normalizeText(request.getAvatarUrl()));
         }
 
         return toResponse(userRepository.save(user));
@@ -121,15 +132,16 @@ public class UserService {
         return "Gán role thành công";
     }
 
-    public Map<String, Object> getProfile(Long userId) {
+    public UserProfileResponse getProfile(Long userId) {
         User user = getUserEntityById(userId);
-        List<UserRole> roles = userRoleRepository.findByUser(user);
+        List<String> roles = userRoleRepository.findByUser(user).stream()
+                .map(userRole -> userRole.getRole().getRoleName())
+                .toList();
 
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("user", toResponse(user));
-        data.put("roles", roles.stream().map(r -> r.getRole().getRoleName()).toList());
-
-        return data;
+        return UserProfileResponse.builder()
+                .user(toResponse(user))
+                .roles(roles)
+                .build();
     }
 
     public boolean hasRole(User user, RoleName roleName) {
@@ -140,6 +152,33 @@ public class UserService {
     public User getUserEntityById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy user"));
+    }
+
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
+
+    private void assignDefaultRole(User user, RoleName roleName) {
+        Role role = roleRepository.findByRoleName(roleName.name())
+                .orElseThrow(() -> new BusinessException("Không tìm thấy role " + roleName.name()));
+
+        UserRole userRole = new UserRole();
+        userRole.setUser(user);
+        userRole.setRole(role);
+        userRoleRepository.save(userRole);
+    }
+
+    private String normalizeEmail(String email) {
+        return email.trim().toLowerCase();
+    }
+
+    private String normalizeText(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private UserResponse toResponse(User user) {

@@ -3,19 +3,28 @@ package com.bicap.backend.service;
 import com.bicap.backend.dto.UserResponse;
 import com.bicap.backend.dto.auth.LoginRequest;
 import com.bicap.backend.dto.auth.LoginResponse;
+import com.bicap.backend.dto.auth.RefreshTokenRequest;
+import com.bicap.backend.dto.auth.RegisterRequest;
+import com.bicap.backend.dto.auth.TokenRefreshResponse;
 import com.bicap.backend.entity.User;
 import com.bicap.backend.exception.BusinessException;
 import com.bicap.backend.repository.UserRepository;
 import com.bicap.backend.repository.UserRoleRepository;
 import com.bicap.backend.security.CustomUserPrincipal;
 import com.bicap.backend.security.JwtTokenProvider;
+import com.bicap.backend.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.bicap.backend.enums.RoleName.GUEST;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +36,20 @@ public class AuthService {
     private final UserRoleRepository userRoleRepository;
     private final UserService userService;
 
+    @Transactional
+    public UserResponse register(RegisterRequest request) {
+        User savedUser = userService.createUser(
+                request.getFullName(),
+                request.getEmail(),
+                request.getPassword(),
+                request.getPhone(),
+                request.getAvatarUrl(),
+                GUEST
+        );
+
+        return userService.getUserById(savedUser.getUserId());
+    }
+
     public LoginResponse login(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -36,7 +59,8 @@ public class AuthService {
         );
 
         CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-        String token = jwtTokenProvider.generateToken(principal);
+        String accessToken = jwtTokenProvider.generateToken(principal);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(principal);
 
         User user = userRepository.findById(principal.getUserId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy user"));
@@ -48,11 +72,57 @@ public class AuthService {
                 .toList();
 
         return LoginResponse.builder()
-                .token(token)
+                .token(accessToken)
                 .tokenType("Bearer")
                 .expiresIn(jwtTokenProvider.getJwtExpirationMs())
+                .refreshToken(refreshToken)
+                .refreshExpiresIn(jwtTokenProvider.getRefreshExpirationMs())
                 .user(userResponse)
                 .roles(roles)
                 .build();
+    }
+
+    public UserResponse me() {
+        return userService.getUserById(SecurityUtils.getCurrentUserId());
+    }
+
+    public TokenRefreshResponse refreshToken(RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new BusinessException("Refresh token không hợp lệ");
+        }
+
+        if (!"refresh".equals(jwtTokenProvider.getTokenType(refreshToken))) {
+            throw new BusinessException("Sai loại token");
+        }
+
+        Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy user"));
+
+        List<String> roles = userRoleRepository.findByUser(user).stream()
+                .map(userRole -> "ROLE_" + userRole.getRole().getRoleName())
+                .toList();
+
+        CustomUserPrincipal principal = new CustomUserPrincipal(
+                user.getUserId(),
+                user.getEmail(),
+                user.getPasswordHash(),
+                user.getStatus(),
+                roles.stream().map(SimpleGrantedAuthority::new).toList()
+        );
+
+        return TokenRefreshResponse.builder()
+                .token(jwtTokenProvider.generateToken(principal))
+                .tokenType("Bearer")
+                .expiresIn(jwtTokenProvider.getJwtExpirationMs())
+                .refreshToken(jwtTokenProvider.generateRefreshToken(principal))
+                .refreshExpiresIn(jwtTokenProvider.getRefreshExpirationMs())
+                .build();
+    }
+
+    public String logout() {
+        return "Đăng xuất thành công. Client hãy xoá access token và refresh token ở phía local.";
     }
 }
