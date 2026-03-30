@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký - BICAP</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="auth-shell">
+    <div class="card auth-card auth-card-wide">
+        <div class="brand">BICAP</div>
+        <h1>Đăng ký</h1>
+        <p class="muted">Tạo tài khoản mới bằng Java web</p>
+
+        <div class="alert error" th:if="${registerError}" th:text="${registerError}"></div>
+
+        <form th:action="@{/register}" th:object="${registerRequest}" method="post" class="form-grid two-col">
+            <label>
+                <span>Họ và tên</span>
+                <input type="text" th:field="*{fullName}" placeholder="Nguyen Van A">
+                <small class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></small>
+            </label>
+
+            <label>
+                <span>Email</span>
+                <input type="email" th:field="*{email}" placeholder="you@example.com">
+                <small class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+            </label>
+
+            <label>
+                <span>Mật khẩu</span>
+                <input type="password" th:field="*{password}" placeholder="Tối thiểu 6 ký tự">
+                <small class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></small>
+            </label>
+
+            <label>
+                <span>Số điện thoại</span>
+                <input type="text" th:field="*{phone}" placeholder="0901234567">
+                <small class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></small>
+            </label>
+
+            <label class="full-width">
+                <span>Avatar URL</span>
+                <input type="text" th:field="*{avatarUrl}" placeholder="https://...">
+                <small class="field-error" th:if="${#fields.hasErrors('avatarUrl')}" th:errors="*{avatarUrl}"></small>
+            </label>
+
+            <button class="full-width" type="submit">Tạo tài khoản</button>
+        </form>
+
+        <p class="footer-text">Đã có tài khoản? <a th:href="@{/login}">Đăng nhập</a></p>
+    </div>
+</div>
+</body>
+</html>

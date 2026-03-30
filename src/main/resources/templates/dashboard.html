@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BICAP</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="layout">
+    <aside class="sidebar">
+        <div class="brand">BICAP</div>
+        <nav>
+            <a class="active" th:href="@{/dashboard}">Dashboard</a>
+            <a th:href="@{/profile}">Profile</a>
+        </nav>
+        <form th:action="@{/logout}" method="post">
+            <button class="danger" type="submit">Đăng xuất</button>
+        </form>
+    </aside>
+
+    <main class="content">
+        <h1>Xin chào, <span th:text="${user.fullName}"></span></h1>
+        <p class="muted">Đây là dashboard thuần Java render bằng Thymeleaf.</p>
+
+        <div class="cards">
+            <section class="card">
+                <h3>Thông tin tài khoản</h3>
+                <ul class="info-list">
+                    <li><strong>Email:</strong> <span th:text="${user.email}"></span></li>
+                    <li><strong>Số điện thoại:</strong> <span th:text="${user.phone ?: 'Chưa cập nhật'}"></span></li>
+                    <li><strong>Vai trò chính:</strong> <span th:text="${user.primaryRole}"></span></li>
+                    <li><strong>Trạng thái:</strong> <span th:text="${user.status}"></span></li>
+                </ul>
+            </section>
+
+            <section class="card">
+                <h3>Vai trò</h3>
+                <div class="badge-row">
+                    <span class="badge" th:each="role : ${user.roles}" th:text="${role}"></span>
+                </div>
+            </section>
+
+            <section class="card full-width">
+                <h3>Trạng thái hệ thống</h3>
+                <p>Backend: Spring Boot</p>
+                <p>Frontend: Thymeleaf</p>
+                <p>Kiểu triển khai: 100% Java ở phần nộp chính</p>
+            </section>
+        </div>
+    </main>
+</div>
+</body>
+</html>
