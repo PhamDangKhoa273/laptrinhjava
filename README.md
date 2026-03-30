@@ -1,100 +1,81 @@
-# BICAP Backend - Phase 2
+# BICAP Frontend - Phase 2
 
-Spring Boot backend cho Phase 2 của BICAP.
+Frontend module for **Member 3 - Frontend Developer** in Phase 2 of the BICAP system.
 
-## Mục tiêu hiện tại
+## Features completed
+- React + Vite frontend setup
+- Login page
+- Register page
+- Profile / update profile page
+- Access token + refresh token storage with localStorage
+- Axios API service with bearer token injection
+- Auto refresh token flow (if backend supports `/auth/refresh`)
+- Protected routes / public-only routes
+- Redirect after login based on role
+- Dashboard overview for auth/session status
+- Backend validation error mapping to form fields
+- Loading, timeout, network error, and auth error handling
+- Dashboard skeleton for Admin, Farm, Retailer, Shipping Manager, Driver, Guest
+- Reusable UI components for forms, status cards, loading states, and role badges
 
-- JWT auth stateless: register, login, me, refresh, logout
-- Core user management: create user, update profile, assign role, change status
-- Các module nền cho farm, retailer, vehicle, driver, subscription và payment
-- Flyway quản lý schema + seed dữ liệu ban đầu
+## Suggested backend APIs
+The frontend expects these endpoints:
+- `POST /auth/login`
+- `POST /auth/register`
+- `GET /auth/me`
+- `POST /auth/logout`
+- `POST /auth/refresh`
+- `PUT /users/profile`
 
-## Cấu trúc chính
+Recommended response shape:
 
+```json
+{
+  "message": "Success",
+  "data": {
+    "accessToken": "jwt-token",
+    "refreshToken": "refresh-token",
+    "user": {
+      "id": 1,
+      "fullName": "Nguyen Van A",
+      "email": "a@example.com",
+      "phoneNumber": "0901234567",
+      "primaryRole": "FARM",
+      "roles": ["FARM"]
+    }
+  }
+}
+```
+
+## Run project
+```bash
+cd bicap-frontend
+npm install
+npm run dev
+```
+
+## Environment
+Create `.env` from `.env.example` and update API URL if needed.
+
+## Folder structure
 ```text
-src/main/java/com/bicap/backend
-├── config
-├── controller
-├── dto
-│   ├── auth
-│   ├── request
-│   └── response
-├── entity
-├── enums
-├── exception
-├── repository
-├── security
-└── service
+src/
+  components/
+  context/
+  layouts/
+  pages/
+  routes/
+  services/
+  utils/
 ```
 
-## Yêu cầu môi trường
-
-- Java 17
-- Maven 3.9+ hoặc dùng `mvnw.cmd`
-- MySQL 8+
-
-## Cấu hình local
-
-Mặc định app đang đọc trong `src/main/resources/application.properties`:
-
-- DB: `jdbc:mysql://localhost:3306/bicap_db`
-- user: `root`
-- password: `1234`
-- port: `8080`
-
-Nên đổi JWT secret và thông tin DB trước khi chạy thật.
-
-## Chạy project
-
-### 1. Tạo database và kiểm tra MySQL
-
-```sql
-CREATE DATABASE IF NOT EXISTS bicap_db;
-```
-
-### 2. Chạy app
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-Hoặc build/test trước:
-
-```powershell
-.\mvnw.cmd test
-.\mvnw.cmd clean package
-```
-
-## Auth/User API đang chuẩn hoá
-
-### Auth
-
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/auth/me`
-- `POST /api/auth/refresh`
-- `POST /api/auth/logout`
-
-### User
-
-- `POST /api/users`
-- `GET /api/users`
-- `GET /api/users/{id}`
-- `PUT /api/users/{id}/profile`
-- `PATCH /api/users/{id}/status`
-- `POST /api/users/{id}/roles`
-- `GET /api/users/{id}/profile`
-
-`GET /api/users/{id}/profile` trả DTO rõ ràng (`user` + `roles`) thay vì `Map<String, Object>`.
-
-## Kiến trúc hiện tại
-
-- Controller chỉ orchestration request/response
-- Service giữ business logic
-- Response chung dùng `ApiResponse<T>`
-- Request DTO gom theo domain (`auth`, `request`, `response`) để tránh trùng class lung tung
-- Security chỉ public đúng các endpoint auth cần public; các route còn lại phải qua JWT hoặc method security
-
-## Tài liệu thêm
-
-- `BACKEND_ARCHITECTURE.md`: overview Phase 2
+## What to demo in class/report
+1. Register account
+2. Login account
+3. Redirect by role
+4. Open dashboard overview and role dashboard
+5. View and update profile
+6. Show route blocking when not logged in
+7. Show backend validation error on form
+8. Show token-based session persistence after refresh
+9. Logout and verify redirect back to login
