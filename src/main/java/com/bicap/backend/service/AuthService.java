@@ -17,12 +17,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Map;
 
 import static com.bicap.backend.enums.RoleName.GUEST;
 
@@ -32,9 +31,9 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserService userService;
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
-    private final UserService userService;
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
@@ -62,23 +61,15 @@ public class AuthService {
         String accessToken = jwtTokenProvider.generateToken(principal);
         String refreshToken = jwtTokenProvider.generateRefreshToken(principal);
 
-        User user = userRepository.findById(principal.getUserId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy user"));
-
-        UserResponse userResponse = userService.getUserById(user.getUserId());
-
-        List<String> roles = principal.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .toList();
+        UserResponse user = userService.getUserById(principal.getUserId());
 
         return LoginResponse.builder()
-                .token(accessToken)
+                .accessToken(accessToken)
                 .tokenType("Bearer")
                 .expiresIn(jwtTokenProvider.getJwtExpirationMs())
                 .refreshToken(refreshToken)
                 .refreshExpiresIn(jwtTokenProvider.getRefreshExpirationMs())
-                .user(userResponse)
-                .roles(roles)
+                .user(user)
                 .build();
     }
 
@@ -101,8 +92,8 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy user"));
 
-        List<String> roles = userRoleRepository.findByUser(user).stream()
-                .map(userRole -> "ROLE_" + userRole.getRole().getRoleName())
+        var authorities = userRoleRepository.findByUser(user).stream()
+                .map(userRole -> new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getRoleName()))
                 .toList();
 
         CustomUserPrincipal principal = new CustomUserPrincipal(
@@ -110,11 +101,11 @@ public class AuthService {
                 user.getEmail(),
                 user.getPasswordHash(),
                 user.getStatus(),
-                roles.stream().map(SimpleGrantedAuthority::new).toList()
+                authorities
         );
 
         return TokenRefreshResponse.builder()
-                .token(jwtTokenProvider.generateToken(principal))
+                .accessToken(jwtTokenProvider.generateToken(principal))
                 .tokenType("Bearer")
                 .expiresIn(jwtTokenProvider.getJwtExpirationMs())
                 .refreshToken(jwtTokenProvider.generateRefreshToken(principal))
@@ -122,7 +113,10 @@ public class AuthService {
                 .build();
     }
 
-    public String logout() {
-        return "Đăng xuất thành công. Client hãy xoá access token và refresh token ở phía local.";
+    public Map<String, String> logout() {
+        return Map.of(
+                "logoutMode", "CLIENT_SIDE",
+                "message", "Xóa access token và refresh token ở phía client để hoàn tất đăng xuất"
+        );
     }
 }

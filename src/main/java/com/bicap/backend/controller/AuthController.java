@@ -12,6 +12,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -31,7 +33,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public ApiResponse<UserResponse> me() {
-        return ApiResponse.success(authService.me());
+        return ApiResponse.success("Lấy hồ sơ cá nhân thành công", authService.me());
     }
 
     @PostMapping("/refresh")
@@ -40,7 +42,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ApiResponse<String> logout() {
-        return ApiResponse.success(authService.logout(), null);
+    public ApiResponse<Map<String, String>> logout() {
+        return ApiResponse.success("Đăng xuất thành công", authService.logout());
     }
 }

@@ -6,9 +6,9 @@ import lombok.Data;
 @Data
 @Builder
 public class TokenRefreshResponse {
-    private String token;
+    private String accessToken;
     private String tokenType;
-    private Long expiresIn;
+    private long expiresIn;
     private String refreshToken;
-    private Long refreshExpiresIn;
+    private long refreshExpiresIn;
 }
