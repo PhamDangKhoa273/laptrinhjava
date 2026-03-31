@@ -2,11 +2,15 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthLayout } from '../layouts/AuthLayout.jsx'
 import { DashboardLayout } from '../layouts/DashboardLayout.jsx'
 import { DashboardHomePage } from '../pages/DashboardHomePage.jsx'
+import { FarmPackagesPage } from '../pages/FarmPackagesPage.jsx'
+import { FarmWorkspacePage } from '../pages/FarmWorkspacePage.jsx'
 import { LoginPage } from '../pages/LoginPage.jsx'
 import { NotFoundPage } from '../pages/NotFoundPage.jsx'
 import { ProfilePage } from '../pages/ProfilePage.jsx'
 import { RegisterPage } from '../pages/RegisterPage.jsx'
+import { RetailerWorkspacePage } from '../pages/RetailerWorkspacePage.jsx'
 import { RoleDashboardPage } from '../pages/RoleDashboardPage.jsx'
+import { ShippingWorkspacePage } from '../pages/ShippingWorkspacePage.jsx'
 import { ROLES } from '../utils/constants'
 import { ProtectedRoute } from './ProtectedRoute.jsx'
 import { PublicOnlyRoute } from './PublicOnlyRoute.jsx'
@@ -32,28 +36,28 @@ const dashboardConfigs = {
     title: 'Farm dashboard',
     description: 'Farm-facing workspace for profile completion, service packages, production seasons, and later blockchain-backed traceability.',
     highlights: [
-      { label: 'Farm profile', value: 'Ready', tone: 'success' },
-      { label: 'Season management', value: 'Prepared', tone: 'primary' },
+      { label: 'Farm profile API', value: 'Connected', tone: 'success' },
+      { label: 'Package subscription', value: 'Connected', tone: 'primary' },
       { label: 'Blockchain sync', value: 'Next phase', tone: 'warning' },
     ],
-    checklist: ['Update owner and farm information', 'Prepare service package purchase screen', 'Prepare season creation flow', 'Prepare export and QR generation flow'],
+    checklist: ['Create and update farm profile', 'View available service packages', 'Create farm subscriptions', 'Prepare season management flow'],
     modules: [
-      { title: 'Farm identity', description: 'Display business license, certifications, and approval status in one place.', badge: 'Core' },
-      { title: 'Season placeholders', description: 'Reserve pages for creating and updating farming seasons saved to blockchain later.', badge: 'Blockchain-ready' },
+      { title: 'Farm profile manager', description: 'Connected to backend farm APIs for creating and updating the farm business profile.', badge: 'Live API' },
+      { title: 'Service package subscriptions', description: 'Connected to backend package and farm subscription APIs.', badge: 'Connected' },
       { title: 'Marketplace registration', description: 'Prepare the entry point for pushing agricultural products to the trading floor.', badge: 'Marketplace' },
     ],
   },
   retailer: {
     title: 'Retailer dashboard',
-    description: 'Retailer-facing shell for product discovery, order requests, QR verification, and shipment follow-up.',
+    description: 'Retailer-facing shell for business profile management and later order flow expansion.',
     highlights: [
-      { label: 'Retailer profile', value: 'Ready', tone: 'success' },
+      { label: 'Retailer profile API', value: 'Connected', tone: 'success' },
       { label: 'Order requests', value: 'Prepared', tone: 'primary' },
       { label: 'QR traceability', value: 'Next phase', tone: 'warning' },
     ],
-    checklist: ['Update retailer business profile', 'Prepare marketplace search flow', 'Prepare buying request history', 'Prepare shipment confirmation view'],
+    checklist: ['Create and update retailer profile', 'Prepare marketplace search flow', 'Prepare buying request history', 'Prepare shipment confirmation view'],
     modules: [
-      { title: 'Marketplace access', description: 'Lay out future search, filter, and product detail screens for agricultural products.', badge: 'Discovery' },
+      { title: 'Retailer business profile', description: 'Connected to backend retailer APIs for CRUD on the current retailer profile.', badge: 'Live API' },
       { title: 'Order request flow', description: 'Prepare create/cancel request screens and status tracking for retailer purchases.', badge: 'Orders' },
       { title: 'QR scan result placeholder', description: 'Reserve a result page for displaying blockchain-backed product origin details.', badge: 'Traceability' },
     ],
@@ -63,14 +67,14 @@ const dashboardConfigs = {
     description: 'Logistics management shell for shipment creation, driver coordination, and vehicle administration.',
     highlights: [
       { label: 'Shipment control', value: 'Prepared', tone: 'success' },
-      { label: 'Driver management', value: 'Prepared', tone: 'primary' },
-      { label: 'Transport tracking', value: 'Next phase', tone: 'warning' },
+      { label: 'Driver management', value: 'Connected', tone: 'primary' },
+      { label: 'Vehicle management', value: 'Connected', tone: 'warning' },
     ],
-    checklist: ['Prepare successful order listing', 'Prepare shipment creation flow', 'Prepare vehicle and driver management', 'Prepare report and notification views'],
+    checklist: ['Manage drivers', 'Manage vehicles', 'Prepare shipment creation flow', 'Prepare report and notification views'],
     modules: [
+      { title: 'Driver management', description: 'Connected to backend driver APIs for creating and updating drivers.', badge: 'Live API' },
+      { title: 'Vehicle management', description: 'Connected to backend vehicle APIs for creating and updating logistics vehicles.', badge: 'Live API' },
       { title: 'Shipment creation placeholder', description: 'Design the future flow to create and cancel shipments for successful orders.', badge: 'Operations' },
-      { title: 'Vehicle management', description: 'Reserve CRUD screens for transportation vehicles used in agricultural logistics.', badge: 'CRUD' },
-      { title: 'Driver coordination', description: 'Prepare management screens for drivers and incoming shipment reports.', badge: 'Logistics' },
     ],
   },
   driver: {
@@ -127,14 +131,18 @@ export function AppRoutes() {
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.FARM]} />}>
             <Route path="/dashboard/farm" element={<RoleDashboardPage {...dashboardConfigs.farm} />} />
+            <Route path="/farm/workspace" element={<FarmWorkspacePage />} />
+            <Route path="/farm/packages" element={<FarmPackagesPage />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.RETAILER]} />}>
             <Route path="/dashboard/retailer" element={<RoleDashboardPage {...dashboardConfigs.retailer} />} />
+            <Route path="/retailer/workspace" element={<RetailerWorkspacePage />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.SHIPPING_MANAGER]} />}>
             <Route path="/dashboard/shipping-manager" element={<RoleDashboardPage {...dashboardConfigs['shipping-manager']} />} />
+            <Route path="/shipping/workspace" element={<ShippingWorkspacePage />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.DRIVER]} />}>

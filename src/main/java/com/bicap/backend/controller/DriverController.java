@@ -21,7 +21,7 @@ public class DriverController {
     private final DriverService driverService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER','ADMIN')")
+    @PreAuthorize("hasRole('SHIPPING_MANAGER')")
     public ApiResponse<DriverResponse> create(@Valid @RequestBody CreateDriverRequest request) {
         return ApiResponse.success(
                 "Tạo driver thành công",
