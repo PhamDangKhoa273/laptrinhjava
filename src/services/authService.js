@@ -1,23 +1,51 @@
 import { api } from './api'
 
+function normalizeUser(user) {
+  if (!user) return null
+
+  return {
+    ...user,
+    phoneNumber: user.phoneNumber ?? user.phone ?? '',
+    profile: user.profile ?? {},
+  }
+}
+
 export async function login(payload) {
   const response = await api.post('/auth/login', payload)
-  return response.data?.data || response.data
+  const data = response.data?.data || response.data
+  return {
+    ...data,
+    user: normalizeUser(data?.user),
+  }
 }
 
 export async function register(payload) {
-  const response = await api.post('/auth/register', payload)
-  return response.data?.data || response.data
+  const requestPayload = {
+    fullName: payload.fullName,
+    email: payload.email,
+    phone: payload.phone ?? payload.phoneNumber ?? '',
+    password: payload.password,
+    avatarUrl: payload.avatarUrl ?? '',
+  }
+
+  const response = await api.post('/auth/register', requestPayload)
+  return normalizeUser(response.data?.data || response.data)
 }
 
 export async function getCurrentUser() {
   const response = await api.get('/auth/me')
-  return response.data?.data || response.data
+  return normalizeUser(response.data?.data || response.data)
 }
 
 export async function updateProfile(payload) {
-  const response = await api.put('/users/profile', payload)
-  return response.data?.data || response.data
+  const requestPayload = {
+    fullName: payload.fullName,
+    phone: payload.phone ?? payload.phoneNumber ?? '',
+    avatarUrl: payload.avatarUrl ?? '',
+  }
+
+  const response = await api.put('/users/me/profile', requestPayload)
+  return normalizeUser(response.data?.data || response.data)
 }
 
 export async function logout() {

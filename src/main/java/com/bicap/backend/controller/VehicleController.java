@@ -21,7 +21,7 @@ public class VehicleController {
     private final VehicleService vehicleService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER','ADMIN')")
+    @PreAuthorize("hasRole('SHIPPING_MANAGER')")
     public ApiResponse<VehicleResponse> createVehicle(@Valid @RequestBody CreateVehicleRequest request) {
         return ApiResponse.success(
                 "Tạo vehicle thành công",

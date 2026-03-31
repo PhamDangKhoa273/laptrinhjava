@@ -2,7 +2,10 @@
 
 Frontend module for **Member 3 - Frontend Developer** in Phase 2 of the BICAP system.
 
-## Features completed
+## Current verified scope
+This frontend has been aligned to the current backend core scope so the Phase 2 demo can run more reliably.
+
+### Verified working scope target
 - React + Vite frontend setup
 - Login page
 - Register page
@@ -16,19 +19,16 @@ Frontend module for **Member 3 - Frontend Developer** in Phase 2 of the BICAP sy
 - Backend validation error mapping to form fields
 - Loading, timeout, network error, and auth error handling
 - Dashboard skeleton for Admin, Farm, Retailer, Shipping Manager, Driver, Guest
-- Reusable UI components for forms, status cards, loading states, and role badges
 
-## Suggested backend APIs
-The frontend expects these endpoints:
+## Backend APIs currently used by frontend
 - `POST /auth/login`
 - `POST /auth/register`
 - `GET /auth/me`
 - `POST /auth/logout`
 - `POST /auth/refresh`
-- `PUT /users/profile`
+- `PUT /users/me/profile`
 
-Recommended response shape:
-
+## Current expected response shape
 ```json
 {
   "message": "Success",
@@ -36,20 +36,31 @@ Recommended response shape:
     "accessToken": "jwt-token",
     "refreshToken": "refresh-token",
     "user": {
-      "id": 1,
+      "userId": 1,
       "fullName": "Nguyen Van A",
       "email": "a@example.com",
-      "phoneNumber": "0901234567",
+      "phone": "0901234567",
+      "avatarUrl": "https://example.com/avatar.png",
       "primaryRole": "FARM",
-      "roles": ["FARM"]
+      "roles": ["FARM"],
+      "status": "ACTIVE"
     }
   }
 }
 ```
 
+## Important scope note
+The frontend still contains role dashboards and placeholder texts for Farm / Retailer / Driver / Shipping Manager flows.
+However, the currently verified backend core scope is centered on:
+- auth
+- user profile
+- role list / role-based redirect
+- admin-level user management basics
+
+Extended role-specific business profile modules may require additional backend entities and APIs.
+
 ## Run project
 ```bash
-cd bicap-frontend
 npm install
 npm run dev
 ```
@@ -69,7 +80,7 @@ src/
   utils/
 ```
 
-## What to demo in class/report
+## Recommended demo flow
 1. Register account
 2. Login account
 3. Redirect by role
@@ -79,3 +90,13 @@ src/
 7. Show backend validation error on form
 8. Show token-based session persistence after refresh
 9. Logout and verify redirect back to login
+
+## Known backend dependency risk
+Backend configuration currently expects:
+- MySQL running locally
+- database `bicap_db`
+- username `root`
+- password `1234`
+- Flyway / validated schema
+
+If backend startup fails, verify database schema and migration files first.

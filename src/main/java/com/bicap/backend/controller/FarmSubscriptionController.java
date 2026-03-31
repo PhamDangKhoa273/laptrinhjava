@@ -21,7 +21,7 @@ public class FarmSubscriptionController {
     private final FarmSubscriptionService farmSubscriptionService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('FARM','ADMIN')")
+    @PreAuthorize("hasRole('FARM')")
     public ApiResponse<FarmSubscriptionResponse> create(@Valid @RequestBody CreateFarmSubscriptionRequest request) {
         return ApiResponse.success(
                 "Tạo đăng ký gói thành công",
@@ -36,7 +36,7 @@ public class FarmSubscriptionController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasAnyRole('FARM','ADMIN')")
+    @PreAuthorize("hasRole('FARM')")
     public ApiResponse<List<FarmSubscriptionResponse>> getMySubscriptions() {
         return ApiResponse.success(farmSubscriptionService.getMySubscriptions(SecurityUtils.getCurrentUserId()));
     }
