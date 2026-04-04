@@ -1,0 +1,10 @@
+package com.bicap.backend.repository;
+
+import com.bicap.backend.entity.BlockchainTransaction;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface BlockchainTransactionRepository extends JpaRepository<BlockchainTransaction, Long> {
+    Optional<BlockchainTransaction> findTopByRelatedEntityTypeAndRelatedEntityIdOrderByCreatedAtDesc(String relatedEntityType, Long relatedEntityId);
+}

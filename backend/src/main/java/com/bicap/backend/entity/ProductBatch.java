@@ -19,39 +19,32 @@ public class ProductBatch {
     @Column(name = "batch_id")
     private Long batchId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "farm_id", nullable = false)
-    private Farm farm;
-
-    @Column(name = "season_id")
+    @Column(name = "season_id", nullable = false)
     private Long seasonId;
+
+    @Column(name = "product_id", nullable = false)
+    private Long productId;
 
     @Column(name = "batch_code", nullable = false, unique = true, length = 50)
     private String batchCode;
 
-    @Column(name = "product_name", nullable = false, length = 150)
-    private String productName;
+    @Column(name = "harvest_date", nullable = false)
+    private LocalDate harvestDate;
 
     @Column(name = "quantity", nullable = false, precision = 12, scale = 2)
     private BigDecimal quantity;
 
-    @Column(name = "unit", nullable = false, length = 30)
-    private String unit;
+    @Column(name = "available_quantity", nullable = false, precision = 12, scale = 2)
+    private BigDecimal availableQuantity;
 
-    @Column(name = "export_date", nullable = false)
-    private LocalDate exportDate;
+    @Column(name = "quality_grade", length = 30)
+    private String qualityGrade;
 
-    @Column(name = "status", nullable = false, length = 30)
-    private String status = "CREATED";
+    @Column(name = "expiry_date")
+    private LocalDate expiryDate;
 
-    @Column(name = "trace_url", length = 255)
-    private String traceUrl;
-
-    @Column(name = "qr_code_data", columnDefinition = "TEXT")
-    private String qrCodeData;
-
-    @Column(name = "blockchain_tx_hash", length = 255)
-    private String blockchainTxHash;
+    @Column(name = "batch_status", nullable = false, length = 30)
+    private String batchStatus = "CREATED";
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
