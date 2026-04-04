@@ -38,6 +38,7 @@ TV3 phụ trách module:
 
 #### Trace
 - `GET /api/trace/batches/{id}`
+- endpoint trace đang được mở public trong security để phục vụ quét QR không cần token
 
 ## 3. Validate hiện có
 - `batch_code` không trùng
@@ -50,6 +51,10 @@ TV3 phụ trách module:
 ### Chờ TV1
 - validate `season` tồn tại thật trong bảng season
 - validate `product` khớp với `season`
+- trả season detail thật trong trace response
+
+### Chờ TV2
+- trả `processList` thật trong trace response để hoàn thiện truy xuất nguồn gốc
 
 ### Chờ TV4
 - thay `BlockchainService` mock bằng service blockchain thật
@@ -87,12 +92,23 @@ Service đang trả về:
 Kết quả được lưu vào bảng:
 - `blockchain_transactions`
 
-## 7. Hướng nâng cấp tiếp theo
-1. nối dữ liệu season/product thật từ TV1
-2. thay blockchain mock bằng TV4 core service
-3. test end-to-end khi DB migration toàn nhóm ổn định
-4. frontend TV5 dùng API TV3 để render batch/QR/trace
+## 7. Trạng thái trace API
+Trace API hiện trả tốt các dữ liệu trong phạm vi TV3:
+- batch info
+- QR info
+- blockchain info
 
-## 8. Ghi chú minh bạch
+Tuy nhiên, đây **chưa phải trace full end-to-end của toàn Phase 3**, vì:
+- `seasonInfo` hiện là placeholder chờ TV1
+- `processList` hiện để rỗng chờ TV2
+
+## 8. Hướng nâng cấp tiếp theo
+1. nối dữ liệu season/product thật từ TV1
+2. nối process list thật từ TV2
+3. thay blockchain mock bằng TV4 core service
+4. test end-to-end khi DB migration toàn nhóm ổn định
+5. frontend TV5 dùng API TV3 để render batch/QR/trace
+
+## 9. Ghi chú minh bạch
 Module TV3 hiện đã hoàn thành phần backend ở mức độc lập.
-Các phần chưa full 100% là do phụ thuộc module chung của nhóm (season thật, blockchain thật, migration DB toàn hệ thống).
+Các phần chưa full 100% là do phụ thuộc module chung của nhóm (season thật, process thật, blockchain thật, migration DB toàn hệ thống).
