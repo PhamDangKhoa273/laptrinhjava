@@ -1,13 +1,11 @@
-﻿# Root aggregator
-
-# Frontend
+﻿# Frontend
 frontend/node_modules/
 frontend/dist/
 
 # Backend
 backend/target/
 
-# Env / IDE
+# Environment / IDE
 .env
 .env.*
 .idea/
