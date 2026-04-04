@@ -16,37 +16,28 @@ const adminLinks = [
   { to: '/profile', label: 'Hồ sơ cá nhân', description: 'Xem và cập nhật hồ sơ cá nhân' },
 ]
 
-const roleLinks = {
-  [ROLES.FARM]: [
-    { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
-    { to: '/dashboard/farm', label: 'Farm dashboard', description: 'Tổng quan vai trò nông trại' },
-    { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
-  ],
-  [ROLES.RETAILER]: [
-    { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
-    { to: '/dashboard/retailer', label: 'Retailer dashboard', description: 'Tổng quan vai trò nhà bán lẻ' },
-    { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
-  ],
-  [ROLES.SHIPPING_MANAGER]: [
-    { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
-    { to: '/dashboard/shipping-manager', label: 'Shipping dashboard', description: 'Tổng quan vai trò vận chuyển' },
-    { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
-  ],
-  [ROLES.DRIVER]: [
-    { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
-    { to: '/dashboard/driver', label: 'Driver dashboard', description: 'Tổng quan vai trò tài xế' },
-    { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
-  ],
-  [ROLES.GUEST]: [
-    { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
-    { to: '/dashboard/guest', label: 'Guest dashboard', description: 'Tổng quan tài khoản khách' },
-    { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
-  ],
-}
+const links = [
+  { to: '/dashboard', label: 'Overview', description: 'Frontend integration and auth status summary' },
+  { to: '/profile', label: 'Profile center', description: 'Personal and business profile management' },
+  { to: '/dashboard/admin', label: 'Admin hub', description: 'User roles and farm approval overview' },
+  { to: '/dashboard/farm', label: 'Farm dashboard', description: 'Farm role overview and business links' },
+  { to: '/farm/workspace', label: 'Farm profile', description: 'Create and update farm business profile' },
+  { to: '/farm/packages', label: 'Farm packages', description: 'Browse packages and create subscriptions' },
+  { to: '/dashboard/retailer', label: 'Retailer dashboard', description: 'Retailer overview and business links' },
+  { to: '/retailer/workspace', label: 'Retailer profile', description: 'Create and update retailer profile' },
+  { to: '/dashboard/shipping-manager', label: 'Shipping manager', description: 'Shipping role overview and business links' },
+  { to: '/shipping/workspace', label: 'Drivers & vehicles', description: 'Manage drivers and vehicles' },
+  { to: '/dashboard/driver', label: 'Driver workspace', description: 'Shipment status and handover placeholders' },
+  { to: '/dashboard/guest', label: 'Guest view', description: 'Discovery and educational content placeholder' },
+]
 
 function filterLinksByRole(role) {
   if (role === ROLES.ADMIN) return adminLinks
-  return roleLinks[role] || roleLinks[ROLES.GUEST]
+  if (role === ROLES.FARM) return links.filter((item) => ['/dashboard', '/profile', '/dashboard/farm', '/farm/workspace', '/farm/packages'].includes(item.to))
+  if (role === ROLES.RETAILER) return links.filter((item) => ['/dashboard', '/profile', '/dashboard/retailer', '/retailer/workspace'].includes(item.to))
+  if (role === ROLES.SHIPPING_MANAGER) return links.filter((item) => ['/dashboard', '/profile', '/dashboard/shipping-manager', '/shipping/workspace'].includes(item.to))
+  if (role === ROLES.DRIVER) return links.filter((item) => ['/dashboard', '/profile', '/dashboard/driver'].includes(item.to))
+  return links.filter((item) => ['/dashboard', '/profile', '/dashboard/guest'].includes(item.to))
 }
 
 export function DashboardLayout() {
