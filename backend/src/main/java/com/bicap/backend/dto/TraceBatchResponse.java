@@ -6,6 +6,8 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -20,8 +22,11 @@ public class TraceBatchResponse {
     private String qualityGrade;
     private LocalDate expiryDate;
     private String batchStatus;
-    private String qrUrl;
+    private QrCodeResponse qrInfo;
     private String txHash;
     private String txStatus;
     private LocalDateTime lastBlockchainSyncAt;
+    private Map<String, Object> seasonInfo;
+    private List<Map<String, Object>> processList;
+    private String note;
 }
