@@ -8,9 +8,13 @@ import com.bicap.backend.security.SecurityUtils;
 import com.bicap.backend.service.ProductBatchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -61,6 +65,18 @@ public class ProductBatchController {
     @PreAuthorize("hasAnyRole('FARM','ADMIN','RETAILER','SHIPPING_MANAGER')")
     public ApiResponse<Map<String, String>> getQrCode(@PathVariable Long id) {
         return ApiResponse.success(productBatchService.getQrCode(id));
+    }
+
+    @GetMapping("/{id}/qr-image")
+    @PreAuthorize("hasAnyRole('FARM','ADMIN','RETAILER','SHIPPING_MANAGER')")
+    public ResponseEntity<byte[]> getQrImage(@PathVariable Long id) {
+        Map<String, String> qrResult = productBatchService.getQrCode(id);
+        byte[] imageBytes = Base64.getDecoder().decode(qrResult.get("qrCodeBase64"));
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=batch-" + id + "-qr.png")
+                .contentType(MediaType.IMAGE_PNG)
+                .body(imageBytes);
     }
 
     @GetMapping("/trace/{id}")
