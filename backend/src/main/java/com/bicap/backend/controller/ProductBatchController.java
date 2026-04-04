@@ -2,6 +2,7 @@ package com.bicap.backend.controller;
 
 import com.bicap.backend.dto.CreateProductBatchRequest;
 import com.bicap.backend.dto.ProductBatchResponse;
+import com.bicap.backend.dto.UpdateProductBatchRequest;
 import com.bicap.backend.dto.response.ApiResponse;
 import com.bicap.backend.security.SecurityUtils;
 import com.bicap.backend.service.ProductBatchService;
@@ -29,6 +30,16 @@ public class ProductBatchController {
         );
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('FARM','ADMIN')")
+    public ApiResponse<ProductBatchResponse> updateProductBatch(@PathVariable Long id,
+                                                                @Valid @RequestBody UpdateProductBatchRequest request) {
+        return ApiResponse.success(
+                "Cập nhật lô sản phẩm thành công",
+                productBatchService.updateProductBatch(id, request, SecurityUtils.getCurrentUserId())
+        );
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('FARM','ADMIN','RETAILER','SHIPPING_MANAGER')")
     public ApiResponse<List<ProductBatchResponse>> getAllProductBatches(
@@ -48,7 +59,12 @@ public class ProductBatchController {
 
     @GetMapping("/{id}/qr")
     @PreAuthorize("hasAnyRole('FARM','ADMIN','RETAILER','SHIPPING_MANAGER')")
-    public ApiResponse<Map<String, String>> getQrCodeData(@PathVariable Long id) {
-        return ApiResponse.success(Map.of("qrCodeData", productBatchService.getQrCodeData(id)));
+    public ApiResponse<Map<String, String>> getQrCode(@PathVariable Long id) {
+        return ApiResponse.success(productBatchService.getQrCode(id));
+    }
+
+    @GetMapping("/trace/{id}")
+    public ApiResponse<Map<String, Object>> traceProductBatch(@PathVariable Long id) {
+        return ApiResponse.success(productBatchService.getTraceInfo(id));
     }
 }
