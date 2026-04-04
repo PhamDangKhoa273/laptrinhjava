@@ -21,7 +21,7 @@ public class RetailerController {
     private final RetailerService retailerService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('RETAILER','ADMIN')")
+    @PreAuthorize("hasRole('RETAILER')")
     public ApiResponse<RetailerResponse> create(@Valid @RequestBody CreateRetailerRequest request) {
         return ApiResponse.success(
                 "Tạo retailer thành công",
@@ -42,7 +42,7 @@ public class RetailerController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasAnyRole('ADMIN','RETAILER')")
+    @PreAuthorize("hasRole('RETAILER')")
     public ApiResponse<RetailerResponse> getMyRetailer() {
         return ApiResponse.success(retailerService.getMyRetailer(SecurityUtils.getCurrentUserId()));
     }

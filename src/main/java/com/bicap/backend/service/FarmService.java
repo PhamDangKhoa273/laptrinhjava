@@ -70,8 +70,21 @@ public class FarmService {
                 .toList();
     }
 
-    public FarmResponse getFarmById(Long farmId) {
-        return toResponse(getFarmEntityById(farmId));
+    public FarmResponse getFarmById(Long farmId, Long currentUserId) {
+        Farm farm = getFarmEntityById(farmId);
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+
+        boolean isAdmin = userService.hasRole(currentUser, RoleName.ADMIN);
+        boolean isShippingManager = userService.hasRole(currentUser, RoleName.SHIPPING_MANAGER);
+        boolean isOwner = farm.getOwnerUser() != null
+                && farm.getOwnerUser().getUserId().equals(currentUserId);
+
+        if (!isAdmin && !isShippingManager && !isOwner) {
+            throw new BusinessException("Bạn không có quyền xem farm này");
+        }
+
+        return toResponse(farm);
     }
 
     public FarmResponse getMyFarm(Long currentUserId) {

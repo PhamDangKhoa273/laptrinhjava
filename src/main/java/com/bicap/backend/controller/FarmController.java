@@ -22,7 +22,7 @@ public class FarmController {
     private final FarmService farmService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('FARM','ADMIN')")
+    @PreAuthorize("hasRole('FARM')")
     public ApiResponse<FarmResponse> createFarm(@Valid @RequestBody CreateFarmRequest request) {
         return ApiResponse.success(
                 "Tạo farm thành công",
@@ -37,12 +37,13 @@ public class FarmController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('FARM','ADMIN','SHIPPING_MANAGER')")
     public ApiResponse<FarmResponse> getFarmById(@PathVariable Long id) {
-        return ApiResponse.success(farmService.getFarmById(id));
+        return ApiResponse.success(farmService.getFarmById(id, SecurityUtils.getCurrentUserId()));
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasAnyRole('FARM','ADMIN')")
+    @PreAuthorize("hasRole('FARM')")
     public ApiResponse<FarmResponse> getMyFarm() {
         return ApiResponse.success(farmService.getMyFarm(SecurityUtils.getCurrentUserId()));
     }
