@@ -6,6 +6,16 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { getPrimaryRole } from '../utils/helpers'
 import { ROLES } from '../utils/constants'
 
+const adminLinks = [
+  { to: '/dashboard', label: 'Tổng quan', description: 'Tổng quan phiên đăng nhập và kết nối hệ thống' },
+  { to: '/dashboard/admin/accounts', label: 'Quản lý tài khoản', description: 'Quản trị người dùng và nhà bán lẻ trên hệ thống' },
+  { to: '/dashboard/admin/operations', label: 'Quản lý vận hành', description: 'Duyệt nông trại và theo dõi gói dịch vụ' },
+  { to: '/dashboard/admin/products', label: 'Sản phẩm', description: 'Quản lý danh mục, thông tin sản phẩm và dữ liệu' },
+  { to: '/dashboard/admin/blockchain', label: 'Blockchain', description: 'Giám sát hợp đồng thông minh và cấu hình blockchain' },
+  { to: '/dashboard/appearance', label: 'Giao diện website', description: 'Quản lý tài nguyên hiển thị và xem trước giao diện' },
+  { to: '/profile', label: 'Hồ sơ cá nhân', description: 'Xem và cập nhật hồ sơ cá nhân' },
+]
+
 const links = [
   { to: '/dashboard', label: 'Overview', description: 'Frontend integration and auth status summary' },
   { to: '/profile', label: 'Profile center', description: 'Personal and business profile management' },
@@ -22,7 +32,7 @@ const links = [
 ]
 
 function filterLinksByRole(role) {
-  if (role === ROLES.ADMIN) return links
+  if (role === ROLES.ADMIN) return adminLinks
   if (role === ROLES.FARM) return links.filter((item) => ['/dashboard', '/profile', '/dashboard/farm', '/farm/workspace', '/farm/packages'].includes(item.to))
   if (role === ROLES.RETAILER) return links.filter((item) => ['/dashboard', '/profile', '/dashboard/retailer', '/retailer/workspace'].includes(item.to))
   if (role === ROLES.SHIPPING_MANAGER) return links.filter((item) => ['/dashboard', '/profile', '/dashboard/shipping-manager', '/shipping/workspace'].includes(item.to))
@@ -47,19 +57,19 @@ export function DashboardLayout() {
       <div className="dashboard-main">
         <header className="dashboard-header enhanced">
           <div>
-            <p className="eyebrow">BICAP control center</p>
-            <h1>{user?.fullName || user?.name || 'User dashboard'}</h1>
+            <p className="eyebrow">Trung tâm điều khiển BICAP</p>
+            <h1>{user?.fullName || user?.name || 'Bảng điều khiển người dùng'}</h1>
             <p className="header-description">
-              Frontend core module for role-based access, profile workflows, and scalable navigation.
+              Khu vực quản lý giao diện frontend cho phân quyền người dùng, hồ sơ tài khoản và điều hướng theo vai trò.
             </p>
             <div className="header-meta">
               <RoleBadge role={role} />
-              <span>{user?.email || 'No email yet'}</span>
+              <span>{user?.email || 'Chưa có email'}</span>
             </div>
           </div>
           <div className="header-actions">
-            <Link to="/profile" className="text-link">Profile</Link>
-            <Button variant="secondary" onClick={handleLogout}>Logout</Button>
+            <Link to="/profile" className="text-link">Hồ sơ</Link>
+            <Button variant="secondary" onClick={handleLogout}>Đăng xuất</Button>
           </div>
         </header>
         <main>

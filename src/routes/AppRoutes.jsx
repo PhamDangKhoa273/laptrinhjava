@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthLayout } from '../layouts/AuthLayout.jsx'
 import { DashboardLayout } from '../layouts/DashboardLayout.jsx'
+import { AdminDashboardPage } from '../pages/AdminDashboardPage.jsx'
 import { DashboardHomePage } from '../pages/DashboardHomePage.jsx'
 import { FarmPackagesPage } from '../pages/FarmPackagesPage.jsx'
 import { FarmWorkspacePage } from '../pages/FarmWorkspacePage.jsx'
@@ -11,6 +12,7 @@ import { RegisterPage } from '../pages/RegisterPage.jsx'
 import { RetailerWorkspacePage } from '../pages/RetailerWorkspacePage.jsx'
 import { RoleDashboardPage } from '../pages/RoleDashboardPage.jsx'
 import { ShippingWorkspacePage } from '../pages/ShippingWorkspacePage.jsx'
+import { WebsiteAppearancePage } from '../pages/WebsiteAppearancePage.jsx'
 import { ROLES } from '../utils/constants'
 import { ProtectedRoute } from './ProtectedRoute.jsx'
 import { PublicOnlyRoute } from './PublicOnlyRoute.jsx'
@@ -23,13 +25,13 @@ const dashboardConfigs = {
     highlights: [
       { label: 'User management', value: 'Ready', tone: 'success' },
       { label: 'Farm approval', value: 'Prepared', tone: 'primary' },
-      { label: 'Smart contract area', value: 'Planned', tone: 'warning' },
+      { label: 'Products & Smart contract', value: 'Planned', tone: 'warning' },
     ],
-    checklist: ['View users list', 'Assign and review roles', 'Review pending farm registrations', 'Approve or reject farm profiles'],
+    checklist: ['View users list', 'Assign and review roles', 'Review pending farm registrations', 'Approve or reject farm profiles', 'Manage products', 'Deploy smart contracts'],
     modules: [
       { title: 'Admin account management', description: 'Create, edit, and maintain admin accounts with proper permission boundaries.', badge: 'RBAC' },
-      { title: 'Farm review panel', description: 'Check farm legitimacy, certification, contact details, and location before approval.', badge: 'Approval' },
-      { title: 'Blockchain operations placeholder', description: 'Reserve a future area for smart contract deployment and traceability contract maintenance.', badge: 'Next phase' },
+      { title: 'Farm & Product review panel', description: 'Check farm legitimacy, review product accuracy, certification, contact details.', badge: 'Approval' },
+      { title: 'Blockchain operations', description: 'Deploy smart contract and maintain traceability on VeChainThor.', badge: 'Smart Contract' },
     ],
   },
   farm: {
@@ -126,7 +128,12 @@ export function AppRoutes() {
           <Route path="/profile" element={<ProfilePage />} />
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
-            <Route path="/dashboard/admin" element={<RoleDashboardPage {...dashboardConfigs.admin} />} />
+            <Route path="/dashboard/admin" element={<Navigate to="/dashboard/admin/accounts" replace />} />
+            <Route path="/dashboard/admin/accounts" element={<AdminDashboardPage defaultTab="users" />} />
+            <Route path="/dashboard/admin/operations" element={<AdminDashboardPage defaultTab="farms" />} />
+            <Route path="/dashboard/admin/products" element={<AdminDashboardPage defaultTab="products" />} />
+            <Route path="/dashboard/admin/blockchain" element={<AdminDashboardPage defaultTab="blockchain" />} />
+            <Route path="/dashboard/appearance" element={<WebsiteAppearancePage />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.FARM]} />}>
