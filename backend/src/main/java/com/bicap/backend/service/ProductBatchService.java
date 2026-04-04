@@ -94,9 +94,10 @@ public class ProductBatchService {
 
         String qrUrl = "/api/trace/batches/" + batch.getBatchId();
         String qrValue = String.format(
-                "{\"batch_id\":%d,\"batch_code\":\"%s\",\"trace_url\":\"%s\"}",
+                "{\"batch_id\":%d,\"batch_code\":\"%s\",\"season_id\":%d,\"trace_url\":\"%s\"}",
                 batch.getBatchId(),
                 batch.getBatchCode(),
+                batch.getSeasonId(),
                 qrUrl
         );
 
