@@ -1,20 +1,24 @@
 ﻿# laptrinhjava
 
-Dự án đã được tách lại cho gọn:
+Cấu trúc dự án đã được sắp xếp lại để gọn hơn khi đưa lên GitHub:
 
-- `frontend/`: React/Vite frontend
-- `backend/`: Spring Boot backend
+- `frontend/` — React/Vite frontend
+- `backend/` — Spring Boot backend
+- `docs/` — tài liệu, checklist, test plan
 
-## Chạy frontend
+## Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-## Chạy backend
+## Backend
 ```bash
 cd backend
-./mvnw spring-boot:run
+mvnw.cmd spring-boot:run
 ```
-Trên Windows có thể dùng `mvnw.cmd`.
+
+## Ghi chú
+- `frontend/node_modules/` và `backend/target/` là thư mục build/dependency.
+- Không sửa logic code, chỉ sắp xếp lại cấu trúc thư mục.
