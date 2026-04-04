@@ -1,102 +1,127 @@
-# BICAP Frontend - Phase 2
+# LỘ TRÌNH THỰC HIỆN DỰ ÁN BICAP
 
-Frontend module for **Member 3 - Frontend Developer** in Phase 2 of the BICAP system.
+Tài liệu này mô tả lộ trình triển khai dự án **“Tích hợp Blockchain trong sản xuất nông sản sạch (BICAP)”** trong khuôn khổ học phần phát triển ứng dụng Web.
 
-## Current verified scope
-This frontend has been aligned to the current backend core scope so the Phase 2 demo can run more reliably.
+Mục tiêu của lộ trình là tổ chức công việc theo từng giai đoạn (**phase**) nhằm giúp nhóm phát triển xây dựng hệ thống một cách có kế hoạch, rõ ràng về nhiệm vụ, đồng thời đảm bảo tất cả thành viên đều tham gia đóng góp trong mỗi giai đoạn.
 
-### Verified working scope target
-- React + Vite frontend setup
-- Login page
-- Register page
-- Profile / update profile page
-- Access token + refresh token storage with localStorage
-- Axios API service with bearer token injection
-- Auto refresh token flow (if backend supports `/auth/refresh`)
-- Protected routes / public-only routes
-- Redirect after login based on role
-- Dashboard overview for auth/session status
-- Backend validation error mapping to form fields
-- Loading, timeout, network error, and auth error handling
-- Dashboard skeleton for Admin, Farm, Retailer, Shipping Manager, Driver, Guest
+---
 
-## Backend APIs currently used by frontend
-- `POST /auth/login`
-- `POST /auth/register`
-- `GET /auth/me`
-- `POST /auth/logout`
-- `POST /auth/refresh`
-- `PUT /users/me/profile`
+## Phase 1 – Phân tích yêu cầu và thiết kế hệ thống
 
-## Current expected response shape
-```json
-{
-  "message": "Success",
-  "data": {
-    "accessToken": "jwt-token",
-    "refreshToken": "refresh-token",
-    "user": {
-      "userId": 1,
-      "fullName": "Nguyen Van A",
-      "email": "a@example.com",
-      "phone": "0901234567",
-      "avatarUrl": "https://example.com/avatar.png",
-      "primaryRole": "FARM",
-      "roles": ["FARM"],
-      "status": "ACTIVE"
-    }
-  }
-}
-```
+### Mục tiêu
+- Phân tích yêu cầu nghiệp vụ dựa trên đặc tả của dự án.
+- Xác định các tác nhân (**Actors**) và các chức năng chính của hệ thống.
+- Thiết kế kiến trúc tổng thể cho hệ thống.
 
-## Important scope note
-The frontend still contains role dashboards and placeholder texts for Farm / Retailer / Driver / Shipping Manager flows.
-However, the currently verified backend core scope is centered on:
-- auth
-- user profile
-- role list / role-based redirect
-- admin-level user management basics
+### Công việc thực hiện
+- Phân tích nghiệp vụ và xác định các vai trò:
+  - Admin
+  - Farm
+  - Retailer
+  - Shipping Manager
+  - Ship Driver
+  - Guest
+- Xây dựng **Use Case Diagram** mô tả các chức năng của hệ thống.
+- Thiết kế kiến trúc hệ thống (**System Architecture**).
+- Thiết kế mô hình cơ sở dữ liệu (**ERD – Entity Relationship Diagram**).
+- Soạn thảo tài liệu mô tả dự án và cấu trúc hệ thống.
 
-Extended role-specific business profile modules may require additional backend entities and APIs.
+### Kết quả đầu ra
+- Use Case Diagram
+- Architecture Diagram
+- Thiết kế cơ sở dữ liệu
+- Tài liệu phân tích yêu cầu hệ thống
 
-## Run project
-```bash
-npm install
-npm run dev
-```
+---
 
-## Environment
-Create `.env` from `.env.example` and update API URL if needed.
+## Phase 2 – Xây dựng hệ thống lõi (Core System)
 
-## Folder structure
-```text
-src/
-  components/
-  context/
-  layouts/
-  pages/
-  routes/
-  services/
-  utils/
-```
+### Mục tiêu
+- Xây dựng nền tảng hệ thống và các chức năng quản lý người dùng.
 
-## Recommended demo flow
-1. Register account
-2. Login account
-3. Redirect by role
-4. Open dashboard overview and role dashboard
-5. View and update profile
-6. Show route blocking when not logged in
-7. Show backend validation error on form
-8. Show token-based session persistence after refresh
-9. Logout and verify redirect back to login
+### Công việc thực hiện
+- Khởi tạo dự án Backend và Frontend.
+- Thiết kế và triển khai hệ thống đăng ký, đăng nhập.
+- Xây dựng cơ chế phân quyền người dùng (**Role-based Access Control**).
+- Phát triển chức năng quản lý hồ sơ người dùng.
+- Kết nối Backend với cơ sở dữ liệu.
 
-## Known backend dependency risk
-Backend configuration currently expects:
-- MySQL running locally
-- database `bicap_db`
-- username `root`
-- password `1234`
-- Flyway / validated schema
+### Kết quả đầu ra
+- Hệ thống đăng ký / đăng nhập hoạt động
+- Cơ chế phân quyền người dùng
+- API quản lý người dùng
 
-If backend startup fails, verify database schema and migration files first.
+---
+
+## Phase 3 – Phát triển chức năng quản lý nông trại (Farm Management)
+
+### Mục tiêu
+- Xây dựng các chức năng cho phép nông trại quản lý quá trình sản xuất nông sản.
+
+### Công việc thực hiện
+- Xây dựng chức năng tạo mùa vụ (**Farming Season**).
+- Cập nhật các bước trong quy trình sản xuất.
+- Lưu trữ thông tin quy trình vào hệ thống và blockchain.
+- Phát triển chức năng xuất lô sản phẩm.
+- Tạo mã QR để truy xuất nguồn gốc sản phẩm.
+
+### Kết quả đầu ra
+- Module quản lý mùa vụ
+- Chức năng cập nhật quy trình sản xuất
+- Hệ thống tạo mã QR truy xuất nguồn gốc
+
+---
+
+## Phase 4 – Phát triển hệ thống giao dịch giữa Farm và Retailer
+
+### Mục tiêu
+- Xây dựng chức năng kết nối giữa nông trại và nhà bán lẻ.
+
+### Công việc thực hiện
+- Phát triển chức năng đăng tải sản phẩm lên sàn giao dịch.
+- Xây dựng chức năng tìm kiếm và xem thông tin sản phẩm.
+- Tạo yêu cầu đặt hàng từ phía Retailer.
+- Quản lý trạng thái đơn hàng.
+- Xây dựng lịch sử giao dịch.
+
+### Kết quả đầu ra
+- Module quản lý sản phẩm
+- Module đặt hàng
+- Giao diện tìm kiếm và xem sản phẩm
+
+---
+
+## Phase 5 – Phát triển hệ thống vận chuyển (Shipping System)
+
+### Mục tiêu
+- Xây dựng hệ thống quản lý vận chuyển sản phẩm từ nông trại đến nhà bán lẻ.
+
+### Công việc thực hiện
+- Phát triển chức năng tạo và quản lý đơn vận chuyển.
+- Quản lý phương tiện vận chuyển và tài xế.
+- Cho phép tài xế cập nhật trạng thái giao hàng.
+- Theo dõi tiến trình vận chuyển theo thời gian thực.
+- Gửi thông báo đến các bên liên quan.
+
+### Kết quả đầu ra
+- Module quản lý vận chuyển
+- Hệ thống theo dõi trạng thái giao hàng
+- Thông báo hệ thống
+
+---
+
+## Phase 6 – Tích hợp Blockchain, kiểm thử và triển khai hệ thống
+
+### Mục tiêu
+- Hoàn thiện hệ thống, tích hợp blockchain và triển khai sản phẩm.
+
+### Công việc thực hiện
+- Tích hợp blockchain để lưu trữ dữ liệu truy xuất nguồn gốc.
+- Kiểm thử hệ thống (**Unit Test, Integration Test**).
+- Sửa lỗi và tối ưu hệ thống.
+- Đóng gói ứng dụng bằng Docker.
+- Triển khai hệ thống trên nền tảng Cloud.
+
+### Kết quả đầu ra
+- Hệ thống hoàn chỉnh có khả năng truy xuất nguồn gốc bằng blockchain
+- Bản demo hệ thống
