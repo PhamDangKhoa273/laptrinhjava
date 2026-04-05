@@ -4,6 +4,7 @@ import com.bicap.backend.dto.CreateFarmRequest;
 import com.bicap.backend.dto.FarmResponse;
 import com.bicap.backend.dto.UpdateFarmRequest;
 import com.bicap.backend.dto.request.FarmReviewRequest;
+import com.bicap.backend.dto.request.UpdateApprovalStatusRequest;
 import com.bicap.backend.dto.response.ApiResponse;
 import com.bicap.backend.security.SecurityUtils;
 import com.bicap.backend.service.FarmService;
@@ -70,6 +71,16 @@ public class FarmController {
                         request.getApprovalStatus(),
                         request.getCertificationStatus()
                 )
+        );
+    }
+
+    @PutMapping("/{id}/approval-status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<FarmResponse> changeApprovalStatus(@PathVariable Long id,
+                                                          @Valid @RequestBody UpdateApprovalStatusRequest request) {
+        return ApiResponse.success(
+                "Thay đổi approval status thành công",
+                farmService.changeApprovalStatus(id, request.getApprovalStatus(), SecurityUtils.getCurrentUserId())
         );
     }
 }

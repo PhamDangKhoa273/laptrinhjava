@@ -153,6 +153,28 @@ public class FarmService {
         return toResponse(saved);
     }
 
+    @Transactional
+    public FarmResponse changeApprovalStatus(Long farmId, String approvalStatus, Long currentUserId) {
+        Farm farm = getFarmEntityById(farmId);
+
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+
+        if (!userService.hasRole(currentUser, RoleName.ADMIN)) {
+            throw new BusinessException("Chỉ ADMIN mới được thay đổi approval status");
+        }
+
+        farm.setApprovalStatus(approvalStatus.trim().toUpperCase());
+        farm.setReviewedByUser(currentUser);
+        farm.setReviewedAt(LocalDateTime.now());
+
+        Farm saved = farmRepository.save(farm);
+
+        auditLogService.log(currentUserId, "CHANGE_APPROVAL_STATUS", "FARM", saved.getFarmId());
+
+        return toResponse(saved);
+    }
+
     public Farm getFarmEntityById(Long farmId) {
         return farmRepository.findById(farmId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy farm"));
