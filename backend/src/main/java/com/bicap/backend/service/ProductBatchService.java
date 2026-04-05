@@ -13,8 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +27,8 @@ public class ProductBatchService {
     private final BlockchainTransactionRepository blockchainTransactionRepository;
     private final BlockchainService blockchainService;
     private final QrCodeService qrCodeService;
+    private final SeasonReferenceService seasonReferenceService;
+    private final ProcessTraceService processTraceService;
 
     @Transactional
     public BatchResponse createBatch(CreateBatchRequest request) {
@@ -124,6 +128,22 @@ public class ProductBatchService {
                 .findTopByRelatedEntityTypeAndRelatedEntityIdOrderByCreatedAtDesc("BATCH", batchId)
                 .orElse(null);
 
+        Optional<SeasonReferenceDto> seasonReference = seasonReferenceService.findSeasonReference(batch.getSeasonId(), batch.getProductId());
+        List<Map<String, Object>> processList = processTraceService.findProcessesBySeasonId(batch.getSeasonId()).stream()
+                .map(process -> {
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("processCode", process.getProcessCode());
+                    item.put("processName", process.getProcessName());
+                    item.put("stage", process.getStage());
+                    item.put("status", process.getStatus());
+                    item.put("processDate", process.getProcessDate());
+                    item.put("operatorName", process.getOperatorName());
+                    item.put("notes", process.getNotes());
+                    item.put("recordedAt", process.getRecordedAt());
+                    return item;
+                })
+                .toList();
+
         return TraceBatchResponse.builder()
                 .batchId(batch.getBatchId())
                 .batchCode(batch.getBatchCode())
@@ -139,13 +159,9 @@ public class ProductBatchService {
                 .txHash(tx != null ? tx.getTxHash() : null)
                 .txStatus(tx != null ? tx.getTxStatus() : null)
                 .lastBlockchainSyncAt(tx != null ? tx.getCreatedAt() : null)
-                .seasonInfo(Map.of(
-                        "seasonId", batch.getSeasonId(),
-                        "status", "PENDING_INTEGRATION",
-                        "note", "Season detail sẽ được nối với module TV1 khi FarmingSeason hoàn thiện"
-                ))
-                .processList(List.of())
-                .note("Trace API hiện trả đầy đủ dữ liệu batch, QR và blockchain của TV3. Dữ liệu season/process chi tiết phụ thuộc TV1 và TV2 nên đang để trạng thái chờ tích hợp.")
+                .seasonInfo(buildSeasonInfo(batch, seasonReference))
+                .processList(processList)
+                .note(buildTraceNote(seasonReference.isPresent(), !processList.isEmpty(), tx != null))
                 .build();
     }
 
@@ -170,8 +186,9 @@ public class ProductBatchService {
         if (availableQuantity.compareTo(quantity) > 0) {
             throw new BusinessException("availableQuantity phải nhỏ hơn hoặc bằng quantity");
         }
-
-        // TV3 note: season tồn tại thật và product khớp season sẽ được validate chặt bằng DB/service khi TV1 hoàn thiện module.
+        if (!seasonReferenceService.isSeasonProductPairValid(seasonId, productId)) {
+            throw new BusinessException("season/product không tồn tại trong DB thật hoặc không khớp nhau");
+        }
     }
 
     private BlockchainTransaction saveBlockchainTransaction(ProductBatch batch, String actionType) {
@@ -195,6 +212,55 @@ public class ProductBatchService {
                 .findTopByRelatedEntityTypeAndRelatedEntityIdOrderByCreatedAtDesc("BATCH", batchId)
                 .map(BlockchainTransaction::getTxHash)
                 .orElse(null);
+    }
+
+    private Map<String, Object> buildSeasonInfo(ProductBatch batch, Optional<SeasonReferenceDto> seasonReference) {
+        Map<String, Object> info = new LinkedHashMap<>();
+        info.put("seasonId", batch.getSeasonId());
+        info.put("productId", batch.getProductId());
+
+        if (seasonReference.isPresent()) {
+            SeasonReferenceDto ref = seasonReference.get();
+            info.put("status", ref.getStatus() != null ? ref.getStatus() : "FOUND");
+            info.put("seasonCode", ref.getSeasonCode());
+            info.put("seasonName", ref.getSeasonName());
+            info.put("productCode", ref.getProductCode());
+            info.put("productName", ref.getProductName());
+            info.put("cropName", ref.getCropName());
+            info.put("farmCode", ref.getFarmCode());
+            info.put("farmName", ref.getFarmName());
+            info.put("validatedFromDb", true);
+        } else {
+            info.put("status", "MISSING_REFERENCE");
+            info.put("validatedFromDb", false);
+            info.put("note", "Không tìm thấy season/product tương ứng trong schema DB hiện tại.");
+        }
+
+        return info;
+    }
+
+    private String buildTraceNote(boolean hasSeasonReference, boolean hasProcesses, boolean hasBlockchain) {
+        StringBuilder note = new StringBuilder("Trace batch đang trả dữ liệu end-to-end trong phạm vi dữ liệu hiện có.");
+
+        if (hasSeasonReference) {
+            note.append(" Season/product đã được validate từ DB thật.");
+        } else {
+            note.append(" Season/product chưa đọc được từ schema hiện tại nên cần kiểm tra lại dữ liệu TV1 đã merge chưa.");
+        }
+
+        if (hasProcesses) {
+            note.append(" Process list đã được nạp từ dữ liệu thật theo season.");
+        } else {
+            note.append(" Chưa có process thực tế cho season này hoặc module TV2 chưa merge schema/process data.");
+        }
+
+        if (hasBlockchain) {
+            note.append(" Blockchain sync đã có bản ghi gần nhất cho batch.");
+        } else {
+            note.append(" Batch chưa có bản ghi blockchain.");
+        }
+
+        return note.toString();
     }
 
     private String normalizeStatus(String rawStatus) {

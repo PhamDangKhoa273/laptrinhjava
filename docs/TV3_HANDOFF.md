@@ -19,11 +19,15 @@ TV3 phụ trách module:
 - `BatchResponse`
 - `QrCodeResponse`
 - `TraceBatchResponse`
+- `SeasonReferenceDto`
+- `ProcessTraceItemDto`
 
 ### Service
 - `ProductBatchService`
 - `QrCodeService`
-- `BlockchainService` *(đang là mock/stub, chờ TV4 tích hợp thật)*
+- `BlockchainService` *(hiện vẫn là mock/stub theo phạm vi TV3, chờ TV4 tích hợp thật)*
+- `SeasonReferenceService`
+- `ProcessTraceService`
 
 ### API
 #### Batch
@@ -46,24 +50,29 @@ TV3 phụ trách module:
 - mỗi batch chỉ có 1 QR active
 - `seasonId` phải hợp lệ (>0)
 - `productId` phải hợp lệ (>0)
+- validate cặp `season/product` bằng DB thật nếu schema TV1 đã có mặt trong database
 
-## 4. Những phần đang chờ tích hợp module khác
-### Chờ TV1
-- validate `season` tồn tại thật trong bảng season
-- validate `product` khớp với `season`
-- trả season detail thật trong trace response
+## 4. Trace hiện tại đã làm gì
+Trace API hiện trả theo dữ liệu thực tế đang có trong hệ thống:
+- thông tin batch
+- thông tin QR
+- thông tin blockchain gần nhất của batch
+- `seasonInfo` lấy từ DB thật nếu tìm thấy season/product tương ứng
+- `processList` lấy từ DB thật nếu có bảng/process data của TV2 theo season
 
-### Chờ TV2
-- trả `processList` thật trong trace response để hoàn thiện truy xuất nguồn gốc
+Nếu dữ liệu TV1/TV2 chưa merge vào schema hiện tại, API vẫn trả trace an toàn nhưng sẽ đánh dấu:
+- `seasonInfo.status = MISSING_REFERENCE`
+- `seasonInfo.validatedFromDb = false`
+- `processList = []`
+- `note` mô tả rõ đang thiếu dữ liệu nào
 
-### Chờ TV4
-- thay `BlockchainService` mock bằng service blockchain thật
-- chuẩn hóa payload/response blockchain dùng chung
+## 5. Những phần đã cải thiện so với bản trước
+- không còn để trace ở mức placeholder cứng cho `seasonInfo`
+- không còn để `processList` mặc định rỗng trong mọi trường hợp
+- create/update batch đã chặn trường hợp `season/product` không khớp DB thật
+- trace response hiện phản ánh trạng thái integration thực tế thay vì mô tả chung chung
 
-### Chờ TV5
-- dựng UI cho tạo batch, xem batch, xem QR, trace batch
-
-## 5. Dữ liệu QR hiện tại
+## 6. Dữ liệu QR hiện tại
 QR hiện chứa:
 - `batch_id`
 - `batch_code`
@@ -80,7 +89,7 @@ Ví dụ:
 }
 ```
 
-## 6. Blockchain integration hiện tại
+## 7. Blockchain integration hiện tại
 TV3 hiện gọi:
 - `BlockchainService.saveBatch(batch)`
 
@@ -92,23 +101,27 @@ Service đang trả về:
 Kết quả được lưu vào bảng:
 - `blockchain_transactions`
 
-## 7. Trạng thái trace API
-Trace API hiện trả tốt các dữ liệu trong phạm vi TV3:
-- batch info
-- QR info
-- blockchain info
+**Lưu ý:** phần này vẫn là mock transaction theo phạm vi TV3. TV4 sẽ thay bằng blockchain core service thật khi module dùng chung sẵn sàng.
 
-Tuy nhiên, đây **chưa phải trace full end-to-end của toàn Phase 3**, vì:
-- `seasonInfo` hiện là placeholder chờ TV1
-- `processList` hiện để rỗng chờ TV2
+## 8. Trạng thái hoàn thiện hiện tại
+### Đã xử lý được
+- trace không còn chỉ là placeholder đơn giản
+- đã validate được `season/product` bằng DB thật nếu schema/dữ liệu liên quan đã có
+- trace có thể trả `processList` thật nếu DB đã có dữ liệu process theo season
+- trace note phản ánh đúng mức độ end-to-end hiện có
 
-## 8. Hướng nâng cấp tiếp theo
-1. nối dữ liệu season/product thật từ TV1
-2. nối process list thật từ TV2
+### Vẫn phụ thuộc module khác
+- nếu TV1 chưa merge bảng/dữ liệu season-product vào DB hiện tại thì không thể xác thực sâu hơn ngoài mức detect thiếu reference
+- nếu TV2 chưa merge bảng/dữ liệu process thì `processList` sẽ chưa có dữ liệu thật
+- blockchain vẫn chưa phải integration sâu vì còn chờ TV4
+
+## 9. Hướng nâng cấp tiếp theo
+1. chốt chính xác schema season/product của TV1 để bỏ cơ chế candidate query/fallback
+2. chốt chính xác schema process của TV2 để trace đọc dữ liệu ổn định hơn
 3. thay blockchain mock bằng TV4 core service
-4. test end-to-end khi DB migration toàn nhóm ổn định
+4. bổ sung integration test end-to-end qua DB seed thật toàn nhóm
 5. frontend TV5 dùng API TV3 để render batch/QR/trace
 
-## 9. Ghi chú minh bạch
-Module TV3 hiện đã hoàn thành phần backend ở mức độc lập.
-Các phần chưa full 100% là do phụ thuộc module chung của nhóm (season thật, process thật, blockchain thật, migration DB toàn hệ thống).
+## 10. Ghi chú minh bạch
+Module TV3 hiện đã hoàn thành phần backend cốt lõi và đã được nâng từ mức placeholder sang mức đọc/validate dữ liệu thật khi DB liên quan có sẵn.
+Tuy nhiên độ sâu end-to-end cuối cùng vẫn còn phụ thuộc việc TV1/TV2/TV4 đã merge đầy đủ schema, data và service chung hay chưa.
