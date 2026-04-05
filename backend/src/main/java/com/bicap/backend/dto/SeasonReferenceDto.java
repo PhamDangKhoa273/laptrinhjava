@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,4 +22,7 @@ public class SeasonReferenceDto {
     private String farmCode;
     private String farmName;
     private String status;
+    private LocalDate startDate;
+    private LocalDate expectedEndDate;
+    private boolean derivedProduct;
 }

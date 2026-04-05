@@ -161,7 +161,7 @@ public class ProductBatchService {
                 .lastBlockchainSyncAt(tx != null ? tx.getCreatedAt() : null)
                 .seasonInfo(buildSeasonInfo(batch, seasonReference))
                 .processList(processList)
-                .note(buildTraceNote(seasonReference.isPresent(), !processList.isEmpty(), tx != null))
+                .note(buildTraceNote(seasonReference, !processList.isEmpty(), tx != null))
                 .build();
     }
 
@@ -229,7 +229,13 @@ public class ProductBatchService {
             info.put("cropName", ref.getCropName());
             info.put("farmCode", ref.getFarmCode());
             info.put("farmName", ref.getFarmName());
+            info.put("startDate", ref.getStartDate());
+            info.put("expectedEndDate", ref.getExpectedEndDate());
             info.put("validatedFromDb", true);
+            info.put("derivedProduct", ref.isDerivedProduct());
+            if (ref.isDerivedProduct()) {
+                info.put("note", "DB hiện tại chưa gắn product trực tiếp vào season, nên TV3 đang map product theo contract tạm thời từ productId của batch.");
+            }
         } else {
             info.put("status", "MISSING_REFERENCE");
             info.put("validatedFromDb", false);
@@ -239,11 +245,15 @@ public class ProductBatchService {
         return info;
     }
 
-    private String buildTraceNote(boolean hasSeasonReference, boolean hasProcesses, boolean hasBlockchain) {
+    private String buildTraceNote(Optional<SeasonReferenceDto> seasonReference, boolean hasProcesses, boolean hasBlockchain) {
         StringBuilder note = new StringBuilder("Trace batch đang trả dữ liệu end-to-end trong phạm vi dữ liệu hiện có.");
 
-        if (hasSeasonReference) {
-            note.append(" Season/product đã được validate từ DB thật.");
+        if (seasonReference.isPresent()) {
+            if (seasonReference.get().isDerivedProduct()) {
+                note.append(" Season đã đọc từ DB thật; product hiện đang map theo contract tạm thời từ batch vì schema DB hiện tại chưa có season.product_id.");
+            } else {
+                note.append(" Season/product đã được validate trực tiếp từ DB thật.");
+            }
         } else {
             note.append(" Season/product chưa đọc được từ schema hiện tại nên cần kiểm tra lại dữ liệu TV1 đã merge chưa.");
         }

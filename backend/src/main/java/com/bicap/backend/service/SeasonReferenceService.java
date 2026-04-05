@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.sql.ResultSetMetaData;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,7 +30,7 @@ public class SeasonReferenceService {
                     return Optional.of(rows.get(0));
                 }
             } catch (Exception ignored) {
-                // Schema của TV1 có thể chưa merge vào repo này; cứ fallback an toàn.
+                // Schema của module khác có thể chưa merge; thử query tiếp theo.
             }
         }
 
@@ -42,18 +43,22 @@ public class SeasonReferenceService {
 
     private List<String> candidateQueries() {
         return List.of(
+                // Contract ưu tiên cho team: season gắn product thật bằng FK.
                 """
                 SELECT
                     s.season_id AS season_id,
                     p.product_id AS product_id,
-                    s.season_code AS season_code,
-                    s.season_name AS season_name,
+                    COALESCE(s.season_code, CONCAT('SEASON-', s.season_id)) AS season_code,
+                    COALESCE(s.season_name, s.name) AS season_name,
                     p.product_code AS product_code,
-                    p.product_name AS product_name,
-                    s.crop_name AS crop_name,
+                    COALESCE(p.product_name, p.name) AS product_name,
+                    COALESCE(s.crop_name, s.plant_name, p.product_name, p.name) AS crop_name,
                     f.farm_code AS farm_code,
                     f.farm_name AS farm_name,
-                    s.status AS season_status
+                    s.status AS season_status,
+                    s.start_date AS start_date,
+                    s.expected_end_date AS expected_end_date,
+                    FALSE AS derived_product
                 FROM farming_seasons s
                 JOIN products p ON p.product_id = s.product_id
                 LEFT JOIN farms f ON f.farm_id = s.farm_id
@@ -63,18 +68,42 @@ public class SeasonReferenceService {
                 SELECT
                     s.season_id AS season_id,
                     p.product_id AS product_id,
-                    s.season_code AS season_code,
-                    s.name AS season_name,
+                    COALESCE(s.season_code, CONCAT('SEASON-', s.season_id)) AS season_code,
+                    COALESCE(s.season_name, s.name) AS season_name,
                     p.product_code AS product_code,
-                    p.name AS product_name,
-                    s.crop_name AS crop_name,
+                    COALESCE(p.product_name, p.name) AS product_name,
+                    COALESCE(s.crop_name, s.plant_name, p.product_name, p.name) AS crop_name,
                     f.farm_code AS farm_code,
                     f.farm_name AS farm_name,
-                    s.status AS season_status
+                    s.status AS season_status,
+                    s.start_date AS start_date,
+                    s.expected_end_date AS expected_end_date,
+                    FALSE AS derived_product
                 FROM seasons s
                 JOIN products p ON p.product_id = s.product_id
                 LEFT JOIN farms f ON f.farm_id = s.farm_id
                 WHERE s.season_id = ? AND p.product_id = ?
+                """,
+                // Fallback thực dụng cho DB hiện tại: nếu TV1 chưa có product FK thì map product từ bảng products do TV3/TV5 dùng chung.
+                """
+                SELECT
+                    s.season_id AS season_id,
+                    p.product_id AS product_id,
+                    CONCAT('SEASON-', s.season_id) AS season_code,
+                    s.name AS season_name,
+                    p.product_code AS product_code,
+                    p.name AS product_name,
+                    s.plant_name AS crop_name,
+                    f.farm_code AS farm_code,
+                    f.farm_name AS farm_name,
+                    s.status AS season_status,
+                    s.start_date AS start_date,
+                    s.expected_end_date AS expected_end_date,
+                    TRUE AS derived_product
+                FROM farming_seasons s
+                JOIN products p ON p.product_id = ?
+                LEFT JOIN farms f ON f.farm_id = s.farm_id
+                WHERE s.season_id = ?
                 """
         );
     }
@@ -91,6 +120,9 @@ public class SeasonReferenceService {
                 .farmCode(getString(rs, meta, "farm_code"))
                 .farmName(getString(rs, meta, "farm_name"))
                 .status(getString(rs, meta, "season_status"))
+                .startDate(getLocalDate(rs, meta, "start_date"))
+                .expectedEndDate(getLocalDate(rs, meta, "expected_end_date"))
+                .derivedProduct(Boolean.TRUE.equals(getBoolean(rs, meta, "derived_product")))
                 .build();
     }
 
@@ -113,5 +145,21 @@ public class SeasonReferenceService {
         }
         long value = rs.getLong(name);
         return rs.wasNull() ? fallback : value;
+    }
+
+    private Boolean getBoolean(java.sql.ResultSet rs, ResultSetMetaData meta, String name) throws java.sql.SQLException {
+        if (!hasColumn(meta, name)) {
+            return null;
+        }
+        boolean value = rs.getBoolean(name);
+        return rs.wasNull() ? null : value;
+    }
+
+    private LocalDate getLocalDate(java.sql.ResultSet rs, ResultSetMetaData meta, String name) throws java.sql.SQLException {
+        if (!hasColumn(meta, name)) {
+            return null;
+        }
+        java.sql.Date date = rs.getDate(name);
+        return date != null ? date.toLocalDate() : null;
     }
 }

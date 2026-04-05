@@ -203,6 +203,7 @@ class ProductBatchServiceTests {
                         .farmCode("F-001")
                         .farmName("Nong trai A")
                         .status("ACTIVE")
+                        .derivedProduct(false)
                         .build()
         ));
         when(processTraceService.findProcessesBySeasonId(10L)).thenReturn(List.of(
@@ -222,7 +223,7 @@ class ProductBatchServiceTests {
         assertEquals(Boolean.TRUE, response.getSeasonInfo().get("validatedFromDb"));
         assertEquals(1, response.getProcessList().size());
         assertEquals("PR-001", response.getProcessList().get(0).get("processCode"));
-        assertTrue(response.getNote().contains("validate từ DB thật"));
+        assertTrue(response.getNote().contains("validate trực tiếp từ DB thật"));
     }
 
     @Test
