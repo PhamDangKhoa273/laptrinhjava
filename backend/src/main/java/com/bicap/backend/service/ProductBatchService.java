@@ -2,10 +2,10 @@ package com.bicap.backend.service;
 
 import com.bicap.backend.dto.BatchResponse;
 import com.bicap.backend.dto.CreateBatchRequest;
-import com.bicap.backend.dto.ProcessTraceItemDto;
-import com.bicap.backend.dto.QrCodeResponse;
-import com.bicap.backend.dto.SeasonReferenceDto;
-import com.bicap.backend.dto.TraceBatchResponse;
+import com.bicap.backend.dto.trace.ProcessTraceItemDto;
+import com.bicap.backend.dto.trace.QrCodeResponse;
+import com.bicap.backend.dto.trace.SeasonReferenceDto;
+import com.bicap.backend.dto.trace.TraceBatchResponse;
 import com.bicap.backend.dto.UpdateBatchRequest;
 import com.bicap.backend.entity.BlockchainTransaction;
 import com.bicap.backend.entity.ProductBatch;
@@ -323,3 +323,4 @@ public class ProductBatchService {
                 .build();
     }
 }
+

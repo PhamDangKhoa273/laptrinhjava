@@ -2,8 +2,8 @@ package com.bicap.backend.controller;
 
 import com.bicap.backend.dto.BatchResponse;
 import com.bicap.backend.dto.CreateBatchRequest;
-import com.bicap.backend.dto.QrCodeResponse;
-import com.bicap.backend.dto.TraceBatchResponse;
+import com.bicap.backend.dto.trace.QrCodeResponse;
+import com.bicap.backend.dto.trace.TraceBatchResponse;
 import com.bicap.backend.dto.UpdateBatchRequest;
 import com.bicap.backend.dto.response.ApiResponse;
 import com.bicap.backend.service.ProductBatchService;
@@ -55,3 +55,4 @@ public class BatchController {
         return ApiResponse.success(productBatchService.traceBatch(id));
     }
 }
+

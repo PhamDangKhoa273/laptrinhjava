@@ -1,9 +1,9 @@
 package com.bicap.backend.service;
 
 import com.bicap.backend.dto.CreateBatchRequest;
-import com.bicap.backend.dto.QrCodeResponse;
-import com.bicap.backend.dto.SeasonReferenceDto;
-import com.bicap.backend.dto.TraceBatchResponse;
+import com.bicap.backend.dto.trace.QrCodeResponse;
+import com.bicap.backend.dto.trace.SeasonReferenceDto;
+import com.bicap.backend.dto.trace.TraceBatchResponse;
 import com.bicap.backend.entity.BlockchainTransaction;
 import com.bicap.backend.entity.ProductBatch;
 import com.bicap.backend.entity.QrCode;
@@ -207,7 +207,7 @@ class ProductBatchServiceTests {
                         .build()
         ));
         when(processTraceService.findProcessesBySeasonId(10L)).thenReturn(List.of(
-                com.bicap.backend.dto.ProcessTraceItemDto.builder()
+                com.bicap.backend.dto.trace.ProcessTraceItemDto.builder()
                         .processCode("PR-001")
                         .processName("Gieo trong")
                         .stage("PLANTING")
@@ -253,3 +253,4 @@ class ProductBatchServiceTests {
         assertTrue(response.getNote().contains("chưa đọc được từ schema hiện tại"));
     }
 }
+
