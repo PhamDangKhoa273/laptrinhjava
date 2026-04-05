@@ -1,0 +1,29 @@
+package com.bicap.backend.dto.trace;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SeasonReferenceDto {
+    private Long seasonId;
+    private Long productId;
+    private String seasonCode;
+    private String seasonName;
+    private String productCode;
+    private String productName;
+    private String cropName;
+    private String farmCode;
+    private String farmName;
+    private String status;
+    private LocalDate startDate;
+    private LocalDate expectedEndDate;
+    private boolean derivedProduct;
+}
+

@@ -1,0 +1,12 @@
+package com.bicap.backend.repository;
+
+import com.bicap.backend.entity.QrCode;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface QrCodeRepository extends JpaRepository<QrCode, Long> {
+    Optional<QrCode> findByBatchBatchIdAndStatus(Long batchId, String status);
+    boolean existsByBatchBatchIdAndStatus(Long batchId, String status);
+}
+
