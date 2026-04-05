@@ -9,3 +9,4 @@ public interface QrCodeRepository extends JpaRepository<QrCode, Long> {
     Optional<QrCode> findByBatchBatchIdAndStatus(Long batchId, String status);
     boolean existsByBatchBatchIdAndStatus(Long batchId, String status);
 }
+

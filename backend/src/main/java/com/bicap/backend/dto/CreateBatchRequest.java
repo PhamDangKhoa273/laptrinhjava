@@ -41,3 +41,4 @@ public class CreateBatchRequest {
     @Size(max = 30)
     private String batchStatus;
 }
+

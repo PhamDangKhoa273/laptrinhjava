@@ -89,3 +89,4 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 }
+

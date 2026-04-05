@@ -1,6 +1,6 @@
 package com.bicap.backend.service;
 
-import com.bicap.backend.dto.SeasonReferenceDto;
+import com.bicap.backend.dto.trace.SeasonReferenceDto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -163,3 +163,4 @@ public class SeasonReferenceService {
         return date != null ? date.toLocalDate() : null;
     }
 }
+

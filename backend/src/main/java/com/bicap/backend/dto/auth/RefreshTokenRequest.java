@@ -9,3 +9,4 @@ public class RefreshTokenRequest {
     @NotBlank(message = "refreshToken là bắt buộc")
     private String refreshToken;
 }
+

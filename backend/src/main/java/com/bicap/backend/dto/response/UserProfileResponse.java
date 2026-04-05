@@ -12,3 +12,4 @@ public class UserProfileResponse {
     private UserResponse user;
     private List<String> roles;
 }
+

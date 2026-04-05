@@ -38,3 +38,4 @@ public class QrCode {
         this.generatedAt = LocalDateTime.now();
     }
 }
+

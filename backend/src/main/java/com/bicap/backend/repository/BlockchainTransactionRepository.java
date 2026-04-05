@@ -8,3 +8,4 @@ import java.util.Optional;
 public interface BlockchainTransactionRepository extends JpaRepository<BlockchainTransaction, Long> {
     Optional<BlockchainTransaction> findTopByRelatedEntityTypeAndRelatedEntityIdOrderByCreatedAtDesc(String relatedEntityType, Long relatedEntityId);
 }
+

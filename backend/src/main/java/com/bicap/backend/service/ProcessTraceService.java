@@ -1,6 +1,6 @@
 package com.bicap.backend.service;
 
-import com.bicap.backend.dto.ProcessTraceItemDto;
+import com.bicap.backend.dto.trace.ProcessTraceItemDto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -116,3 +116,4 @@ public class ProcessTraceService {
         return null;
     }
 }
+

@@ -36,3 +36,4 @@ public class UpdateBatchRequest {
     @Size(max = 30)
     private String batchStatus;
 }
+

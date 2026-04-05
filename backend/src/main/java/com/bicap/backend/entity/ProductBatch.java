@@ -63,3 +63,4 @@ public class ProductBatch {
         this.updatedAt = LocalDateTime.now();
     }
 }
+

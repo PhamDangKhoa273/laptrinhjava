@@ -24,3 +24,4 @@ public class BatchResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
+

@@ -86,3 +86,4 @@ public class Retailer {
         this.status = status;
     }
 }
+
