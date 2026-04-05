@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthLayout } from '../layouts/AuthLayout.jsx'
 import { DashboardLayout } from '../layouts/DashboardLayout.jsx'
+import { AdminUsersPage } from '../pages/AdminUsersPage.jsx'
 import { DashboardHomePage } from '../pages/DashboardHomePage.jsx'
 import { FarmPackagesPage } from '../pages/FarmPackagesPage.jsx'
 import { FarmWorkspacePage } from '../pages/FarmWorkspacePage.jsx'
@@ -127,6 +128,7 @@ export function AppRoutes() {
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
             <Route path="/dashboard/admin" element={<RoleDashboardPage {...dashboardConfigs.admin} />} />
+            <Route path="/admin/users" element={<AdminUsersPage />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.FARM]} />}>
