@@ -642,3 +642,84 @@ p {
     padding: 24px;
   }
 }
+
+
+/* ===== Table ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: sans-serif;
+    font-size: 14px;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+/* ===== Header ===== */
+thead {
+    background: #f9fafb;
+}
+
+th {
+    text-align: left;
+    padding: 14px 16px;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* ===== Body ===== */
+td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #4b5563;
+}
+
+/* ===== Hover ===== */
+tbody tr:hover {
+    background: #f9fafb;
+}
+
+/* ===== Zebra ===== */
+tbody tr:nth-child(even) {
+    background: #fcfcfc;
+}
+
+/* ===== Button ===== */
+button {
+    padding: 6px 12px;
+    margin-right: 5px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* Button màu */
+button:first-child {
+    background: #3b82f6;
+    color: #fff;
+}
+
+button:last-child {
+    background: #ef4444;
+    color: #fff;
+}
+
+button:hover {
+    opacity: 0.85;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    th, td {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+}

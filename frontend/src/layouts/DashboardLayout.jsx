@@ -7,18 +7,21 @@ import { getPrimaryRole } from '../utils/helpers'
 import { ROLES } from '../utils/constants'
 
 const links = [
-  { to: '/dashboard', label: 'Overview', description: 'Frontend integration and auth status summary' },
-  { to: '/profile', label: 'Profile center', description: 'Personal and business profile management' },
-  { to: '/dashboard/admin', label: 'Admin hub', description: 'User roles and farm approval overview' },
-  { to: '/dashboard/farm', label: 'Farm dashboard', description: 'Farm role overview and business links' },
-  { to: '/farm/workspace', label: 'Farm profile', description: 'Create and update farm business profile' },
-  { to: '/farm/packages', label: 'Farm packages', description: 'Browse packages and create subscriptions' },
-  { to: '/dashboard/retailer', label: 'Retailer dashboard', description: 'Retailer overview and business links' },
-  { to: '/retailer/workspace', label: 'Retailer profile', description: 'Create and update retailer profile' },
-  { to: '/dashboard/shipping-manager', label: 'Shipping manager', description: 'Shipping role overview and business links' },
-  { to: '/shipping/workspace', label: 'Drivers & vehicles', description: 'Manage drivers and vehicles' },
-  { to: '/dashboard/driver', label: 'Driver workspace', description: 'Shipment status and handover placeholders' },
-  { to: '/dashboard/guest', label: 'Guest view', description: 'Discovery and educational content placeholder' },
+  { to: '/admin/users', label: 'Users', description: 'Manage user accounts and roles' },
+    { to: '/admin/farms', label: 'Farm dashboard', description: 'Farm role overview and business links' },
+
+  // { to: '/dashboard', label: 'Overview', description: 'Frontend integration and auth status summary' },
+  // { to: '/profile', label: 'Profile center', description: 'Personal and business profile management' },
+  // { to: '/admin/dashboard', label: 'Admin hub', description: 'User roles and farm approval overview' },
+  // { to: '/admin/farms', label: 'Farm dashboard', description: 'Farm role overview and business links' },
+  // { to: '/farm/workspace', label: 'Farm profile', description: 'Create and update farm business profile' },
+  // { to: '/farm/packages', label: 'Farm packages', description: 'Browse packages and create subscriptions' },
+  // { to: '/dashboard/retailer', label: 'Retailer dashboard', description: 'Retailer overview and business links' },
+  // { to: '/retailer/workspace', label: 'Retailer profile', description: 'Create and update retailer profile' },
+  // { to: '/dashboard/shipping-manager', label: 'Shipping manager', description: 'Shipping role overview and business links' },
+  // { to: '/shipping/workspace', label: 'Drivers & vehicles', description: 'Manage drivers and vehicles' },
+  // { to: '/dashboard/driver', label: 'Driver workspace', description: 'Shipment status and handover placeholders' },
+  // { to: '/dashboard/guest', label: 'Guest view', description: 'Discovery and educational content placeholder' },
 ]
 
 function filterLinksByRole(role) {
@@ -47,11 +50,8 @@ export function DashboardLayout() {
       <div className="dashboard-main">
         <header className="dashboard-header enhanced">
           <div>
-            <p className="eyebrow">BICAP control center</p>
-            <h1>{user?.fullName || user?.name || 'User dashboard'}</h1>
-            <p className="header-description">
-              Frontend core module for role-based access, profile workflows, and scalable navigation.
-            </p>
+            <h1 style={{ fontSize: '1.5rem' }}>{user?.fullName || user?.name || 'User dashboard'}</h1>
+    
             <div className="header-meta">
               <RoleBadge role={role} />
               <span>{user?.email || 'No email yet'}</span>
