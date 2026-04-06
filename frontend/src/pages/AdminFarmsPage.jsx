@@ -3,7 +3,7 @@ import { Button } from '../components/Button.jsx'
 import { getErrorMessage } from '../utils/helpers.js'
 import { getAccessToken } from '../utils/storage.js'
 
-const API_BASE = 'http://localhost:8080'
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api').replace(/\/api$/, '')
 
 export function AdminFarmsPage() {
   const [farms, setFarms] = useState([])
@@ -61,7 +61,6 @@ export function AdminFarmsPage() {
 
       setSuccess('Approval status updated successfully')
       loadFarms()
-
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
       setError(getErrorMessage(err))
@@ -114,24 +113,14 @@ export function AdminFarmsPage() {
   }
 
   return (
-
     <div className="space-y-6">
       <div>
-        <h1 style={{fontSize: "24px"}} className="text-3xl font-bold text-gray-900">Farm Management</h1>
+        <h1 style={{ fontSize: '24px' }} className="text-3xl font-bold text-gray-900">Farm Management</h1>
         <p className="mt-2 text-gray-600">Review and approve farm registrations, manage certifications, and monitor farm status.</p>
       </div>
 
-      {error && (
-        <div className="rounded-lg bg-red-50 p-4 text-red-700">
-          {error}
-        </div>
-      )}
-
-      {success && (
-        <div className="rounded-lg bg-green-50 p-4 text-green-700">
-          {success}
-        </div>
-      )}
+      {error && <div className="rounded-lg bg-red-50 p-4 text-red-700">{error}</div>}
+      {success && <div className="rounded-lg bg-green-50 p-4 text-green-700">{success}</div>}
 
       <div className="overflow-x-auto bg-white rounded-lg shadow">
         <table className="w-full">
@@ -166,49 +155,27 @@ export function AdminFarmsPage() {
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700">{farm.province}</td>
                   <td className="px-6 py-4 text-sm">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getCertificationColor(
-                        farm.certificationStatus
-                      )}`}
-                    >
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getCertificationColor(farm.certificationStatus)}`}>
                       {farm.certificationStatus}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                        farm.approvalStatus
-                      )}`}
-                    >
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(farm.approvalStatus)}`}>
                       {farm.approvalStatus}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700">
-                    {farm.reviewedByFullName ? (
-                      <div className="font-medium">{farm.reviewedByFullName}</div>
-                    ) : (
-                      <span className="text-gray-400">Not reviewed</span>
-                    )}
+                    {farm.reviewedByFullName ? <div className="font-medium">{farm.reviewedByFullName}</div> : <span className="text-gray-400">Not reviewed</span>}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {formatDate(farm.reviewedAt)}
-                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{formatDate(farm.reviewedAt)}</td>
                   <td className="px-6 py-4 text-sm space-x-2">
                     {farm.approvalStatus !== 'APPROVED' && (
-                      <Button
-                        onClick={() => handleChangeApprovalStatus(farm.farmId, 'APPROVED')}
-                        variant="success"
-                        size="sm"
-                      >
+                      <Button onClick={() => handleChangeApprovalStatus(farm.farmId, 'APPROVED')} variant="success">
                         Approve
                       </Button>
                     )}
                     {farm.approvalStatus !== 'REJECT' && (
-                      <Button
-                        onClick={() => handleChangeApprovalStatus(farm.farmId, 'REJECT')}
-                        variant="danger"
-                        size="sm"
-                      >
+                      <Button onClick={() => handleChangeApprovalStatus(farm.farmId, 'REJECT')} variant="danger">
                         Reject
                       </Button>
                     )}

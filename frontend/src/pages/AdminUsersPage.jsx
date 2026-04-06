@@ -6,7 +6,7 @@ import { ROLES, ROLE_LABELS } from '../utils/constants'
 import { getErrorMessage } from '../utils/helpers'
 import { getAccessToken } from '../utils/storage'
 
-const API_BASE = 'http://localhost:8080'
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api').replace(/\/api$/, '')
 
 const roleOptions = [
   { value: '', label: 'Select role to assign' },
