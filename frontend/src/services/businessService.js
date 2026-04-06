@@ -16,6 +16,14 @@ export async function updateFarm(id, payload) {
   return unwrap(await api.put(`/farms/${id}`, payload))
 }
 
+export async function getAllFarms() {
+  return unwrap(await api.get('/farms'))
+}
+
+export async function updateFarmApprovalStatus(id, approvalStatus) {
+  return unwrap(await api.put(`/farms/${id}/approval-status`, { approvalStatus }))
+}
+
 export async function getMyRetailer() {
   return unwrap(await api.get('/retailers/me'))
 }
@@ -62,4 +70,16 @@ export async function createVehicle(payload) {
 
 export async function updateVehicle(id, payload) {
   return unwrap(await api.put(`/vehicles/${id}`, payload))
+}
+
+export async function getUsers() {
+  return unwrap(await api.get('/users'))
+}
+
+export async function assignUserRole(id, roleName) {
+  return unwrap(await api.post(`/users/${id}/roles`, { roleName }))
+}
+
+export async function updateUserStatus(id, status) {
+  return unwrap(await api.patch(`/users/${id}/status`, { status }))
 }

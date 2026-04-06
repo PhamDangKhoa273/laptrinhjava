@@ -2,11 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Button } from '../components/Button.jsx'
 import { RoleBadge } from '../components/RoleBadge.jsx'
 import { SelectField } from '../components/SelectField.jsx'
+import { assignUserRole, getUsers, updateUserStatus } from '../services/businessService'
 import { ROLES, ROLE_LABELS } from '../utils/constants'
 import { getErrorMessage } from '../utils/helpers'
-import { getAccessToken } from '../utils/storage'
-
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api').replace(/\/api$/, '')
 
 const roleOptions = [
   { value: '', label: 'Select role to assign' },
@@ -30,29 +28,11 @@ export function AdminUsersPage() {
     [users],
   )
 
-  function getAuthHeaders() {
-    const token = getAccessToken()
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-    }
-  }
-
   async function loadUsers() {
     try {
       setLoading(true)
       setError('')
-      const response = await fetch(`${API_BASE}/api/users`, {
-        credentials: 'include',
-        headers: getAuthHeaders(),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to load users')
-      }
-
-      const data = await response.json()
-      const loadedUsers = data.data || []
+      const loadedUsers = await getUsers()
       setUsers(loadedUsers)
       setSelectedRoles((prev) => {
         const next = { ...prev }
@@ -72,17 +52,7 @@ export function AdminUsersPage() {
     try {
       setError('')
       setSuccess('')
-      const response = await fetch(`${API_BASE}/api/users/${userId}/status`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ status: newStatus }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to update user status')
-      }
-
+      await updateUserStatus(userId, newStatus)
       setSuccess('User status updated successfully')
       await loadUsers()
       setTimeout(() => setSuccess(''), 3000)
@@ -103,18 +73,7 @@ export function AdminUsersPage() {
       setAssigningRoleFor(userId)
       setError('')
       setSuccess('')
-      const response = await fetch(`${API_BASE}/api/users/${userId}/roles`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ roleName }),
-      })
-
-      if (!response.ok) {
-        const body = await response.json().catch(() => null)
-        throw new Error(body?.message || 'Failed to assign role')
-      }
-
+      await assignUserRole(userId, roleName)
       setSuccess(`Assigned role ${ROLE_LABELS[roleName] || roleName} successfully`)
       setSelectedRoles((prev) => ({ ...prev, [userId]: '' }))
       await loadUsers()

@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '../components/Button.jsx'
+import { getAllFarms, updateFarmApprovalStatus } from '../services/businessService'
 import { getErrorMessage } from '../utils/helpers.js'
-import { getAccessToken } from '../utils/storage.js'
-
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api').replace(/\/api$/, '')
 
 export function AdminFarmsPage() {
   const [farms, setFarms] = useState([])
@@ -15,29 +13,12 @@ export function AdminFarmsPage() {
     loadFarms()
   }, [])
 
-  function getAuthHeaders() {
-    const token = getAccessToken()
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-    }
-  }
-
   async function loadFarms() {
     try {
       setLoading(true)
       setError('')
-      const response = await fetch(`${API_BASE}/api/farms`, {
-        credentials: 'include',
-        headers: getAuthHeaders(),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to load farms')
-      }
-
-      const data = await response.json()
-      setFarms(data.data || [])
+      const data = await getAllFarms()
+      setFarms(data || [])
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {
@@ -48,17 +29,7 @@ export function AdminFarmsPage() {
   async function handleChangeApprovalStatus(farmId, newStatus) {
     try {
       setError('')
-      const response = await fetch(`${API_BASE}/api/farms/${farmId}/approval-status`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ approvalStatus: newStatus }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to update approval status')
-      }
-
+      await updateFarmApprovalStatus(farmId, newStatus)
       setSuccess('Approval status updated successfully')
       loadFarms()
       setTimeout(() => setSuccess(''), 3000)
