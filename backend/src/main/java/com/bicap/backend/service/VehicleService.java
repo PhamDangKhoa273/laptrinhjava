@@ -89,6 +89,25 @@ public class VehicleService {
         return toResponse(saved);
     }
 
+    @Transactional
+    public VehicleResponse deactivate(Long id, Long currentUserId) {
+        Vehicle vehicle = getEntityById(id);
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+
+        boolean isAdmin = userService.hasRole(currentUser, RoleName.ADMIN);
+        boolean isManagerOwner = vehicle.getManagerUser() != null && vehicle.getManagerUser().getUserId().equals(currentUserId);
+
+        if (!isAdmin && !isManagerOwner) {
+            throw new BusinessException("Bạn không có quyền ngừng kích hoạt vehicle này");
+        }
+
+        vehicle.setStatus("INACTIVE");
+        Vehicle saved = vehicleRepository.save(vehicle);
+        auditLogService.log(currentUserId, "DEACTIVATE_VEHICLE", "VEHICLE", saved.getVehicleId());
+        return toResponse(saved);
+    }
+
     public Vehicle getEntityById(Long id) {
         return vehicleRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy vehicle"));

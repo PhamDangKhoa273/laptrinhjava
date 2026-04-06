@@ -175,6 +175,28 @@ public class FarmService {
         return toResponse(saved);
     }
 
+    @Transactional
+    public FarmResponse deactivateFarm(Long farmId, Long currentUserId) {
+        Farm farm = getFarmEntityById(farmId);
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+
+        boolean isAdmin = userService.hasRole(currentUser, RoleName.ADMIN);
+        boolean isOwner = farm.getOwnerUser() != null && farm.getOwnerUser().getUserId().equals(currentUserId);
+
+        if (!isAdmin && !isOwner) {
+            throw new BusinessException("Bạn không có quyền ngừng kích hoạt farm này");
+        }
+
+        farm.setApprovalStatus("INACTIVE");
+        farm.setReviewedByUser(currentUser);
+        farm.setReviewedAt(LocalDateTime.now());
+
+        Farm saved = farmRepository.save(farm);
+        auditLogService.log(currentUserId, "DEACTIVATE_FARM", "FARM", saved.getFarmId());
+        return toResponse(saved);
+    }
+
     public Farm getFarmEntityById(Long farmId) {
         return farmRepository.findById(farmId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy farm"));
@@ -199,4 +221,3 @@ public class FarmService {
                 .build();
     }
 }
-

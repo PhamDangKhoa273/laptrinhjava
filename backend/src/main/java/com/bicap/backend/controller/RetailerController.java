@@ -56,5 +56,13 @@ public class RetailerController {
                 retailerService.update(id, request, SecurityUtils.getCurrentUserId())
         );
     }
-}
 
+    @PatchMapping("/{id}/deactivate")
+    @PreAuthorize("hasAnyRole('ADMIN','RETAILER')")
+    public ApiResponse<RetailerResponse> deactivate(@PathVariable Long id) {
+        return ApiResponse.success(
+                "Ngừng kích hoạt retailer thành công",
+                retailerService.deactivate(id, SecurityUtils.getCurrentUserId())
+        );
+    }
+}

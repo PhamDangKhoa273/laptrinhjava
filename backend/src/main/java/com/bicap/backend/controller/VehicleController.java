@@ -50,5 +50,13 @@ public class VehicleController {
                 vehicleService.update(id, request, SecurityUtils.getCurrentUserId())
         );
     }
-}
 
+    @PatchMapping("/{id}/deactivate")
+    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER','ADMIN')")
+    public ApiResponse<VehicleResponse> deactivate(@PathVariable Long id) {
+        return ApiResponse.success(
+                "Ngừng kích hoạt vehicle thành công",
+                vehicleService.deactivate(id, SecurityUtils.getCurrentUserId())
+        );
+    }
+}

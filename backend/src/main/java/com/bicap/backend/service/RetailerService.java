@@ -113,6 +113,23 @@ public class RetailerService {
         return toResponse(retailerRepository.save(retailer));
     }
 
+    @Transactional
+    public RetailerResponse deactivate(Long retailerId, Long currentUserId) {
+        Retailer retailer = getEntityById(retailerId);
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+
+        boolean isAdmin = userService.hasRole(currentUser, RoleName.ADMIN);
+        boolean isOwner = retailer.getUser() != null && retailer.getUser().getUserId().equals(currentUserId);
+
+        if (!isAdmin && !isOwner) {
+            throw new BusinessException("Bạn không có quyền ngừng kích hoạt retailer này");
+        }
+
+        retailer.setStatus("INACTIVE");
+        return toResponse(retailerRepository.save(retailer));
+    }
+
     public Retailer getEntityById(Long retailerId) {
         return retailerRepository.findById(retailerId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy retailer"));
