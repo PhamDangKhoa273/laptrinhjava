@@ -7,6 +7,6 @@ import lombok.Data;
 @Data
 public class AssignRoleRequest {
 
-    @NotNull(message = "roleName là bắt buộc")
+    @NotNull(message = "roleName lÃ  báº¯t buá»™c")
     private RoleName roleName;
 }

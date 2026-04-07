@@ -15,7 +15,6 @@ import com.bicap.backend.repository.RoleRepository;
 import com.bicap.backend.repository.UserRepository;
 import com.bicap.backend.repository.UserRoleRepository;
 import com.bicap.backend.security.SecurityUtils;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,13 +23,22 @@ import java.util.Comparator;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
+
+    public UserService(UserRepository userRepository,
+                       RoleRepository roleRepository,
+                       UserRoleRepository userRoleRepository,
+                       PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.userRoleRepository = userRoleRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Transactional
     public UserResponse createUserByAdmin(CreateUserRequest request) {
@@ -54,10 +62,10 @@ public class UserService {
         User user = new User();
         user.setFullName(normalizeNullable(fullName));
         user.setEmail(normalizedEmail);
-        user.setPasswordHash(passwordEncoder.encode(rawPassword));
+        user.setPassword(passwordEncoder.encode(rawPassword));
         user.setPhone(normalizeNullable(phone));
         user.setAvatarUrl(normalizeNullable(avatarUrl));
-        user.setStatus(UserStatus.ACTIVE.name());
+        user.setStatus(UserStatus.ACTIVE);
 
         User savedUser = userRepository.save(user);
 
@@ -85,10 +93,10 @@ public class UserService {
         User user = new User();
         user.setFullName(request.getFullName().trim());
         user.setEmail(normalizedEmail);
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPhone(normalizeNullable(request.getPhone()));
         user.setAvatarUrl(normalizeNullable(request.getAvatarUrl()));
-        user.setStatus(defaultStatus.name());
+        user.setStatus(defaultStatus);
 
         User savedUser = userRepository.save(user);
 
@@ -147,7 +155,7 @@ public class UserService {
     @Transactional
     public UserResponse changeStatus(Long userId, UpdateUserStatusRequest request) {
         User user = getUserEntityById(userId);
-        user.setStatus(request.getStatus().name());
+        user.setStatus(request.getStatus());
         return toResponse(userRepository.save(user));
     }
 
@@ -181,13 +189,6 @@ public class UserService {
     }
 
     private UserResponse toResponse(User user) {
-        UserStatus status;
-        try {
-            status = UserStatus.valueOf(user.getStatus());
-        } catch (IllegalArgumentException ex) {
-            status = UserStatus.INACTIVE;
-        }
-
         List<String> roles = userRoleRepository.findByUser(user).stream()
                 .map(ur -> ur.getRole().getRoleName())
                 .distinct()
@@ -205,7 +206,7 @@ public class UserService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .avatarUrl(user.getAvatarUrl())
-                .status(status)
+                .status(user.getStatus())
                 .roles(roles)
                 .primaryRole(primaryRole)
                 .createdAt(user.getCreatedAt())
@@ -224,4 +225,4 @@ public class UserService {
         String normalized = value.trim();
         return normalized.isEmpty() ? null : normalized;
     }
-}   
+}

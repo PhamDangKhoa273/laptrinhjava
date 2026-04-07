@@ -707,11 +707,370 @@ p {
   border-top: 1px solid #e7edf4;
 }
 
+.admin-page {
+  gap: 20px;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 18px;
+}
+
+.admin-tab {
+  border: 1px solid rgba(132, 157, 187, 0.22);
+  background: rgba(255, 255, 255, 0.03);
+  color: #dfe9f5;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-tab.is-active {
+  background: linear-gradient(135deg, rgba(35, 160, 255, 0.18), rgba(56, 216, 137, 0.16));
+  border-color: rgba(116, 201, 255, 0.32);
+}
+
+.admin-top-grid {
+  align-items: start;
+}
+
+.admin-filters {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-action-card {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-selected-user {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(162, 184, 214, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.inline-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.muted-inline {
+  margin: 0;
+  color: #8ea5c1;
+}
+
+.admin-table-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 860px;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 16px 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(162, 184, 214, 0.12);
+  vertical-align: middle;
+}
+
+.admin-table th {
+  color: #8ea5c1;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.admin-table tbody tr {
+  transition: background 0.2s ease;
+  cursor: pointer;
+}
+
+.admin-table tbody tr:hover,
+.admin-table tbody tr.is-selected {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.table-user-cell {
+  display: grid;
+  gap: 4px;
+}
+
+.table-user-cell small,
+.table-user-cell span {
+  color: #8ea5c1;
+}
+
+.compact-stat-card {
+  padding: 20px;
+}
+
+.farm-board-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.farm-board-column {
+  display: grid;
+  gap: 16px;
+}
+
+.farm-board-list {
+  display: grid;
+  gap: 14px;
+}
+
+.farm-board-item {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(162, 184, 214, 0.12);
+}
+
+.farm-board-item.pending { background: rgba(255, 210, 125, 0.08); }
+.farm-board-item.approved { background: rgba(43, 184, 92, 0.08); }
+.farm-board-item.rejected { background: rgba(255, 93, 93, 0.08); }
+
+.retailer-directory-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.retailer-profile-card {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.retailer-avatar {
+  width: 92px;
+  height: 92px;
+  border-radius: 24px;
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  background: linear-gradient(135deg, rgba(35, 160, 255, 0.18), rgba(56, 216, 137, 0.16));
+  border: 1px solid rgba(162, 184, 214, 0.12);
+}
+
+.retailer-profile-body {
+  display: grid;
+  gap: 12px;
+}
+
+.package-card-grid {
+  align-items: stretch;
+}
+
+.package-card {
+  display: grid;
+  gap: 12px;
+}
+
+.package-price {
+  font-size: 1.8rem;
+  color: #8ef0ae;
+}
+
+.farm-approval-card {
+  display: grid;
+  gap: 12px;
+}
+
+.role-chip-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.role-chip,
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.role-chip {
+  background: rgba(87, 173, 255, 0.12);
+  color: #93cbff;
+  border: 1px solid rgba(87, 173, 255, 0.22);
+}
+
+.status-pill {
+  border: 1px solid rgba(162, 184, 214, 0.12);
+}
+
+.status-active {
+  background: rgba(43, 184, 92, 0.12);
+  color: #91f2b3;
+}
+
+.status-inactive {
+  background: rgba(255, 93, 93, 0.12);
+  color: #ffb0b0;
+}
+
+.appearance-summary {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.asset-manager-page {
+  gap: 20px;
+}
+
+.asset-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 20px;
+}
+
+.asset-manager-card {
+  display: grid;
+  gap: 22px;
+}
+
+.asset-manager-list {
+  display: grid;
+  gap: 18px;
+}
+
+.asset-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) 220px;
+  gap: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(162, 184, 214, 0.12);
+}
+
+.asset-row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.asset-row-main {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.asset-row-main h3 {
+  margin-bottom: 6px;
+}
+
+.asset-upload-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.browse-button,
+.asset-side-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.browse-button {
+  padding: 12px 18px;
+  background: rgba(132, 157, 187, 0.12);
+  color: #e4edf7;
+  border: 1px solid rgba(132, 157, 187, 0.22);
+}
+
+.asset-file-name {
+  color: #8ea5c1;
+}
+
+.asset-row-side {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.asset-preview {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(162, 184, 214, 0.12);
+  min-height: 132px;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+}
+
+.asset-preview-light {
+  background: linear-gradient(180deg, #eff5fb, #d8e5f4);
+}
+
+.asset-preview-dark {
+  background: linear-gradient(180deg, #0a1626, #13263c);
+}
+
+.asset-preview img {
+  width: 100%;
+  max-height: 132px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.asset-side-button {
+  width: 100%;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #238fff, #2dcf93);
+  color: #04101b;
+  border: none;
+}
+
+.asset-manager-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 1180px) {
   .auth-layout,
   .dashboard-shell,
   .dashboard-header,
   .grid-two {
+    grid-template-columns: 1fr;
+  }
+
+  .asset-row,
+  .farm-board-grid,
+  .retailer-profile-card {
     grid-template-columns: 1fr;
   }
 

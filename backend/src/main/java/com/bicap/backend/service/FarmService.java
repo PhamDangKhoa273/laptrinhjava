@@ -28,22 +28,22 @@ public class FarmService {
     @Transactional
     public FarmResponse createFarm(CreateFarmRequest request, Long currentUserId) {
         User ownerUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y user hiá»‡n táº¡i"));
 
         if (!userService.hasRole(ownerUser, RoleName.FARM)) {
-            throw new BusinessException("Chỉ FARM mới được tạo hồ sơ farm");
+            throw new BusinessException("Chá»‰ FARM má»›i Ä‘Æ°á»£c táº¡o há»“ sÆ¡ farm");
         }
 
         if (farmRepository.findByOwnerUserUserId(currentUserId).isPresent()) {
-            throw new BusinessException("User này đã có hồ sơ farm");
+            throw new BusinessException("User nÃ y Ä‘Ã£ cÃ³ há»“ sÆ¡ farm");
         }
 
         if (farmRepository.existsByFarmCode(request.getFarmCode().trim())) {
-            throw new BusinessException("farmCode đã tồn tại");
+            throw new BusinessException("farmCode Ä‘Ã£ tá»“n táº¡i");
         }
 
         if (farmRepository.existsByBusinessLicenseNo(request.getBusinessLicenseNo().trim())) {
-            throw new BusinessException("businessLicenseNo đã tồn tại");
+            throw new BusinessException("businessLicenseNo Ä‘Ã£ tá»“n táº¡i");
         }
 
         Farm farm = new Farm();
@@ -73,7 +73,7 @@ public class FarmService {
     public FarmResponse getFarmById(Long farmId, Long currentUserId) {
         Farm farm = getFarmEntityById(farmId);
         User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y user hiá»‡n táº¡i"));
 
         boolean isAdmin = userService.hasRole(currentUser, RoleName.ADMIN);
         boolean isShippingManager = userService.hasRole(currentUser, RoleName.SHIPPING_MANAGER);
@@ -81,7 +81,7 @@ public class FarmService {
                 && farm.getOwnerUser().getUserId().equals(currentUserId);
 
         if (!isAdmin && !isShippingManager && !isOwner) {
-            throw new BusinessException("Bạn không có quyền xem farm này");
+            throw new BusinessException("Báº¡n khÃ´ng cÃ³ quyá»n xem farm nÃ y");
         }
 
         return toResponse(farm);
@@ -89,7 +89,7 @@ public class FarmService {
 
     public FarmResponse getMyFarm(Long currentUserId) {
         Farm farm = farmRepository.findByOwnerUserUserId(currentUserId)
-                .orElseThrow(() -> new BusinessException("User hiện tại chưa có hồ sơ farm"));
+                .orElseThrow(() -> new BusinessException("User hiá»‡n táº¡i chÆ°a cÃ³ há»“ sÆ¡ farm"));
         return toResponse(farm);
     }
 
@@ -97,19 +97,19 @@ public class FarmService {
     public FarmResponse updateFarm(Long farmId, UpdateFarmRequest request, Long currentUserId) {
         Farm farm = getFarmEntityById(farmId);
         User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y user hiá»‡n táº¡i"));
 
         boolean isAdmin = userService.hasRole(currentUser, RoleName.ADMIN);
         boolean isOwner = farm.getOwnerUser() != null
                 && farm.getOwnerUser().getUserId().equals(currentUserId);
 
         if (!isAdmin && !isOwner) {
-            throw new BusinessException("Bạn không có quyền cập nhật farm này");
+            throw new BusinessException("Báº¡n khÃ´ng cÃ³ quyá»n cáº­p nháº­t farm nÃ y");
         }
 
         if (!farm.getBusinessLicenseNo().equalsIgnoreCase(request.getBusinessLicenseNo().trim())
                 && farmRepository.existsByBusinessLicenseNo(request.getBusinessLicenseNo().trim())) {
-            throw new BusinessException("businessLicenseNo đã tồn tại");
+            throw new BusinessException("businessLicenseNo Ä‘Ã£ tá»“n táº¡i");
         }
 
         farm.setFarmName(request.getFarmName().trim());
@@ -130,10 +130,10 @@ public class FarmService {
         Farm farm = getFarmEntityById(farmId);
 
         User reviewer = userRepository.findById(reviewerUserId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy reviewer"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y reviewer"));
 
         if (!userService.hasRole(reviewer, RoleName.ADMIN)) {
-            throw new BusinessException("reviewed_by_user_id phải là ADMIN");
+            throw new BusinessException("reviewed_by_user_id pháº£i lÃ  ADMIN");
         }
 
         farm.setReviewedByUser(reviewer);
@@ -158,10 +158,10 @@ public class FarmService {
         Farm farm = getFarmEntityById(farmId);
 
         User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y user hiá»‡n táº¡i"));
 
         if (!userService.hasRole(currentUser, RoleName.ADMIN)) {
-            throw new BusinessException("Chỉ ADMIN mới được thay đổi approval status");
+            throw new BusinessException("Chá»‰ ADMIN má»›i Ä‘Æ°á»£c thay Ä‘á»•i approval status");
         }
 
         farm.setApprovalStatus(approvalStatus.trim().toUpperCase());
@@ -179,13 +179,13 @@ public class FarmService {
     public FarmResponse deactivateFarm(Long farmId, Long currentUserId) {
         Farm farm = getFarmEntityById(farmId);
         User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y user hiá»‡n táº¡i"));
 
         boolean isAdmin = userService.hasRole(currentUser, RoleName.ADMIN);
         boolean isOwner = farm.getOwnerUser() != null && farm.getOwnerUser().getUserId().equals(currentUserId);
 
         if (!isAdmin && !isOwner) {
-            throw new BusinessException("Bạn không có quyền ngừng kích hoạt farm này");
+            throw new BusinessException("Báº¡n khÃ´ng cÃ³ quyá»n ngá»«ng kÃ­ch hoáº¡t farm nÃ y");
         }
 
         farm.setApprovalStatus("INACTIVE");
@@ -199,7 +199,7 @@ public class FarmService {
 
     public Farm getFarmEntityById(Long farmId) {
         return farmRepository.findById(farmId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy farm"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y farm"));
     }
 
     private FarmResponse toResponse(Farm farm) {

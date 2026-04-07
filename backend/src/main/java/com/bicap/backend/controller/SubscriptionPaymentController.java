@@ -21,7 +21,7 @@ public class SubscriptionPaymentController {
     @PreAuthorize("hasAnyRole('FARM','ADMIN')")
     public ApiResponse<SubscriptionPaymentResponse> create(@Valid @RequestBody CreateSubscriptionPaymentRequest request) {
         return ApiResponse.success(
-                "Tạo thanh toán subscription thành công",
+                "Táº¡o thanh toÃ¡n subscription thÃ nh cÃ´ng",
                 subscriptionPaymentService.create(request, SecurityUtils.getCurrentUserId())
         );
     }

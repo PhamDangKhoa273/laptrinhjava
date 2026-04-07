@@ -9,17 +9,20 @@ import com.bicap.backend.dto.auth.TokenRefreshResponse;
 import com.bicap.backend.dto.response.ApiResponse;
 import com.bicap.backend.service.AuthService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+
+    // Manual Constructor instead of @RequiredArgsConstructor
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/register")
     public ApiResponse<UserResponse> register(@Valid @RequestBody RegisterRequest request) {

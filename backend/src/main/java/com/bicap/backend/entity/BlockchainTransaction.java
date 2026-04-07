@@ -1,7 +1,12 @@
 package com.bicap.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,10 +17,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class BlockchainTransaction {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "tx_id")
-    private Long id;
+    private Long txId;
 
     @Column(name = "related_entity_type", nullable = false)
     private String relatedEntityType;
@@ -30,11 +36,44 @@ public class BlockchainTransaction {
     private String txHash;
 
     @Column(name = "tx_status", nullable = false)
-    private String txStatus;
+    private String txStatus = "PENDING";
 
-    @Column(name = "message")
-    private String message;
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "created_at", insertable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    // Manual Builder as fallback
+    public static class BlockchainTransactionBuilder {
+        private String relatedEntityType;
+        private Long relatedEntityId;
+        private String actionType;
+        private String txHash;
+        private String txStatus;
+
+        public BlockchainTransactionBuilder relatedEntityType(String type) { this.relatedEntityType = type; return this; }
+        public BlockchainTransactionBuilder relatedEntityId(Long id) { this.relatedEntityId = id; return this; }
+        public BlockchainTransactionBuilder actionType(String type) { this.actionType = type; return this; }
+        public BlockchainTransactionBuilder txHash(String hash) { this.txHash = hash; return this; }
+        public BlockchainTransactionBuilder txStatus(String status) { this.txStatus = status; return this; }
+
+        public BlockchainTransaction build() {
+            BlockchainTransaction tx = new BlockchainTransaction();
+            tx.setRelatedEntityType(this.relatedEntityType);
+            tx.setRelatedEntityId(this.relatedEntityId);
+            tx.setActionType(this.actionType);
+            tx.setTxHash(this.txHash);
+            tx.setTxStatus(this.txStatus != null ? this.txStatus : "PENDING");
+            return tx;
+        }
+    }
+
+    public static BlockchainTransactionBuilder builder() {
+        return new BlockchainTransactionBuilder();
+    }
+
+    public String getTxHash() { return txHash; }
 }

@@ -22,7 +22,7 @@ public class ServicePackageController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<ServicePackageResponse> create(@Valid @RequestBody CreateServicePackageRequest request) {
-        return ApiResponse.success("Tạo gói dịch vụ thành công", service.create(request));
+        return ApiResponse.success("Táº¡o gÃ³i dá»‹ch vá»¥ thÃ nh cÃ´ng", service.create(request));
     }
 
     @GetMapping
@@ -41,14 +41,14 @@ public class ServicePackageController {
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<ServicePackageResponse> update(@PathVariable Long id,
                                                       @Valid @RequestBody UpdateServicePackageRequest request) {
-        return ApiResponse.success("Cập nhật gói dịch vụ thành công", service.update(id, request));
+        return ApiResponse.success("Cáº­p nháº­t gÃ³i dá»‹ch vá»¥ thÃ nh cÃ´ng", service.update(id, request));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         service.delete(id);
-        return ApiResponse.success("Xóa gói dịch vụ thành công", null);
+        return ApiResponse.success("XÃ³a gÃ³i dá»‹ch vá»¥ thÃ nh cÃ´ng", null);
     }
 }
 

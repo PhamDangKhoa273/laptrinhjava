@@ -13,7 +13,6 @@ import com.bicap.backend.repository.UserRoleRepository;
 import com.bicap.backend.security.CustomUserPrincipal;
 import com.bicap.backend.security.JwtTokenProvider;
 import com.bicap.backend.security.SecurityUtils;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,7 +25,6 @@ import java.util.Map;
 import static com.bicap.backend.enums.RoleName.GUEST;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
@@ -34,6 +32,19 @@ public class AuthService {
     private final UserService userService;
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
+
+    // Manual Constructor instead of @RequiredArgsConstructor
+    public AuthService(AuthenticationManager authenticationManager,
+                       JwtTokenProvider jwtTokenProvider,
+                       UserService userService,
+                       UserRepository userRepository,
+                       UserRoleRepository userRoleRepository) {
+        this.authenticationManager = authenticationManager;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.userService = userService;
+        this.userRepository = userRepository;
+        this.userRoleRepository = userRoleRepository;
+    }
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
@@ -99,7 +110,7 @@ public class AuthService {
         CustomUserPrincipal principal = new CustomUserPrincipal(
                 user.getUserId(),
                 user.getEmail(),
-                user.getPasswordHash(),
+                user.getPassword(), // Fixed from getPasswordHash if that was the issue
                 user.getStatus(),
                 authorities
         );

@@ -34,29 +34,6 @@ export function DashboardHomePage() {
         <StatusCard label="Refresh token" value={getRefreshToken() ? 'Stored' : 'Optional / missing'} tone={getRefreshToken() ? 'success' : 'warning'} />
       </div>
 
-      <div className="content-grid">
-        <article className="glass-card">
-          <h3>What is completed</h3>
-          <ul className="feature-list">
-            <li>Login, register, and profile flows are implemented.</li>
-            <li>Client-side route protection is active.</li>
-            <li>Redirect after login works by role.</li>
-            <li>Backend validation and network errors are shown to users.</li>
-            <li>Auth token persistence is ready through localStorage.</li>
-          </ul>
-        </article>
-
-        <article className="glass-card">
-          <h3>Demo flow</h3>
-          <ul className="feature-list">
-            <li>Register a new account.</li>
-            <li>Login and verify redirect by role.</li>
-            <li>Refresh the page and verify session persistence.</li>
-            <li>Open profile and update user information.</li>
-            <li>Logout and confirm protected routes are blocked.</li>
-          </ul>
-        </article>
-      </div>
     </section>
   )
 }

@@ -24,7 +24,7 @@ public class VehicleController {
     @PreAuthorize("hasRole('SHIPPING_MANAGER')")
     public ApiResponse<VehicleResponse> createVehicle(@Valid @RequestBody CreateVehicleRequest request) {
         return ApiResponse.success(
-                "Tạo vehicle thành công",
+                "Táº¡o vehicle thÃ nh cÃ´ng",
                 vehicleService.createVehicle(request, SecurityUtils.getCurrentUserId())
         );
     }
@@ -46,7 +46,7 @@ public class VehicleController {
     public ApiResponse<VehicleResponse> update(@PathVariable Long id,
                                                @Valid @RequestBody UpdateVehicleRequest request) {
         return ApiResponse.success(
-                "Cập nhật vehicle thành công",
+                "Cáº­p nháº­t vehicle thÃ nh cÃ´ng",
                 vehicleService.update(id, request, SecurityUtils.getCurrentUserId())
         );
     }
@@ -55,7 +55,7 @@ public class VehicleController {
     @PreAuthorize("hasAnyRole('SHIPPING_MANAGER','ADMIN')")
     public ApiResponse<VehicleResponse> deactivate(@PathVariable Long id) {
         return ApiResponse.success(
-                "Ngừng kích hoạt vehicle thành công",
+                "Ngá»«ng kÃ­ch hoáº¡t vehicle thÃ nh cÃ´ng",
                 vehicleService.deactivate(id, SecurityUtils.getCurrentUserId())
         );
     }
