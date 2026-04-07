@@ -32,17 +32,17 @@ public class FarmSubscriptionService {
     @Transactional
     public FarmSubscriptionResponse create(CreateFarmSubscriptionRequest request, Long currentUserId) {
         User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y user hiá»‡n táº¡i"));
 
         Farm farm = farmRepository.findByOwnerUserUserId(currentUserId)
-                .orElseThrow(() -> new BusinessException("User hiện tại chưa có farm"));
+                .orElseThrow(() -> new BusinessException("User hiá»‡n táº¡i chÆ°a cÃ³ farm"));
 
         if (!userService.hasRole(currentUser, RoleName.FARM) && !userService.hasRole(currentUser, RoleName.ADMIN)) {
-            throw new BusinessException("Bạn không có quyền đăng ký gói");
+            throw new BusinessException("Báº¡n khÃ´ng cÃ³ quyá»n Ä‘Äƒng kÃ½ gÃ³i");
         }
 
         ServicePackage servicePackage = servicePackageRepository.findById(request.getPackageId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy gói dịch vụ"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y gÃ³i dá»‹ch vá»¥"));
 
         LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : LocalDate.now();
         LocalDate endDate = startDate.plusDays(servicePackage.getDurationDays());
@@ -61,7 +61,7 @@ public class FarmSubscriptionService {
     public FarmSubscriptionResponse getById(Long subscriptionId, Long currentUserId) {
         FarmSubscription subscription = getEntityById(subscriptionId);
         User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y user hiá»‡n táº¡i"));
 
         boolean isAdmin = userService.hasRole(currentUser, RoleName.ADMIN);
         boolean isFarmOwner = subscription.getFarm() != null
@@ -69,7 +69,7 @@ public class FarmSubscriptionService {
                 && subscription.getFarm().getOwnerUser().getUserId().equals(currentUserId);
 
         if (!isAdmin && !isFarmOwner) {
-            throw new BusinessException("Bạn không có quyền xem subscription này");
+            throw new BusinessException("Báº¡n khÃ´ng cÃ³ quyá»n xem subscription nÃ y");
         }
 
         return toResponse(subscription);
@@ -84,10 +84,10 @@ public class FarmSubscriptionService {
     @Transactional
     public FarmSubscriptionResponse updateStatus(Long subscriptionId, String subscriptionStatus, Long currentUserId) {
         User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y user hiá»‡n táº¡i"));
 
         if (!userService.hasRole(currentUser, RoleName.ADMIN)) {
-            throw new BusinessException("Chỉ ADMIN mới được cập nhật trạng thái subscription");
+            throw new BusinessException("Chá»‰ ADMIN má»›i Ä‘Æ°á»£c cáº­p nháº­t tráº¡ng thÃ¡i subscription");
         }
 
         FarmSubscription subscription = getEntityById(subscriptionId);
@@ -98,7 +98,7 @@ public class FarmSubscriptionService {
 
     public FarmSubscription getEntityById(Long subscriptionId) {
         return farmSubscriptionRepository.findById(subscriptionId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy farm subscription"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y farm subscription"));
     }
 
     private FarmSubscriptionResponse toResponse(FarmSubscription subscription) {

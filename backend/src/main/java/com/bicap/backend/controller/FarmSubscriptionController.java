@@ -24,7 +24,7 @@ public class FarmSubscriptionController {
     @PreAuthorize("hasRole('FARM')")
     public ApiResponse<FarmSubscriptionResponse> create(@Valid @RequestBody CreateFarmSubscriptionRequest request) {
         return ApiResponse.success(
-                "Tạo đăng ký gói thành công",
+                "Táº¡o Ä‘Äƒng kÃ½ gÃ³i thÃ nh cÃ´ng",
                 farmSubscriptionService.create(request, SecurityUtils.getCurrentUserId())
         );
     }
@@ -47,7 +47,7 @@ public class FarmSubscriptionController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateFarmSubscriptionStatusRequest request) {
         return ApiResponse.success(
-                "Cập nhật trạng thái subscription thành công",
+                "Cáº­p nháº­t tráº¡ng thÃ¡i subscription thÃ nh cÃ´ng",
                 farmSubscriptionService.updateStatus(id, request.getSubscriptionStatus(), SecurityUtils.getCurrentUserId())
         );
     }

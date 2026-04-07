@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -18,7 +17,6 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class BlockchainService {
 
     private final BlockchainTransactionRepository transactionRepository;
@@ -28,8 +26,7 @@ public class BlockchainService {
     }
 
     public BlockchainTransaction saveTransaction(String relatedEntityType, Long relatedEntityId, String actionType, String dataPayload) {
-        log.info("Mock saving to blockchain for entityType: {}, entityId: {}, action: {}",
-                relatedEntityType, relatedEntityId, actionType);
+        System.out.println("Mock saving to blockchain for entityType: " + relatedEntityType + ", entityId: " + relatedEntityId + ", action: " + actionType);
 
         String simulatedHash = generateHash(dataPayload + UUID.randomUUID());
 
@@ -45,14 +42,24 @@ public class BlockchainService {
     }
 
     public BlockchainResult saveBatch(ProductBatch batch) {
-        Long batchId = batch != null ? batch.getBatchId() : null;
-        String payload = batch != null ? String.valueOf(batch) : "null";
+        Long batchId = (batch != null) ? batch.getBatchId() : null;
+        String payload = (batch != null) ? String.valueOf(batch) : "null";
         String txHash = saveTransaction("BATCH", batchId, "UPSERT", payload).getTxHash();
-        return BlockchainResult.builder()
-                .txHash(txHash)
-                .status("SUCCESS")
-                .message("Saved to mock blockchain")
-                .build();
+        
+        BlockchainResult res = new BlockchainResult();
+        res.setTxHash(txHash);
+        res.setStatus("SUCCESS");
+        res.setMessage("Saved to mock blockchain");
+        return res;
+    }
+
+    public String saveSeasonToBlockchain(com.bicap.backend.entity.FarmingSeason season) {
+        System.out.println("Saving season " + season.getSeasonCode() + " to blockchain...");
+        String payload = String.format("SEASON_ID:%d|CODE:%s|FARM:%d|PROD:%d|START:%s",
+                season.getSeasonId(), season.getSeasonCode(), 
+                season.getFarm().getFarmId(), season.getProduct().getProductId(),
+                season.getStartDate());
+        return saveTransaction("SEASON", season.getSeasonId(), "CREATE", payload).getTxHash();
     }
 
     private String generateHash(String input) {
@@ -81,5 +88,29 @@ public class BlockchainService {
         private String txHash;
         private String status;
         private String message;
+
+        public String getTxHash() { return txHash; }
+        public void setTxHash(String txHash) { this.txHash = txHash; }
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
+
+        public static class BlockchainResultBuilder {
+            private String txHash;
+            private String status;
+            private String message;
+            public BlockchainResultBuilder txHash(String h) { this.txHash = h; return this; }
+            public BlockchainResultBuilder status(String s) { this.status = s; return this; }
+            public BlockchainResultBuilder message(String m) { this.message = m; return this; }
+            public BlockchainResult build() {
+                BlockchainResult res = new BlockchainResult();
+                res.setTxHash(this.txHash);
+                res.setStatus(this.status);
+                res.setMessage(this.message);
+                return res;
+            }
+        }
+        public static BlockchainResultBuilder builder() { return new BlockchainResultBuilder(); }
     }
 }

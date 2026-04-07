@@ -22,7 +22,7 @@ public class ServicePackageService {
     public ServicePackageResponse create(CreateServicePackageRequest request) {
         String packageCode = request.getPackageCode().trim();
         if (repository.existsByPackageCodeIgnoreCase(packageCode)) {
-            throw new BusinessException("packageCode đã tồn tại");
+            throw new BusinessException("packageCode Ä‘Ã£ tá»“n táº¡i");
         }
 
         ServicePackage entity = new ServicePackage();
@@ -84,7 +84,7 @@ public class ServicePackageService {
 
     private ServicePackage getEntityById(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy gói dịch vụ"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y gÃ³i dá»‹ch vá»¥"));
     }
 
     private ServicePackageResponse toResponse(ServicePackage entity) {

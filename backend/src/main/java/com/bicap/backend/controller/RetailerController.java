@@ -24,7 +24,7 @@ public class RetailerController {
     @PreAuthorize("hasRole('RETAILER')")
     public ApiResponse<RetailerResponse> create(@Valid @RequestBody CreateRetailerRequest request) {
         return ApiResponse.success(
-                "Tạo retailer thành công",
+                "Táº¡o retailer thÃ nh cÃ´ng",
                 retailerService.create(request, SecurityUtils.getCurrentUserId())
         );
     }
@@ -52,7 +52,7 @@ public class RetailerController {
     public ApiResponse<RetailerResponse> update(@PathVariable Long id,
                                                 @Valid @RequestBody UpdateRetailerRequest request) {
         return ApiResponse.success(
-                "Cập nhật retailer thành công",
+                "Cáº­p nháº­t retailer thÃ nh cÃ´ng",
                 retailerService.update(id, request, SecurityUtils.getCurrentUserId())
         );
     }
@@ -61,7 +61,7 @@ public class RetailerController {
     @PreAuthorize("hasAnyRole('ADMIN','RETAILER')")
     public ApiResponse<RetailerResponse> deactivate(@PathVariable Long id) {
         return ApiResponse.success(
-                "Ngừng kích hoạt retailer thành công",
+                "Ngá»«ng kÃ­ch hoáº¡t retailer thÃ nh cÃ´ng",
                 retailerService.deactivate(id, SecurityUtils.getCurrentUserId())
         );
     }

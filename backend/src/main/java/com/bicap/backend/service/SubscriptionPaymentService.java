@@ -29,10 +29,10 @@ public class SubscriptionPaymentService {
     @Transactional
     public SubscriptionPaymentResponse create(CreateSubscriptionPaymentRequest request, Long currentUserId) {
         User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y user hiá»‡n táº¡i"));
 
         FarmSubscription subscription = farmSubscriptionRepository.findById(request.getSubscriptionId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy subscription"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y subscription"));
 
         boolean isAdmin = userService.hasRole(currentUser, RoleName.ADMIN);
         boolean isFarmOwner = subscription.getFarm() != null
@@ -40,7 +40,7 @@ public class SubscriptionPaymentService {
                 && subscription.getFarm().getOwnerUser().getUserId().equals(currentUserId);
 
         if (!isAdmin && !isFarmOwner) {
-            throw new BusinessException("Bạn không có quyền thanh toán subscription này");
+            throw new BusinessException("Báº¡n khÃ´ng cÃ³ quyá»n thanh toÃ¡n subscription nÃ y");
         }
 
         if (request.getTransactionRef() != null
@@ -70,7 +70,7 @@ public class SubscriptionPaymentService {
     public SubscriptionPaymentResponse getById(Long paymentId, Long currentUserId) {
         SubscriptionPayment payment = getEntityById(paymentId);
         User currentUser = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y user hiá»‡n táº¡i"));
 
         boolean isAdmin = userService.hasRole(currentUser, RoleName.ADMIN);
         boolean isOwner = payment.getFarmSubscription() != null
@@ -79,7 +79,7 @@ public class SubscriptionPaymentService {
                 && payment.getFarmSubscription().getFarm().getOwnerUser().getUserId().equals(currentUserId);
 
         if (!isAdmin && !isOwner) {
-            throw new BusinessException("Bạn không có quyền xem payment này");
+            throw new BusinessException("Báº¡n khÃ´ng cÃ³ quyá»n xem payment nÃ y");
         }
 
         return toResponse(payment);
@@ -87,7 +87,7 @@ public class SubscriptionPaymentService {
 
     public SubscriptionPayment getEntityById(Long paymentId) {
         return subscriptionPaymentRepository.findById(paymentId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy subscription payment"));
+                .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y subscription payment"));
     }
 
     private SubscriptionPaymentResponse toResponse(SubscriptionPayment payment) {

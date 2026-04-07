@@ -3,11 +3,17 @@ package com.bicap.backend.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 @Entity
 @Table(name = "drivers")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Driver {
 
     @Id
@@ -31,4 +37,17 @@ public class Driver {
 
     @Column(name = "status", nullable = false)
     private String status = "ACTIVE";
+
+    public Long getDriverId() { return driverId; }
+    public void setDriverId(Long driverId) { this.driverId = driverId; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+    public User getManagerUser() { return managerUser; }
+    public void setManagerUser(User managerUser) { this.managerUser = managerUser; }
+    public String getDriverCode() { return driverCode; }
+    public void setDriverCode(String driverCode) { this.driverCode = driverCode; }
+    public String getLicenseNo() { return licenseNo; }
+    public void setLicenseNo(String licenseNo) { this.licenseNo = licenseNo; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

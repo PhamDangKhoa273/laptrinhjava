@@ -24,7 +24,7 @@ public class DriverController {
     @PreAuthorize("hasRole('SHIPPING_MANAGER')")
     public ApiResponse<DriverResponse> create(@Valid @RequestBody CreateDriverRequest request) {
         return ApiResponse.success(
-                "Tạo driver thành công",
+                "Táº¡o driver thÃ nh cÃ´ng",
                 driverService.create(request, SecurityUtils.getCurrentUserId())
         );
     }
@@ -46,7 +46,7 @@ public class DriverController {
     public ApiResponse<DriverResponse> update(@PathVariable Long id,
                                               @Valid @RequestBody UpdateDriverRequest request) {
         return ApiResponse.success(
-                "Cập nhật driver thành công",
+                "Cáº­p nháº­t driver thÃ nh cÃ´ng",
                 driverService.update(id, request, SecurityUtils.getCurrentUserId())
         );
     }
@@ -55,7 +55,7 @@ public class DriverController {
     @PreAuthorize("hasAnyRole('SHIPPING_MANAGER','ADMIN')")
     public ApiResponse<DriverResponse> deactivate(@PathVariable Long id) {
         return ApiResponse.success(
-                "Ngừng kích hoạt driver thành công",
+                "Ngá»«ng kÃ­ch hoáº¡t driver thÃ nh cÃ´ng",
                 driverService.deactivate(id, SecurityUtils.getCurrentUserId())
         );
     }

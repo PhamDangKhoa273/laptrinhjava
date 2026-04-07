@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 public class UpdateApprovalStatusRequest {
 
-    @NotBlank(message = "approvalStatus là bắt buộc")
+    @NotBlank(message = "approvalStatus lÃ  báº¯t buá»™c")
     private String approvalStatus;
 }

@@ -38,7 +38,7 @@ public class ProcessTraceService {
                     return rows;
                 }
             } catch (Exception ignored) {
-                // TV2 schema có thể chưa merge vào repo này.
+                // TV2 schema cÃ³ thá»ƒ chÆ°a merge vÃ o repo nÃ y.
             }
         }
 

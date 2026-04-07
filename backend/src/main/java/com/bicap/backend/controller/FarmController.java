@@ -26,7 +26,7 @@ public class FarmController {
     @PreAuthorize("hasRole('FARM')")
     public ApiResponse<FarmResponse> createFarm(@Valid @RequestBody CreateFarmRequest request) {
         return ApiResponse.success(
-                "Tạo farm thành công",
+                "Táº¡o farm thÃ nh cÃ´ng",
                 farmService.createFarm(request, SecurityUtils.getCurrentUserId())
         );
     }
@@ -54,7 +54,7 @@ public class FarmController {
     public ApiResponse<FarmResponse> updateFarm(@PathVariable Long id,
                                                 @Valid @RequestBody UpdateFarmRequest request) {
         return ApiResponse.success(
-                "Cập nhật farm thành công",
+                "Cáº­p nháº­t farm thÃ nh cÃ´ng",
                 farmService.updateFarm(id, request, SecurityUtils.getCurrentUserId())
         );
     }
@@ -64,7 +64,7 @@ public class FarmController {
     public ApiResponse<FarmResponse> reviewFarm(@PathVariable Long id,
                                                 @Valid @RequestBody FarmReviewRequest request) {
         return ApiResponse.success(
-                "Duyệt farm thành công",
+                "Duyá»‡t farm thÃ nh cÃ´ng",
                 farmService.reviewFarm(
                         id,
                         SecurityUtils.getCurrentUserId(),
@@ -79,7 +79,7 @@ public class FarmController {
     public ApiResponse<FarmResponse> changeApprovalStatus(@PathVariable Long id,
                                                           @Valid @RequestBody UpdateApprovalStatusRequest request) {
         return ApiResponse.success(
-                "Thay đổi approval status thành công",
+                "Thay Ä‘á»•i approval status thÃ nh cÃ´ng",
                 farmService.changeApprovalStatus(id, request.getApprovalStatus(), SecurityUtils.getCurrentUserId())
         );
     }
@@ -88,7 +88,7 @@ public class FarmController {
     @PreAuthorize("hasAnyRole('ADMIN','FARM')")
     public ApiResponse<FarmResponse> deactivateFarm(@PathVariable Long id) {
         return ApiResponse.success(
-                "Ngừng kích hoạt farm thành công",
+                "Ngá»«ng kÃ­ch hoáº¡t farm thÃ nh cÃ´ng",
                 farmService.deactivateFarm(id, SecurityUtils.getCurrentUserId())
         );
     }

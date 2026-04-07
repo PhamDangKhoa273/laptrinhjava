@@ -3,6 +3,9 @@ package com.bicap.backend.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 
@@ -10,6 +13,9 @@ import java.time.LocalDateTime;
 @Table(name = "farms")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Farm {
 
     @Id
@@ -51,4 +57,10 @@ public class Farm {
 
     @Column(name = "reviewed_at")
     private LocalDateTime reviewedAt;
+
+    // Manual Fallbacks for Lombok
+    public Long getFarmId() { return farmId; }
+    public void setFarmId(Long farmId) { this.farmId = farmId; }
+    public String getFarmName() { return farmName; }
+    public void setFarmName(String farmName) { this.farmName = farmName; }
 }

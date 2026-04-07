@@ -21,7 +21,7 @@ public class UserController {
     @GetMapping("/me")
     public ApiResponse<?> getMyProfile() {
         return ApiResponse.success(
-                "Lấy hồ sơ cá nhân thành công",
+                "Láº¥y há»“ sÆ¡ cÃ¡ nhÃ¢n thÃ nh cÃ´ng",
                 userService.getCurrentUserProfile()
         );
     }
@@ -29,7 +29,7 @@ public class UserController {
     @GetMapping("/me/profile")
     public ApiResponse<?> getMyProfileAlias() {
         return ApiResponse.success(
-                "Lấy hồ sơ cá nhân thành công",
+                "Láº¥y há»“ sÆ¡ cÃ¡ nhÃ¢n thÃ nh cÃ´ng",
                 userService.getCurrentUserProfile()
         );
     }
@@ -37,7 +37,7 @@ public class UserController {
     @PutMapping("/me/profile")
     public ApiResponse<?> updateMyProfile(@Valid @RequestBody UpdateProfileRequest request) {
         return ApiResponse.success(
-                "Cập nhật hồ sơ cá nhân thành công",
+                "Cáº­p nháº­t há»“ sÆ¡ cÃ¡ nhÃ¢n thÃ nh cÃ´ng",
                 userService.updateCurrentUserProfile(request)
         );
     }
@@ -46,7 +46,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<?> createUser(@Valid @RequestBody CreateUserRequest request) {
         return ApiResponse.success(
-                "Tạo user thành công",
+                "Táº¡o user thÃ nh cÃ´ng",
                 userService.createUserByAdmin(request)
         );
     }
@@ -55,7 +55,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<?> getAllUsers() {
         return ApiResponse.success(
-                "Lấy danh sách user thành công",
+                "Láº¥y danh sÃ¡ch user thÃ nh cÃ´ng",
                 userService.getAllUsers()
         );
     }
@@ -64,7 +64,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<?> getUserById(@PathVariable Long id) {
         return ApiResponse.success(
-                "Lấy thông tin user thành công",
+                "Láº¥y thÃ´ng tin user thÃ nh cÃ´ng",
                 userService.getUserById(id)
         );
     }
@@ -73,7 +73,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<?> getUserProfileById(@PathVariable Long id) {
         return ApiResponse.success(
-                "Lấy hồ sơ người dùng thành công",
+                "Láº¥y há»“ sÆ¡ ngÆ°á»i dÃ¹ng thÃ nh cÃ´ng",
                 userService.getUserById(id)
         );
     }
@@ -85,7 +85,7 @@ public class UserController {
             @Valid @RequestBody UpdateProfileRequest request
     ) {
         return ApiResponse.success(
-                "Admin cập nhật hồ sơ người dùng thành công",
+                "Admin cáº­p nháº­t há»“ sÆ¡ ngÆ°á»i dÃ¹ng thÃ nh cÃ´ng",
                 userService.updateProfileAsAdmin(id, request)
         );
     }
@@ -97,7 +97,7 @@ public class UserController {
             @Valid @RequestBody UpdateUserStatusRequest request
     ) {
         return ApiResponse.success(
-                "Đổi trạng thái người dùng thành công",
+                "Äá»•i tráº¡ng thÃ¡i ngÆ°á»i dÃ¹ng thÃ nh cÃ´ng",
                 userService.changeStatus(id, request)
         );
     }
@@ -109,7 +109,7 @@ public class UserController {
             @Valid @RequestBody AssignRoleRequest request
     ) {
         return ApiResponse.success(
-                "Gán role thành công",
+                "GÃ¡n role thÃ nh cÃ´ng",
                 userService.assignRole(id, request)
         );
     }

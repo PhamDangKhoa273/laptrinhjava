@@ -24,7 +24,7 @@ public class QrCodeService {
 
             return Base64.getEncoder().encodeToString(outputStream.toByteArray());
         } catch (WriterException | IOException e) {
-            throw new IllegalStateException("Không thể tạo QR code", e);
+            throw new IllegalStateException("KhÃ´ng thá»ƒ táº¡o QR code", e);
         }
     }
 }

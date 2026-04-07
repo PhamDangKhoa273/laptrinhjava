@@ -30,7 +30,7 @@ public class SeasonReferenceService {
                     return Optional.of(rows.get(0));
                 }
             } catch (Exception ignored) {
-                // Schema của module khác có thể chưa merge; thử query tiếp theo.
+                // Schema cá»§a module khÃ¡c cÃ³ thá»ƒ chÆ°a merge; thá»­ query tiáº¿p theo.
             }
         }
 
@@ -43,7 +43,7 @@ public class SeasonReferenceService {
 
     private List<String> candidateQueries() {
         return List.of(
-                // Contract ưu tiên cho team: season gắn product thật bằng FK.
+                // Contract Æ°u tiÃªn cho team: season gáº¯n product tháº­t báº±ng FK.
                 """
                 SELECT
                     s.season_id AS season_id,
@@ -84,7 +84,7 @@ public class SeasonReferenceService {
                 LEFT JOIN farms f ON f.farm_id = s.farm_id
                 WHERE s.season_id = ? AND p.product_id = ?
                 """,
-                // Fallback thực dụng cho DB hiện tại: nếu TV1 chưa có product FK thì map product từ bảng products do TV3/TV5 dùng chung.
+                // Fallback thá»±c dá»¥ng cho DB hiá»‡n táº¡i: náº¿u TV1 chÆ°a cÃ³ product FK thÃ¬ map product tá»« báº£ng products do TV3/TV5 dÃ¹ng chung.
                 """
                 SELECT
                     s.season_id AS season_id,
