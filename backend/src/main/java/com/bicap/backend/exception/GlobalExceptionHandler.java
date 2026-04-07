@@ -75,18 +75,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleOther(Exception ex) {
-            if (MOCK_DEV) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(
-                        "INTERNAL_SERVER_ERROR",
-                        ex.getMessage(),
-                        List.of(new ApiErrorDetail(
-                                "exception",
-                                ex.getClass().getSimpleName(),
-                                buildStackTrace(ex)
-                        ))
-                ));
-    }
+        if (MOCK_DEV) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error(
+                            "INTERNAL_SERVER_ERROR",
+                            ex.getMessage(),
+                            List.of(new ApiErrorDetail(
+                                    "exception",
+                                    ex.getClass().getSimpleName(),
+                                    buildStackTrace(ex)
+                            ))
+                    ));
+        }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("INTERNAL_SERVER_ERROR", "Đã có lỗi hệ thống xảy ra", null));
     }
