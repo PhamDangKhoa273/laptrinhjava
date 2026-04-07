@@ -60,6 +60,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/users/me/profile").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/users/me/profile").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasRole("ADMIN")
