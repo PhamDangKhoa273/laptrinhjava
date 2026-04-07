@@ -1,44 +1,46 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button } from '../components/Button.jsx'
 import { RoleBadge } from '../components/RoleBadge.jsx'
+import { SelectField } from '../components/SelectField.jsx'
+import { assignUserRole, getUsers, updateUserStatus } from '../services/businessService'
+import { ROLES, ROLE_LABELS } from '../utils/constants'
 import { getErrorMessage } from '../utils/helpers'
-import { getAccessToken } from '../utils/storage'
 
-const API_BASE = 'http://localhost:8080'
+const roleOptions = [
+  { value: '', label: 'Select role to assign' },
+  ...Object.values(ROLES).map((role) => ({ value: role, label: ROLE_LABELS[role] || role })),
+]
 
 export function AdminUsersPage() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [assigningRoleFor, setAssigningRoleFor] = useState(null)
+  const [selectedRoles, setSelectedRoles] = useState({})
 
   useEffect(() => {
     loadUsers()
   }, [])
 
-  function getAuthHeaders() {
-    const token = getAccessToken()
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-    }
-  }
+  const sortedUsers = useMemo(
+    () => [...users].sort((a, b) => Number(a.userId) - Number(b.userId)),
+    [users],
+  )
 
   async function loadUsers() {
     try {
       setLoading(true)
       setError('')
-      const response = await fetch(`${API_BASE}/api/users`, {
-        credentials: 'include',
-        headers: getAuthHeaders(),
+      const loadedUsers = await getUsers()
+      setUsers(loadedUsers)
+      setSelectedRoles((prev) => {
+        const next = { ...prev }
+        loadedUsers.forEach((user) => {
+          next[user.userId] = prev[user.userId] || ''
+        })
+        return next
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to load users')
-      }
-
-      const data = await response.json()
-      setUsers(data.data || [])
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {
@@ -49,23 +51,37 @@ export function AdminUsersPage() {
   async function handleUserStatusChange(userId, newStatus) {
     try {
       setError('')
-      const response = await fetch(`${API_BASE}/api/users/${userId}/status`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ status: newStatus }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to update user status')
-      }
-
+      setSuccess('')
+      await updateUserStatus(userId, newStatus)
       setSuccess('User status updated successfully')
-      loadUsers()
-
+      await loadUsers()
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
       setError(getErrorMessage(err))
+    }
+  }
+
+  async function handleAssignRole(userId) {
+    const roleName = selectedRoles[userId]
+
+    if (!roleName) {
+      setError('Please select a role before assigning')
+      return
+    }
+
+    try {
+      setAssigningRoleFor(userId)
+      setError('')
+      setSuccess('')
+      await assignUserRole(userId, roleName)
+      setSuccess(`Assigned role ${ROLE_LABELS[roleName] || roleName} successfully`)
+      setSelectedRoles((prev) => ({ ...prev, [userId]: '' }))
+      await loadUsers()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setAssigningRoleFor(null)
     }
   }
 
@@ -95,17 +111,8 @@ export function AdminUsersPage() {
         <p className="mt-2 text-gray-600">Manage all users, assign roles, and update their status.</p>
       </div>
 
-      {error && (
-        <div className="rounded-lg bg-red-50 p-4 text-red-700">
-          {error}
-        </div>
-      )}
-
-      {success && (
-        <div className="rounded-lg bg-green-50 p-4 text-green-700">
-          {success}
-        </div>
-      )}
+      {error && <div className="rounded-lg bg-red-50 p-4 text-red-700">{error}</div>}
+      {success && <div className="rounded-lg bg-green-50 p-4 text-green-700">{success}</div>}
 
       <div className="overflow-x-auto bg-white rounded-lg shadow">
         <table className="w-full">
@@ -122,15 +129,15 @@ export function AdminUsersPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {users.length === 0 ? (
+            {sortedUsers.length === 0 ? (
               <tr>
                 <td colSpan="8" className="px-6 py-8 text-center text-gray-500">
                   No users found
                 </td>
               </tr>
             ) : (
-              users.map((user) => (
-                <tr key={user.userId} className="hover:bg-gray-50">
+              sortedUsers.map((user) => (
+                <tr key={user.userId} className="hover:bg-gray-50 align-top">
                   <td className="px-6 py-4 text-sm text-gray-900">{user.userId}</td>
                   <td className="px-6 py-4 text-sm text-gray-900 font-medium">{user.fullName}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">{user.email}</td>
@@ -149,36 +156,50 @@ export function AdminUsersPage() {
                   <td className="px-6 py-4 text-sm">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        user.status === 'ACTIVE'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
+                        user.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}
                     >
                       {user.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {formatDate(user.createdAt)}
-                  </td>
-                  <td className="px-6 py-4 text-sm space-x-2">
-                    {user.status === 'ACTIVE' && (
-                      <Button
-                        onClick={() => handleUserStatusChange(user.userId, 'INACTIVE')}
-                        variant="danger"
-                        size="sm"
-                      >
-                        Deactivate
-                      </Button>
-                    )}
-                    {user.status === 'INACTIVE' && (
-                      <Button
-                        onClick={() => handleUserStatusChange(user.userId, 'ACTIVE')}
-                        variant="success"
-                        size="sm"
-                      >
-                        Activate
-                      </Button>
-                    )}
+                  <td className="px-6 py-4 text-sm text-gray-600">{formatDate(user.createdAt)}</td>
+                  <td className="px-6 py-4 text-sm space-y-3 min-w-[240px]">
+                    <div className="flex flex-wrap gap-2">
+                      {user.status === 'ACTIVE' && (
+                        <Button onClick={() => handleUserStatusChange(user.userId, 'INACTIVE')} variant="danger">
+                          Deactivate
+                        </Button>
+                      )}
+                      {user.status === 'INACTIVE' && (
+                        <Button onClick={() => handleUserStatusChange(user.userId, 'ACTIVE')} variant="success">
+                          Activate
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="rounded-lg border border-gray-200 p-3 bg-gray-50">
+                      <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Assign role</div>
+                      <div className="space-y-2">
+                        <SelectField
+                          label="Role"
+                          name={`role-${user.userId}`}
+                          value={selectedRoles[user.userId] || ''}
+                          onChange={(event) =>
+                            setSelectedRoles((prev) => ({
+                              ...prev,
+                              [user.userId]: event.target.value,
+                            }))
+                          }
+                          options={roleOptions}
+                        />
+                        <Button
+                          onClick={() => handleAssignRole(user.userId)}
+                          disabled={assigningRoleFor === user.userId}
+                        >
+                          {assigningRoleFor === user.userId ? 'Assigning...' : 'Assign role'}
+                        </Button>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ))

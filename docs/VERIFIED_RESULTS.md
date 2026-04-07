@@ -1,11 +1,13 @@
 # BICAP Phase 2 - Verified Results
 
-## Verification date
+## Verification dates
 - 2026-04-01
+- 2026-04-06 (live retest after Phase 2 completion pass)
 
 ## Environment verified
-- Java: OpenJDK 17.0.18
-- Maven: via Maven Wrapper (`mvnw.cmd`) -> Apache Maven 3.9.14
+- Java runtime in machine PATH: Java 8
+- JDK used for backend verification: Eclipse Adoptium JDK 17 (`C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot`)
+- Maven: via Maven Wrapper (`mvnw.cmd`)
 - Node.js: v24.14.1
 - npm: 11.11.0
 - MySQL: reachable locally on `localhost:3306`
@@ -27,8 +29,8 @@ Command:
 ```
 Result:
 - ✅ Backend booted successfully on port `8080`
-- ✅ Flyway validated 3 migrations
-- ✅ Schema `bicap_db` is up to date
+- ✅ Flyway validated migrations and confirmed schema up to date
+- ✅ Schema `bicap_db` reachable and usable for live retest
 
 ### Backend tests
 Command:
@@ -36,23 +38,34 @@ Command:
 .\mvnw.cmd test
 ```
 Result:
-- ✅ Spring Boot test context started successfully
+- ⚠ Works when Maven is run with JDK 17
+- ⚠ Fails if machine shell still points to Java 8 runtime only
+- ✅ Root cause identified: PATH/JAVA_HOME mismatch, not backend source compile failure
 
-## Live API verification
+## Live API verification (2026-04-06)
 Base URL:
 - `http://localhost:8080/api`
 
-## Happy path verified live
+## Core auth/profile flow verified live
 ### Register
 - ✅ success
+
+### Duplicate email
+- ✅ returns `400`
 
 ### Login
 - ✅ success
 - access token returned
 - refresh token returned
 
-### Get current user (`/auth/me`)
-- ✅ success
+### Wrong password
+- ✅ returns `401`
+
+### Get current user (`/auth/me`) without token
+- ✅ returns `401`
+
+### Get current user (`/auth/me`) with valid token
+- ✅ returns `200`
 
 ### Get current profile (`/users/me`)
 - ✅ success
@@ -61,33 +74,52 @@ Base URL:
 - ✅ success
 - updated phone reflected in response
 
-### Refresh token
-- ✅ success
-
-### Logout
-- ✅ success
-
-## Negative / security cases verified live
-### Duplicate email
-- ✅ returns `400`
-
-### Wrong password
-- ✅ returns `401`
-
-### `/auth/me` without token
-- ✅ returns `401`
-
-### `/auth/me` with invalid token
-- ✅ returns `401`
-
 ### Update profile with invalid phone
 - ✅ returns `400`
+
+### Refresh token with valid refresh token
+- ✅ success
 
 ### Refresh using access token instead of refresh token
 - ✅ returns `400`
 
 ### Access admin endpoint `/users` with normal guest token
 - ✅ returns `403`
+
+## Admin flow verified live
+### Login with seeded admin account
+- ✅ success (`admin@bicap.com`)
+
+### Get all users
+- ✅ success
+
+### Assign role to user
+- ✅ success
+- verified backend returns updated roles list
+
+### Assign duplicate role
+- ✅ returns `400`
+
+### Change user status
+- ✅ success
+- verified status changed to `INACTIVE`
+
+## Farm approval flow verified live
+### Create a fresh farm user for approval testing
+- ✅ success
+
+### Assign FARM role to that user
+- ✅ success
+
+### Create pending farm profile
+- ✅ success
+
+### Admin list farms
+- ✅ success
+
+### Admin approve farm
+- ✅ success
+- verified approval status changed to `APPROVED`
 
 ## Final conclusion for current mission
 ### TV1
@@ -96,15 +128,22 @@ Base URL:
 
 ### TV2
 - ✅ core user/role/profile flow is working
-- ⚠ extended business-domain entities were not the focus of this live verification
+- ✅ admin assign role and change status verified live
+- ✅ farm approval flow verified live
+- ⚠ full delete coverage across all business entities is still not the project claim for this verification pass
 
 ### TV3
-- ✅ linked to backend core flow successfully
 - ✅ frontend build passes
-- ✅ auth/profile integration is aligned with backend current scope
+- ✅ frontend/backend integration for current Phase 2 core scope is aligned
+
+### TV5
+- ✅ local run/test artifacts are prepared
+- ✅ Docker artifacts and environment templates added
+- ✅ test cases, bug report, collection template, and completion summary added
+- ✅ live API verification performed for core Phase 2 scope
 
 ## Overall mission status
-### Current mission target: TV1 + TV2 + TV3 link together, run, and be testable
+### Current mission target: Phase 2 core system complete, testable, and defensible
 - ✅ achieved for the verified core scope
 
 ## Important scope note
@@ -116,5 +155,8 @@ This verification confirms the current **core Phase 2 flow**:
 - refresh token
 - logout
 - protected/admin authorization behavior
+- admin user role assignment
+- admin user status change
+- admin farm approval
 
-It does **not** claim full completion of all extended Phase 2 business-domain modules such as farms / retailers / drivers / vehicles / subscriptions unless those are separately verified in deeper backend flows.
+It does **not** claim full completion of every extended business-domain CRUD variation (especially uniform delete flows across all entities) unless those are separately implemented and verified.

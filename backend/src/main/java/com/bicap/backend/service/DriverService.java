@@ -99,6 +99,23 @@ public class DriverService {
         return toResponse(driverRepository.save(driver));
     }
 
+    @Transactional
+    public DriverResponse deactivate(Long id, Long currentUserId) {
+        Driver driver = getEntityById(id);
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
+
+        boolean isAdmin = userService.hasRole(currentUser, RoleName.ADMIN);
+        boolean isManagerOwner = driver.getManagerUser() != null && driver.getManagerUser().getUserId().equals(currentUserId);
+
+        if (!isAdmin && !isManagerOwner) {
+            throw new BusinessException("Bạn không có quyền ngừng kích hoạt driver này");
+        }
+
+        driver.setStatus("INACTIVE");
+        return toResponse(driverRepository.save(driver));
+    }
+
     public Driver getEntityById(Long id) {
         return driverRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy driver"));

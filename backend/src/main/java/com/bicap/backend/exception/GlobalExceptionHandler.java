@@ -92,10 +92,9 @@ public class GlobalExceptionHandler {
     }
 
     private String buildStackTrace(Exception ex) {
-        StringBuilder sb = new StringBuilder(ex.toString());
-        for (StackTraceElement element : ex.getStackTrace()) {
-            sb.append("\n    at ").append(element);
-        }
-        return sb.toString();
+        java.io.StringWriter sw = new java.io.StringWriter();
+        java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+        ex.printStackTrace(pw);
+        return sw.toString();
     }
 }

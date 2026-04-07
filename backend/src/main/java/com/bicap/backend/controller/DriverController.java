@@ -50,5 +50,13 @@ public class DriverController {
                 driverService.update(id, request, SecurityUtils.getCurrentUserId())
         );
     }
-}
 
+    @PatchMapping("/{id}/deactivate")
+    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER','ADMIN')")
+    public ApiResponse<DriverResponse> deactivate(@PathVariable Long id) {
+        return ApiResponse.success(
+                "Ngừng kích hoạt driver thành công",
+                driverService.deactivate(id, SecurityUtils.getCurrentUserId())
+        );
+    }
+}

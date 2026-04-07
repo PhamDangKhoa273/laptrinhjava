@@ -83,5 +83,13 @@ public class FarmController {
                 farmService.changeApprovalStatus(id, request.getApprovalStatus(), SecurityUtils.getCurrentUserId())
         );
     }
-}
 
+    @PatchMapping("/{id}/deactivate")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
+    public ApiResponse<FarmResponse> deactivateFarm(@PathVariable Long id) {
+        return ApiResponse.success(
+                "Ngừng kích hoạt farm thành công",
+                farmService.deactivateFarm(id, SecurityUtils.getCurrentUserId())
+        );
+    }
+}
