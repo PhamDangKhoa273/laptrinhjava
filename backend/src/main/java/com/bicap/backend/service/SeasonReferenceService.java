@@ -48,38 +48,18 @@ public class SeasonReferenceService {
                 SELECT
                     s.season_id AS season_id,
                     p.product_id AS product_id,
-                    COALESCE(s.season_code, CONCAT('SEASON-', s.season_id)) AS season_code,
-                    COALESCE(s.season_name, s.name) AS season_name,
+                    s.season_code AS season_code,
+                    s.season_code AS season_name,
                     p.product_code AS product_code,
-                    COALESCE(p.product_name, p.name) AS product_name,
-                    COALESCE(s.crop_name, s.plant_name, p.product_name, p.name) AS crop_name,
+                    p.product_name AS product_name,
+                    p.product_name AS crop_name,
                     f.farm_code AS farm_code,
                     f.farm_name AS farm_name,
-                    s.status AS season_status,
+                    s.season_status AS season_status,
                     s.start_date AS start_date,
-                    s.expected_end_date AS expected_end_date,
+                    s.expected_harvest_date AS expected_end_date,
                     FALSE AS derived_product
                 FROM farming_seasons s
-                JOIN products p ON p.product_id = s.product_id
-                LEFT JOIN farms f ON f.farm_id = s.farm_id
-                WHERE s.season_id = ? AND p.product_id = ?
-                """,
-                """
-                SELECT
-                    s.season_id AS season_id,
-                    p.product_id AS product_id,
-                    COALESCE(s.season_code, CONCAT('SEASON-', s.season_id)) AS season_code,
-                    COALESCE(s.season_name, s.name) AS season_name,
-                    p.product_code AS product_code,
-                    COALESCE(p.product_name, p.name) AS product_name,
-                    COALESCE(s.crop_name, s.plant_name, p.product_name, p.name) AS crop_name,
-                    f.farm_code AS farm_code,
-                    f.farm_name AS farm_name,
-                    s.status AS season_status,
-                    s.start_date AS start_date,
-                    s.expected_end_date AS expected_end_date,
-                    FALSE AS derived_product
-                FROM seasons s
                 JOIN products p ON p.product_id = s.product_id
                 LEFT JOIN farms f ON f.farm_id = s.farm_id
                 WHERE s.season_id = ? AND p.product_id = ?
@@ -89,16 +69,16 @@ public class SeasonReferenceService {
                 SELECT
                     s.season_id AS season_id,
                     p.product_id AS product_id,
-                    CONCAT('SEASON-', s.season_id) AS season_code,
-                    s.name AS season_name,
+                    s.season_code AS season_code,
+                    s.season_code AS season_name,
                     p.product_code AS product_code,
-                    p.name AS product_name,
-                    s.plant_name AS crop_name,
+                    p.product_name AS product_name,
+                    p.product_name AS crop_name,
                     f.farm_code AS farm_code,
                     f.farm_name AS farm_name,
-                    s.status AS season_status,
+                    s.season_status AS season_status,
                     s.start_date AS start_date,
-                    s.expected_end_date AS expected_end_date,
+                    s.expected_harvest_date AS expected_end_date,
                     TRUE AS derived_product
                 FROM farming_seasons s
                 JOIN products p ON p.product_id = ?

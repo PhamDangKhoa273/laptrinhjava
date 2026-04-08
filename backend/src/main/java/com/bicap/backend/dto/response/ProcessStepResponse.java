@@ -24,7 +24,7 @@ public class ProcessStepResponse {
     public static ProcessStepResponse fromEntity(FarmingProcess process, String paramTxHash) {
         return ProcessStepResponse.builder()
                 .processId(process.getId())
-                .seasonId(process.getSeason().getId())
+                .seasonId(process.getSeason().getSeasonId())
                 .stepNo(process.getStepNo())
                 .stepName(process.getStepName())
                 .performedAt(process.getPerformedAt())
