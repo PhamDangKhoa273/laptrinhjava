@@ -8,8 +8,8 @@ import java.util.List;
 
 @Repository
 public interface FarmingProcessRepository extends JpaRepository<FarmingProcess, Long> {
-    List<FarmingProcess> findBySeasonIdOrderByStepNoAsc(Long seasonId);
-    List<FarmingProcess> findBySeasonIdOrderByPerformedAtAsc(Long seasonId);
-    boolean existsBySeasonIdAndStepNo(Long seasonId, Integer stepNo);
-    boolean existsBySeasonIdAndStepNoAndIdNot(Long seasonId, Integer stepNo, Long id);
+    List<FarmingProcess> findBySeason_SeasonIdOrderByStepNoAsc(Long seasonId);
+    List<FarmingProcess> findBySeason_SeasonIdOrderByPerformedAtAsc(Long seasonId);
+    boolean existsBySeason_SeasonIdAndStepNo(Long seasonId, Integer stepNo);
+    boolean existsBySeason_SeasonIdAndStepNoAndIdNot(Long seasonId, Integer stepNo, Long id);
 }

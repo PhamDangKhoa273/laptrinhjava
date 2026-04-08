@@ -19,11 +19,13 @@ public class ProductBatch {
     @Column(name = "batch_id")
     private Long batchId;
 
-    @Column(name = "season_id", nullable = false)
-    private Long seasonId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "season_id", nullable = false)
+    private FarmingSeason season;
 
-    @Column(name = "product_id", nullable = false)
-    private Long productId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
 
     @Column(name = "batch_code", nullable = false, unique = true, length = 50)
     private String batchCode;
@@ -46,7 +48,7 @@ public class ProductBatch {
     @Column(name = "batch_status", nullable = false, length = 30)
     private String batchStatus = "CREATED";
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
@@ -63,4 +65,3 @@ public class ProductBatch {
         this.updatedAt = LocalDateTime.now();
     }
 }
-

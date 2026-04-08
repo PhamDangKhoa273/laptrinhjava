@@ -21,7 +21,7 @@ public class BatchController {
 
     @PostMapping("/api/batches")
     public ApiResponse<BatchResponse> createBatch(@Valid @RequestBody CreateBatchRequest request) {
-        return ApiResponse.success("Táº¡o batch thÃ nh cÃ´ng", productBatchService.createBatch(request));
+        return ApiResponse.success("Tạo lô hàng thành công", productBatchService.createBatch(request));
     }
 
     @GetMapping("/api/batches")
@@ -37,12 +37,12 @@ public class BatchController {
     @PutMapping("/api/batches/{id}")
     public ApiResponse<BatchResponse> updateBatch(@PathVariable Long id,
                                                   @Valid @RequestBody UpdateBatchRequest request) {
-        return ApiResponse.success("Cáº­p nháº­t batch thÃ nh cÃ´ng", productBatchService.updateBatch(id, request));
+        return ApiResponse.success("Cập nhật lô hàng thành công", productBatchService.updateBatch(id, request));
     }
 
     @PostMapping("/api/batches/{id}/qr")
     public ApiResponse<QrCodeResponse> generateQr(@PathVariable Long id) {
-        return ApiResponse.success("Táº¡o QR thÃ nh cÃ´ng", productBatchService.generateQrCode(id));
+        return ApiResponse.success("Tạo mã QR thành công", productBatchService.generateQrCode(id));
     }
 
     @GetMapping("/api/batches/{id}/qr")
@@ -55,4 +55,3 @@ public class BatchController {
         return ApiResponse.success(productBatchService.traceBatch(id));
     }
 }
-

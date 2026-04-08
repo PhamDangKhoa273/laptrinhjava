@@ -23,19 +23,19 @@ public class FarmingProcessController {
             @PathVariable Long seasonId,
             @Valid @RequestBody CreateProcessStepRequest request) {
         ProcessStepResponse response = farmingProcessService.createProcessStep(seasonId, request);
-        return ApiResponse.success("ThÃªm bÆ°á»›c quy trÃ¬nh thÃ nh cÃ´ng", response);
+        return ApiResponse.success("Thêm bước quy trình thành công", response);
     }
 
     @GetMapping("/seasons/{seasonId}/processes")
     public ApiResponse<ProcessTimelineResponse> getProcessesBySeason(@PathVariable Long seasonId) {
         ProcessTimelineResponse response = farmingProcessService.getProcessesBySeason(seasonId);
-        return ApiResponse.success("Láº¥y danh sÃ¡ch quy trÃ¬nh thÃ nh cÃ´ng", response);
+        return ApiResponse.success("Lấy danh sách quy trình thành công", response);
     }
 
     @GetMapping("/processes/{id}")
     public ApiResponse<ProcessStepResponse> getProcessDetail(@PathVariable Long id) {
         ProcessStepResponse response = farmingProcessService.getProcessDetail(id);
-        return ApiResponse.success("Láº¥y chi tiáº¿t bÆ°á»›c quy trÃ¬nh thÃ nh cÃ´ng", response);
+        return ApiResponse.success("Lấy chi tiết bước quy trình thành công", response);
     }
 
     @PutMapping("/processes/{id}")
@@ -43,13 +43,13 @@ public class FarmingProcessController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateProcessStepRequest request) {
         ProcessStepResponse response = farmingProcessService.updateProcessStep(id, request);
-        return ApiResponse.success("Cáº­p nháº­t bÆ°á»›c quy trÃ¬nh thÃ nh cÃ´ng", response);
+        return ApiResponse.success("Cập nhật bước quy trình thành công", response);
     }
 
     @DeleteMapping("/processes/{id}")
     public ApiResponse<Void> deleteProcessStep(@PathVariable Long id) {
         farmingProcessService.deleteProcessStep(id);
-        return ApiResponse.success("XÃ³a bÆ°á»›c quy trÃ¬nh thÃ nh cÃ´ng", null);
+        return ApiResponse.success("Xóa bước quy trình thành công", null);
     }
 
     @PatchMapping("/processes/{id}/reorder")
@@ -57,7 +57,7 @@ public class FarmingProcessController {
             @PathVariable Long id,
             @RequestParam("stepNo") Integer stepNo) {
         ProcessStepResponse response = farmingProcessService.reorderProcessStep(id, stepNo);
-        return ApiResponse.success("Cáº­p nháº­t thá»© tá»± bÆ°á»›c thÃ nh cÃ´ng", response);
+        return ApiResponse.success("Cập nhật thứ tự bước thành công", response);
     }
 
     @PatchMapping("/seasons/{seasonId}/processes/reorder")
@@ -65,6 +65,6 @@ public class FarmingProcessController {
             @PathVariable Long seasonId,
             @Valid @RequestBody ReorderProcessRequest request) {
         farmingProcessService.reorderProcesses(seasonId, request);
-        return ApiResponse.success("Cáº­p nháº­t thá»© tá»± thÃ nh cÃ´ng", null);
+        return ApiResponse.success("Cập nhật thứ tự thành công", null);
     }
 }

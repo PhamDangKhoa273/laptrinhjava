@@ -1,13 +1,3 @@
-CREATE TABLE farming_seasons (
-    season_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    farm_id BIGINT NOT NULL,
-    season_name VARCHAR(150) NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE,
-    status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
-    CONSTRAINT fk_farming_seasons_farm FOREIGN KEY (farm_id) REFERENCES farms(farm_id)
-);
-
 CREATE TABLE farming_processes (
     process_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     season_id BIGINT NOT NULL,
