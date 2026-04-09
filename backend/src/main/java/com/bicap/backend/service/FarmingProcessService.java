@@ -39,7 +39,6 @@ public class FarmingProcessService {
             throw new BusinessException("Số thứ tự bước " + request.getStepNo() + " đã tồn tại trong mùa vụ này.");
         }
 
-        Long currentUserId = SecurityUtils.getCurrentUserId();
         User recorder = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin người dùng hiện tại."));
 

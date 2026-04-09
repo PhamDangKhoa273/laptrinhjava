@@ -8,6 +8,7 @@ import com.bicap.backend.dto.trace.TraceBatchResponse;
 import com.bicap.backend.entity.*;
 import com.bicap.backend.exception.BusinessException;
 import com.bicap.backend.repository.*;
+import com.bicap.backend.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,7 @@ public class ProductBatchService {
 
     @Transactional
     public BatchResponse createBatch(CreateBatchRequest request) {
-        Long currentUserId = com.bicap.backend.security.SecurityUtils.getCurrentUserId();
+        Long currentUserId = SecurityUtils.getCurrentUserId();
         FarmingSeason season = seasonService.findSeasonAndCheckPermission(request.getSeasonId(), currentUserId);
 
         Product product = productRepository.findById(request.getProductId())
