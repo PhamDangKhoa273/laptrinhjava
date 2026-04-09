@@ -1,16 +1,16 @@
 package com.bicap.backend.mapper;
 
-import com.bicap.backend.dto.response.FarmingSeasonResponse;
+import com.bicap.backend.dto.response.SeasonResponse;
 import com.bicap.backend.entity.FarmingSeason;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FarmingSeasonMapper {
 
-    public FarmingSeasonResponse toResponse(FarmingSeason season) {
+    public SeasonResponse toResponse(FarmingSeason season) {
         if (season == null) return null;
 
-        return FarmingSeasonResponse.builder()
+        return SeasonResponse.builder()
                 .id(season.getSeasonId())
                 .farmId(season.getFarm() != null ? season.getFarm().getFarmId() : null)
                 .farmName(season.getFarm() != null ? season.getFarm().getFarmName() : null)

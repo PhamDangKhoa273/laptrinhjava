@@ -28,11 +28,12 @@ public class FarmingProcessService {
     private final FarmingSeasonRepository farmingSeasonRepository;
     private final UserRepository userRepository;
     private final BlockchainService blockchainService;
+    private final SeasonService seasonService;
 
     @Transactional
     public ProcessStepResponse createProcessStep(Long seasonId, CreateProcessStepRequest request) {
-        FarmingSeason season = farmingSeasonRepository.findById(seasonId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy mùa vụ với ID: " + seasonId));
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        FarmingSeason season = seasonService.findSeasonAndCheckPermission(seasonId, currentUserId);
 
         if (farmingProcessRepository.existsBySeason_SeasonIdAndStepNo(seasonId, request.getStepNo())) {
             throw new BusinessException("Số thứ tự bước " + request.getStepNo() + " đã tồn tại trong mùa vụ này.");
