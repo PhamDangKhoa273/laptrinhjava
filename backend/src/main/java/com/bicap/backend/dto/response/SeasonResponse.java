@@ -1,15 +1,18 @@
 package com.bicap.backend.dto.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class FarmingSeasonResponse {
+public class SeasonResponse {
     private Long id;
     private Long farmId;
     private String farmName;

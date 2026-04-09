@@ -25,8 +25,23 @@ public class BlockchainService {
         return saveTransaction("PROCESS", processId, actionType, dataPayload).getTxHash();
     }
 
+    public String saveBatch(ProductBatch batch) {
+        Long batchId = (batch != null) ? batch.getBatchId() : null;
+        String payload = (batch != null) ? String.valueOf(batch) : "null";
+        return saveTransaction("BATCH", batchId, "UPSERT", payload).getTxHash();
+    }
+
+    public String saveSeason(com.bicap.backend.entity.FarmingSeason season) {
+        if (season == null) return null;
+        String payload = String.format("SEASON_ID:%d|CODE:%s|FARM:%d|PROD:%d|START:%s",
+                season.getSeasonId(), season.getSeasonCode(), 
+                season.getFarm().getFarmId(), season.getProduct().getProductId(),
+                season.getStartDate());
+        return saveTransaction("SEASON", season.getSeasonId(), "CREATE", payload).getTxHash();
+    }
+
     public BlockchainTransaction saveTransaction(String relatedEntityType, Long relatedEntityId, String actionType, String dataPayload) {
-        System.out.println("Mock saving to blockchain for entityType: " + relatedEntityType + ", entityId: " + relatedEntityId + ", action: " + actionType);
+        System.out.println("Processing Blockchain Transaction: [" + relatedEntityType + "] ID: " + relatedEntityId + " Action: " + actionType);
 
         String simulatedHash = generateHash(dataPayload + UUID.randomUUID());
 
@@ -39,27 +54,6 @@ public class BlockchainService {
                 .build();
 
         return transactionRepository.save(tx);
-    }
-
-    public BlockchainResult saveBatch(ProductBatch batch) {
-        Long batchId = (batch != null) ? batch.getBatchId() : null;
-        String payload = (batch != null) ? String.valueOf(batch) : "null";
-        String txHash = saveTransaction("BATCH", batchId, "UPSERT", payload).getTxHash();
-        
-        return BlockchainResult.builder()
-                .txHash(txHash)
-                .status("SUCCESS")
-                .message("Saved to mock blockchain")
-                .build();
-    }
-
-    public String saveSeasonToBlockchain(com.bicap.backend.entity.FarmingSeason season) {
-        System.out.println("Saving season " + season.getSeasonCode() + " to blockchain...");
-        String payload = String.format("SEASON_ID:%d|CODE:%s|FARM:%d|PROD:%d|START:%s",
-                season.getSeasonId(), season.getSeasonCode(), 
-                season.getFarm().getFarmId(), season.getProduct().getProductId(),
-                season.getStartDate());
-        return saveTransaction("SEASON", season.getSeasonId(), "CREATE", payload).getTxHash();
     }
 
     private String generateHash(String input) {

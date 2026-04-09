@@ -110,8 +110,8 @@ public class AuthService {
         CustomUserPrincipal principal = new CustomUserPrincipal(
                 user.getUserId(),
                 user.getEmail(),
-                user.getPassword(), // Fixed from getPasswordHash if that was the issue
-                user.getStatus(),
+                user.getPassword(),
+                user.getStatus() != null ? user.getStatus().name() : null,
                 authorities
         );
 

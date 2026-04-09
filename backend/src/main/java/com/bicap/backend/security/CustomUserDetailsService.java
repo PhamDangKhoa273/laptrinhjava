@@ -25,8 +25,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new CustomUserPrincipal(
                 user.getUserId(),
                 user.getEmail(),
-                user.getPasswordHash(),
-                user.getStatus(),
+                user.getPassword(),
+                user.getStatus() != null ? user.getStatus().name() : null,
                 userRoleRepository.findByUser(user).stream()
                         .map(ur -> new SimpleGrantedAuthority("ROLE_" + ur.getRole().getRoleName()))
                         .collect(Collectors.toList())

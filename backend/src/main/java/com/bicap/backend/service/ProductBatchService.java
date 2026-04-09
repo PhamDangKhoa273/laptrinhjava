@@ -8,6 +8,7 @@ import com.bicap.backend.dto.trace.TraceBatchResponse;
 import com.bicap.backend.entity.*;
 import com.bicap.backend.exception.BusinessException;
 import com.bicap.backend.repository.*;
+import com.bicap.backend.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,14 +30,20 @@ public class ProductBatchService {
     private final QrCodeRepository qrCodeRepository;
     private final BlockchainService blockchainService;
     private final QrCodeService qrCodeService;
+    private final SeasonService seasonService;
 
     @Transactional
     public BatchResponse createBatch(CreateBatchRequest request) {
-        FarmingSeason season = farmingSeasonRepository.findById(request.getSeasonId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy mùa vụ với ID: " + request.getSeasonId()));
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        FarmingSeason season = seasonService.findSeasonAndCheckPermission(request.getSeasonId(), currentUserId);
 
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy sản phẩm với ID: " + request.getProductId()));
+
+        // Validate consistency: Season must be for this Product
+        if (!season.getProduct().getProductId().equals(product.getProductId())) {
+            throw new BusinessException("Mùa vụ '" + season.getSeasonCode() + "' không thuộc sản phẩm '" + product.getProductName() + "'.");
+        }
 
         // Validate availableQuantity <= quantity
         if (request.getAvailableQuantity().compareTo(request.getQuantity()) > 0) {
