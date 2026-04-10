@@ -53,7 +53,7 @@ class UserServiceTests {
         user.setUserId(1L);
         user.setFullName("Test User");
         user.setEmail("test@example.com");
-        user.setStatus("ACTIVE");
+        user.setStatus(UserStatus.ACTIVE);
 
         guestRole = new Role();
         guestRole.setRoleId(1L);

@@ -4,8 +4,6 @@ import com.bicap.backend.dto.CreateVehicleRequest;
 import com.bicap.backend.dto.UpdateVehicleRequest;
 import com.bicap.backend.dto.VehicleResponse;
 import com.bicap.backend.entity.Vehicle;
-import com.bicap.backend.repository.VehicleRepository;
-import com.bicap.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +14,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class VehicleService {
 
-    private final VehicleRepository vehicleRepository;
-    private final UserRepository userRepository;
-    private final UserService userService;
-    private final AuditLogService auditLogService;
 
     public VehicleResponse createVehicle(CreateVehicleRequest request, Long currentUserId) {
         return null;

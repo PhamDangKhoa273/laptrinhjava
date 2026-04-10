@@ -4,8 +4,6 @@ import com.bicap.backend.dto.CreateDriverRequest;
 import com.bicap.backend.dto.DriverResponse;
 import com.bicap.backend.dto.UpdateDriverRequest;
 import com.bicap.backend.entity.Driver;
-import com.bicap.backend.repository.DriverRepository;
-import com.bicap.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +14,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DriverService {
 
-    private final DriverRepository driverRepository;
-    private final UserRepository userRepository;
-    private final UserService userService;
 
     public DriverResponse create(CreateDriverRequest request, Long currentUserId) {
         return null;

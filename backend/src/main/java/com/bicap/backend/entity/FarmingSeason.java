@@ -44,6 +44,7 @@ public class FarmingSeason {
     private String farmingMethod;
 
     @Column(name = "season_status", nullable = false)
+    @Builder.Default
     private String seasonStatus = "PLANNED";
 
     @Column(name = "created_at", nullable = false, updatable = false)
