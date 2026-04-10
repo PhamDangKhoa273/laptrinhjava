@@ -37,9 +37,11 @@ public class Farm {
     private String businessLicenseNo;
 
     @Column(name = "certification_status", nullable = false, length = 30)
+    @Builder.Default
     private String certificationStatus = "PENDING";
 
     @Column(name = "approval_status", nullable = false, length = 30)
+    @Builder.Default
     private String approvalStatus = "PENDING";
 
     @Column(name = "address", length = 255)

@@ -36,6 +36,7 @@ public class Driver {
     private String licenseNo;
 
     @Column(name = "status", nullable = false)
+    @Builder.Default
     private String status = "ACTIVE";
 
     public Long getDriverId() { return driverId; }

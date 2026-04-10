@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 public class ProductBatchService {
 
     private final ProductBatchRepository productBatchRepository;
-    private final FarmingSeasonRepository farmingSeasonRepository;
     private final ProductRepository productRepository;
     private final FarmingProcessRepository farmingProcessRepository;
     private final QrCodeRepository qrCodeRepository;
