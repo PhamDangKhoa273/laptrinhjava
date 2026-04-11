@@ -110,7 +110,7 @@ export function RegisterPage() {
 
         {apiError ? <div className="alert alert-error">{apiError}</div> : null}
 
-        <Button type="submit" disabled={!canSubmit || loading}>{loading ? 'Creating account...' : 'Create account'}</Button>
+        <Button type="submit" disabled={loading}>{loading ? 'Creating account...' : 'Create account'}</Button>
       </form>
 
       <p className="muted-text">
