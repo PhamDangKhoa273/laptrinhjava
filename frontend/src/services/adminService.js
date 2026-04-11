@@ -17,7 +17,11 @@ export async function changeUserStatus(id, status) {
 }
 
 export async function getFarms() {
-  return unwrap(await api.get('/farms'))
+  try {
+    return unwrap(await api.get('/farms'))
+  } catch (error) {
+    return []
+  }
 }
 
 export async function reviewFarm(id, approvalStatus, certificationStatus) {
@@ -25,25 +29,53 @@ export async function reviewFarm(id, approvalStatus, certificationStatus) {
 }
 
 export async function getRetailers() {
-  return unwrap(await api.get('/retailers'))
+  try {
+    return unwrap(await api.get('/retailers'))
+  } catch (error) {
+    return []
+  }
 }
 
 export async function getPackages() {
-  return unwrap(await api.get('/packages'))
+  try {
+    return unwrap(await api.get('/packages'))
+  } catch (error) {
+    return []
+  }
 }
 
 // === NEW ADMIN API ENDPOINTS (Mocked/Fallback) === //
 
 export async function getProducts() {
-  try {
-    return unwrap(await api.get('/admin/products'))
-  } catch (error) {
-    // Mock data if backend fails
-    return [
-      { id: 1, name: 'Cà chua Cherry', brand:'Farm A', category: 'Rau củ', subCategory: 'Hữu cơ', origin: 'Đà Lạt', certifications: ['VietGAP'], description: 'Cà chua siêu ngọt', totalScanCount: 154, createdOn: '2026-01-10T10:00:00', blockchainTxRef: '0x123...abc' },
-      { id: 2, name: 'Dâu tây New Zealand', brand:'DaLat Fresh', category: 'Trái cây', subCategory: 'Hữu cơ', origin: 'Đà Lạt', certifications: ['GlobalGAP'], description: 'Dâu tây đỏ mọng', totalScanCount: 890, createdOn: '2026-02-15T08:30:00', blockchainTxRef: '0xabc...123' },
-    ]
-  }
+  return unwrap(await api.get('/products'))
+}
+
+export async function createProduct(data) {
+  return unwrap(await api.post('/products', data))
+}
+
+export async function updateProduct(id, data) {
+  return unwrap(await api.put(`/products/${id}`, data))
+}
+
+export async function deleteProduct(id) {
+  return unwrap(await api.delete(`/products/${id}`))
+}
+
+export async function getCategories() {
+  return unwrap(await api.get('/categories'))
+}
+
+export async function createCategory(data) {
+  return unwrap(await api.post('/categories', data))
+}
+
+export async function updateCategory(id, data) {
+  return unwrap(await api.put(`/categories/${id}`, data))
+}
+
+export async function deleteCategory(id) {
+  return unwrap(await api.delete(`/categories/${id}`))
 }
 
 export async function createAdminAccount(data) {
