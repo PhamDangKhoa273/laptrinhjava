@@ -13,11 +13,15 @@ const web3 = require('web3');
 const RPC_URL = 'https://sepolia.infura.io/v3/YOUR_PROJECT_ID';
 const web3Instance = new web3(RPC_URL);
 
-// ABI của AgroTrace contract
+// ABI của AgroTrace contract (Updated)
 const ABI = [
     {
-        "inputs": [{"internalType": "uint256", "name": "_id", "type": "uint256"}, 
-                   {"internalType": "string", "name": "_hash", "type": "string"}],
+        "inputs": [
+            {"internalType": "uint256", "name": "_id", "type": "uint256"},
+            {"internalType": "string", "name": "_name", "type": "string"},
+            {"internalType": "string", "name": "_origin", "type": "string"},
+            {"internalType": "string", "name": "_timestamp", "type": "string"}
+        ],
         "name": "addProduct",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -27,18 +31,10 @@ const ABI = [
         "inputs": [{"internalType": "uint256", "name": "_id", "type": "uint256"}],
         "name": "getProduct",
         "outputs": [
-            {"internalType": "uint256", "name": "", "type": "uint256"},
             {"internalType": "string", "name": "", "type": "string"},
-            {"internalType": "uint256", "name": "", "type": "uint256"},
-            {"internalType": "address", "name": "", "type": "address"}
+            {"internalType": "string", "name": "", "type": "string"},
+            {"internalType": "string", "name": "", "type": "string"}
         ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [{"internalType": "uint256", "name": "_id", "type": "uint256"}],
-        "name": "getProductHash",
-        "outputs": [{"internalType": "string", "name": "", "type": "string"}],
         "stateMutability": "view",
         "type": "function"
     },
@@ -48,6 +44,36 @@ const ABI = [
         "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
         "stateMutability": "view",
         "type": "function"
+    },
+    {
+        "inputs": [
+            {"internalType": "uint256", "name": "_id", "type": "uint256"},
+            {"internalType": "string", "name": "_name", "type": "string"},
+            {"internalType": "string", "name": "_origin", "type": "string"},
+            {"internalType": "string", "name": "_timestamp", "type": "string"}
+        ],
+        "name": "updateProduct",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [{"internalType": "uint256", "name": "_id", "type": "uint256"}],
+        "name": "deleteProduct",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {"indexed": true, "internalType": "uint256", "name": "id", "type": "uint256"},
+            {"indexed": false, "internalType": "string", "name": "name", "type": "string"},
+            {"indexed": false, "internalType": "string", "name": "origin", "type": "string"},
+            {"indexed": false, "internalType": "string", "name": "timestamp", "type": "string"}
+        ],
+        "name": "ProductAdded",
+        "type": "event"
     }
 ];
 
@@ -64,8 +90,10 @@ async function demo1_addProduct() {
     
     try {
         const tx = await contract.methods.addProduct(
-            1,              // Product ID
-            'QmXxxx...'     // Hash (IPFS)
+            1,                          // Product ID
+            'Cà chua hữu cơ',          // Name
+            'Đà Lạt, Lâm Đồng',        // Origin
+            '2024-04-12'                // Timestamp
         ).send({
             from: '0x...', // Your account
             gas: 300000
@@ -86,29 +114,16 @@ async function demo2_getProduct() {
     try {
         const result = await contract.methods.getProduct(1).call();
         
-        console.log('Product ID:', result[0]);
-        console.log('Data Hash:', result[1]);
-        console.log('Timestamp:', new Date(result[2] * 1000));
-        console.log('Recorded By:', result[3]);
+        console.log('Product Name:', result[0]);
+        console.log('Origin:', result[1]);
+        console.log('Timestamp:', result[2]);
     } catch (err) {
         console.log('❌ Error:', err.message);
     }
 }
 
-async function demo3_getHash() {
-    console.log('\n⚡ DEMO 3: Lấy hash nhanh');
-    console.log('================================');
-    
-    try {
-        const hash = await contract.methods.getProductHash(1).call();
-        console.log('Hash:', hash);
-    } catch (err) {
-        console.log('❌ Error:', err.message);
-    }
-}
-
-async function demo4_productExists() {
-    console.log('\n🔍 DEMO 4: Kiểm tra sản phẩm tồn tại');
+async function demo3_productExists() {
+    console.log('\n🔍 DEMO 3: Kiểm tra sản phẩm tồn tại');
     console.log('================================');
     
     try {
@@ -122,8 +137,47 @@ async function demo4_productExists() {
     }
 }
 
-async function demo5_realWorldScenario() {
-    console.log('\n🌾 DEMO 5: Kịch bản thực tế');
+async function demo4_updateProduct() {
+    console.log('\n🔄 DEMO 4: Cập nhật sản phẩm');
+    console.log('================================');
+    
+    try {
+        const tx = await contract.methods.updateProduct(
+            1,                          // Product ID
+            'Cà chua hữu cơ (cập nhật)',
+            'Đà Lạt, Lâm Đồng',
+            '2024-04-13'
+        ).send({
+            from: '0x...',
+            gas: 300000
+        });
+        
+        console.log('✅ Update successful');
+        console.log('TX Hash:', tx.transactionHash);
+    } catch (err) {
+        console.log('❌ Error:', err.message);
+    }
+}
+
+async function demo5_deleteProduct() {
+    console.log('\n❌ DEMO 5: Xóa sản phẩm');
+    console.log('================================');
+    
+    try {
+        const tx = await contract.methods.deleteProduct(1).send({
+            from: '0x...',
+            gas: 300000
+        });
+        
+        console.log('✅ Delete successful');
+        console.log('TX Hash:', tx.transactionHash);
+    } catch (err) {
+        console.log('❌ Error:', err.message);
+    }
+}
+
+async function demo6_realWorldScenario() {
+    console.log('\n🌾 DEMO 6: Kịch bản thực tế');
     console.log('================================');
     
     try {
@@ -131,7 +185,9 @@ async function demo5_realWorldScenario() {
         console.log('1️⃣ Nông dân thêm dữ liệu cà chua...');
         const tx1 = await contract.methods.addProduct(
             100,
-            'QmAbcd...xyz'
+            'Cà chua hữu cơ tươi',
+            'Đà Lạt, Lâm Đồng',
+            '2024-04-12'
         ).send({
             from: '0x...',
             gas: 300000
@@ -143,35 +199,35 @@ async function demo5_realWorldScenario() {
         await new Promise(r => setTimeout(r, 1000));
         
         const product = await contract.methods.getProduct(100).call();
-        console.log('   Product ID:', product[0]);
-        console.log('   Data Hash:', product[1]);
-        console.log('   Farmer:', product[3]);
+        console.log('   Product Name:', product[0]);
+        console.log('   Origin:', product[1]);
+        console.log('   Timestamp:', product[2]);
         
-        // 3. Consumer verify hash
-        console.log('\n3️⃣ Consumer download dữ liệu từ IPFS (hash: ' + product[1] + ')');
-        console.log('   và compare với hash trên blockchain');
-        console.log('   ✅ Dữ liệu match = sản phẩm là thật!');
+        // 3. Consumer verify dữ liệu
+        console.log('\n3️⃣ Consumer xác minh dữ liệu');
+        console.log('   ✅ Dữ liệu khớp = sản phẩm là thật!');
         
     } catch (err) {
         console.log('❌ Error:', err.message);
     }
 }
 
-async function demo6_events() {
-    console.log('\n📡 DEMO 6: Listen to events');
+async function demo7_events() {
+    console.log('\n📡 DEMO 7: Listen to events');
     console.log('================================');
     
     try {
-        console.log('Listening to ProductRecorded events...');
+        console.log('Listening to ProductAdded events...');
         
-        contract.events.ProductRecorded({
+        contract.events.ProductAdded({
             fromBlock: 'latest'
         })
         .on('data', (event) => {
-            console.log('\n🔔 Event ProductRecorded:');
-            console.log('   Product ID:', event.returnValues.productId);
-            console.log('   Hash:', event.returnValues.dataHash);
-            console.log('   Farmer:', event.returnValues.recordedBy);
+            console.log('\n🔔 Event ProductAdded:');
+            console.log('   Product ID:', event.returnValues.id);
+            console.log('   Name:', event.returnValues.name);
+            console.log('   Origin:', event.returnValues.origin);
+            console.log('   Timestamp:', event.returnValues.timestamp);
         })
         .on('error', console.error);
         
@@ -183,16 +239,17 @@ async function demo6_events() {
 // ============= RUN ALL DEMOS =============
 
 async function runAllDemos() {
-    console.log('🚀 AGROTRACE DEMO');
+    console.log('🚀 AGROTRACE DEMO (Updated)');
     console.log('=================================\n');
     
     // Uncomment để chạy từng demo
     // await demo1_addProduct();
     // await demo2_getProduct();
-    // await demo3_getHash();
-    // await demo4_productExists();
-    // await demo5_realWorldScenario();
-    // await demo6_events();
+    // await demo3_productExists();
+    // await demo4_updateProduct();
+    // await demo5_deleteProduct();
+    // await demo6_realWorldScenario();
+    // await demo7_events();
     
     console.log('\n✨ Demo hoàn tất!');
 }
@@ -203,8 +260,9 @@ async function runAllDemos() {
 module.exports = {
     demo1_addProduct,
     demo2_getProduct,
-    demo3_getHash,
-    demo4_productExists,
-    demo5_realWorldScenario,
-    demo6_events
+    demo3_productExists,
+    demo4_updateProduct,
+    demo5_deleteProduct,
+    demo6_realWorldScenario,
+    demo7_events
 };
