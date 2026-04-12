@@ -1,7 +1,6 @@
 package com.bicap.modules.subscription.entity;
 
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
 
 @Entity

@@ -22,43 +22,30 @@ public class SeasonResponse {
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    
     public Long getFarmId() { return farmId; }
     public void setFarmId(Long id) { this.farmId = id; }
-    
     public String getFarmName() { return farmName; }
     public void setFarmName(String s) { this.farmName = s; }
-    
     public Long getProductId() { return productId; }
     public void setProductId(Long id) { this.productId = id; }
-    
     public String getProductCode() { return productCode; }
     public void setProductCode(String s) { this.productCode = s; }
-    
     public String getProductName() { return productName; }
     public void setProductName(String s) { this.productName = s; }
-    
     public String getSeasonCode() { return seasonCode; }
     public void setSeasonCode(String s) { this.seasonCode = s; }
-    
     public LocalDate getStartDate() { return startDate; }
     public void setStartDate(LocalDate d) { this.startDate = d; }
-    
     public LocalDate getExpectedHarvestDate() { return expectedHarvestDate; }
     public void setExpectedHarvestDate(LocalDate d) { this.expectedHarvestDate = d; }
-    
     public LocalDate getActualHarvestDate() { return actualHarvestDate; }
     public void setActualHarvestDate(LocalDate d) { this.actualHarvestDate = d; }
-    
     public String getFarmingMethod() { return farmingMethod; }
     public void setFarmingMethod(String s) { this.farmingMethod = s; }
-    
     public String getSeasonStatus() { return seasonStatus; }
     public void setSeasonStatus(String s) { this.seasonStatus = s; }
-    
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime t) { this.createdAt = t; }
-    
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime t) { this.updatedAt = t; }
 

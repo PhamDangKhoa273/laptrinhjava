@@ -3,6 +3,7 @@ import { AuthLayout } from '../layouts/AuthLayout.jsx'
 import { DashboardLayout } from '../layouts/DashboardLayout.jsx'
 import { AdminFarmsPage } from '../pages/AdminFarmsPage.jsx'
 import { AdminUsersPage } from '../pages/AdminUsersPage.jsx'
+import { AdminDashboardPage } from '../pages/AdminDashboardPage.jsx'
 import { DashboardHomePage } from '../pages/DashboardHomePage.jsx'
 import { FarmPackagesPage } from '../pages/FarmPackagesPage.jsx'
 import { FarmWorkspacePage } from '../pages/FarmWorkspacePage.jsx'
@@ -14,12 +15,9 @@ import { RetailerWorkspacePage } from '../pages/RetailerWorkspacePage.jsx'
 import { RoleDashboardPage } from '../pages/RoleDashboardPage.jsx'
 import { ShippingWorkspacePage } from '../pages/ShippingWorkspacePage.jsx'
 import { WebsiteAppearancePage } from '../pages/WebsiteAppearancePage.jsx'
-<<<<<<< Updated upstream
-=======
 import { GuestMarketplacePage } from '../pages/GuestMarketplacePage.jsx'
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage.jsx'
 import { ResetPasswordPage } from '../pages/ResetPasswordPage.jsx'
->>>>>>> Stashed changes
 import { ROLES } from '../utils/constants'
 import { ProtectedRoute } from './ProtectedRoute.jsx'
 import { PublicOnlyRoute } from './PublicOnlyRoute.jsx'
@@ -138,6 +136,11 @@ export function AppRoutes() {
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
             <Route path="/dashboard/admin" element={<RoleDashboardPage {...dashboardConfigs.admin} />} />
+            <Route path="/dashboard/admin/accounts" element={<AdminDashboardPage defaultTab="users" />} />
+            <Route path="/dashboard/admin/operations" element={<AdminDashboardPage defaultTab="farms" />} />
+            <Route path="/dashboard/admin/products" element={<AdminDashboardPage defaultTab="products" />} />
+            <Route path="/dashboard/admin/blockchain" element={<AdminDashboardPage defaultTab="blockchain" />} />
+            <Route path="/dashboard/appearance" element={<WebsiteAppearancePage />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/farms" element={<AdminFarmsPage />} />
           </Route>
@@ -163,7 +166,7 @@ export function AppRoutes() {
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.GUEST]} />}>
-            <Route path="/dashboard/guest" element={<RoleDashboardPage {...dashboardConfigs.guest} />} />
+            <Route path="/dashboard/guest" element={<GuestMarketplacePage />} />
           </Route>
         </Route>
       </Route>

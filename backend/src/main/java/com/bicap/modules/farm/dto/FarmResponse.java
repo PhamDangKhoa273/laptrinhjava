@@ -1,5 +1,4 @@
 package com.bicap.modules.farm.dto;
-
 public class FarmResponse {
     private Long farmId;
     private String farmCode;

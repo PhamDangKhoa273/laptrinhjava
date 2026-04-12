@@ -1,5 +1,4 @@
 package com.bicap.modules.user.dto;
-
 import com.bicap.core.enums.RoleName;
 import jakarta.validation.constraints.NotNull;
 

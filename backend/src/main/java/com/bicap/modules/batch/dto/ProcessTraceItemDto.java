@@ -14,22 +14,16 @@ public class ProcessTraceItemDto {
 
     public Integer getStepNo() { return stepNo; }
     public void setStepNo(Integer i) { this.stepNo = i; }
-    
     public String getAction() { return action; }
     public void setAction(String s) { this.action = s; }
-    
     public String getDescription() { return description; }
     public void setDescription(String s) { this.description = s; }
-    
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime t) { this.timestamp = t; }
-    
     public String getTxHash() { return txHash; }
     public void setTxHash(String s) { this.txHash = s; }
-    
     public String getStatus() { return status; }
     public void setStatus(String s) { this.status = s; }
-    
     public String getOperatorName() { return operatorName; }
     public void setOperatorName(String s) { this.operatorName = s; }
 

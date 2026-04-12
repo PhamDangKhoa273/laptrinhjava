@@ -9,7 +9,6 @@ import java.util.Optional;
 public interface FarmRepository extends JpaRepository<Farm, Long> {
     Optional<Farm> findByFarmCode(String farmCode);
     Optional<Farm> findByOwnerUser_UserId(Long userId);
-
     boolean existsByFarmCode(String farmCode);
     boolean existsByBusinessLicenseNo(String businessLicenseNo);
     

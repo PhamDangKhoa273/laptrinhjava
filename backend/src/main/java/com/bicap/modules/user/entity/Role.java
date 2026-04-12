@@ -1,6 +1,4 @@
 package com.bicap.modules.user.entity;
-import com.bicap.modules.user.entity.Role;
-
 import jakarta.persistence.*;
 
 @Entity

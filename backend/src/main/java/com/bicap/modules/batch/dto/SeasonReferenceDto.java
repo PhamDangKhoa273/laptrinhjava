@@ -1,5 +1,4 @@
 package com.bicap.modules.batch.dto;
-
 import java.time.LocalDate;
 
 public class SeasonReferenceDto {

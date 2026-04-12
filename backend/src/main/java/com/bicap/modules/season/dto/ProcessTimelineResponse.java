@@ -9,7 +9,6 @@ public class ProcessTimelineResponse {
 
     public SeasonInfo getSeason() { return season; }
     public void setSeason(SeasonInfo s) { this.season = s; }
-    
     public List<ProcessStepResponse> getSteps() { return steps; }
     public void setSteps(List<ProcessStepResponse> l) { this.steps = l; }
 
@@ -30,16 +29,12 @@ public class ProcessTimelineResponse {
 
         public Long getSeasonId() { return seasonId; }
         public void setSeasonId(Long id) { this.seasonId = id; }
-        
         public String getSeasonName() { return seasonName; }
         public void setSeasonName(String s) { this.seasonName = s; }
-        
         public LocalDate getStartDate() { return startDate; }
         public void setStartDate(LocalDate d) { this.startDate = d; }
-        
         public LocalDate getExpectedHarvestDate() { return expectedHarvestDate; }
         public void setExpectedHarvestDate(LocalDate d) { this.expectedHarvestDate = d; }
-        
         public String getSeasonStatus() { return seasonStatus; }
         public void setSeasonStatus(String s) { this.seasonStatus = s; }
 

@@ -1,7 +1,6 @@
 package com.bicap.modules.user.entity;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -29,8 +28,8 @@ public class UserRole {
     public void prePersist() {
         this.assignedAt = LocalDateTime.now();
     }
-    public com.bicap.modules.user.entity.Role getRole() { return role; }
-    public void setRole(com.bicap.modules.user.entity.Role role) { this.role = role; }
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
     public Long getUserRoleId() { return userRoleId; }
     public void setUserRoleId(Long id) { this.userRoleId = id; }
 

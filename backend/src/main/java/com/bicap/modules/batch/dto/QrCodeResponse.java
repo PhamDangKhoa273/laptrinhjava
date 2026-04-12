@@ -12,19 +12,14 @@ public class QrCodeResponse {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    
     public String getSerialNo() { return serialNo; }
     public void setSerialNo(String s) { this.serialNo = s; }
-    
     public String getQrCodeData() { return qrCodeData; }
     public void setQrCodeData(String s) { this.qrCodeData = s; }
-    
     public String getQrImageBase64() { return qrImageBase64; }
     public void setQrImageBase64(String s) { this.qrImageBase64 = s; }
-    
     public String getStatus() { return status; }
     public void setStatus(String s) { this.status = s; }
-    
     public LocalDateTime getGeneratedAt() { return generatedAt; }
     public void setGeneratedAt(LocalDateTime t) { this.generatedAt = t; }
 

@@ -1,6 +1,5 @@
 package com.bicap.modules.user.repository;
 import com.bicap.modules.user.entity.Role;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
