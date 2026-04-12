@@ -1,15 +1,9 @@
 package com.bicap.modules.subscription.controller;
-import com.bicap.modules.user.entity.User;
-import com.bicap.modules.farm.entity.Farm;
 
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.core.dto.ApiResponse;
-
-import com.bicap.modules.subscription.dto.CreateSubscriptionPaymentRequest;
-import com.bicap.modules.subscription.dto.SubscriptionPaymentResponse;
 import com.bicap.core.dto.ApiResponse;
 import com.bicap.core.security.SecurityUtils;
+import com.bicap.modules.subscription.dto.CreateSubscriptionPaymentRequest;
+import com.bicap.modules.subscription.dto.SubscriptionPaymentResponse;
 import com.bicap.modules.subscription.service.SubscriptionPaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

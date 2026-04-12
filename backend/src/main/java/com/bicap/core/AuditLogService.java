@@ -1,11 +1,5 @@
 package com.bicap.core;
-import com.bicap.core.AuditLogService;
-import com.bicap.modules.user.entity.User;
 
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.core.AuditLog;
-import com.bicap.core.AuditLogRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

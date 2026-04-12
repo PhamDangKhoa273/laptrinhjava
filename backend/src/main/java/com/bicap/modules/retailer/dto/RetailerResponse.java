@@ -19,6 +19,7 @@ public class RetailerResponse {
     public String getRetailerCode() { return retailerCode; }
     public void setRetailerCode(String s) { this.retailerCode = s; }
     public String getName() { return name; }
+    public String getRetailerName() { return name; }
     public void setName(String s) { this.name = s; }
     public String getBusinessLicenseNo() { return businessLicenseNo; }
     public void setBusinessLicenseNo(String s) { this.businessLicenseNo = s; }

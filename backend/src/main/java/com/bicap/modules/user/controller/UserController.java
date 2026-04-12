@@ -1,17 +1,10 @@
 package com.bicap.modules.user.controller;
-import com.bicap.modules.user.entity.User;
-import com.bicap.modules.user.service.UserService;
-import com.bicap.modules.user.entity.Role;
-
-import com.bicap.modules.user.entity.User;
 
 import com.bicap.core.dto.ApiResponse;
-
 import com.bicap.modules.user.dto.UpdateUserStatusRequest;
 import com.bicap.modules.user.dto.AssignRoleRequest;
 import com.bicap.modules.user.dto.CreateUserRequest;
 import com.bicap.modules.user.dto.UpdateProfileRequest;
-import com.bicap.core.dto.ApiResponse;
 import com.bicap.modules.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

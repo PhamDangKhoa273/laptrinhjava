@@ -5,8 +5,6 @@ import com.bicap.modules.user.service.UserService;
 import com.bicap.modules.user.entity.Role;
 import com.bicap.modules.user.repository.UserRepository;
 
-import com.bicap.modules.user.entity.User;
-
 import com.bicap.modules.user.dto.UpdateUserStatusRequest;
 import com.bicap.modules.user.dto.UserResponse;
 import com.bicap.modules.user.dto.AssignRoleRequest;

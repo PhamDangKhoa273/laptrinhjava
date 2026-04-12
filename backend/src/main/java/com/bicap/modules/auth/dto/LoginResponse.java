@@ -1,5 +1,4 @@
 package com.bicap.modules.auth.dto;
-import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.dto.UserResponse;
 public class LoginResponse {
     private String accessToken;

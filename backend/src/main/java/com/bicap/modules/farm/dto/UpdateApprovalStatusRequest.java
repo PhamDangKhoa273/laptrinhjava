@@ -1,5 +1,4 @@
 package com.bicap.modules.farm.dto;
-import com.bicap.modules.farm.entity.Farm;
 
 public class UpdateApprovalStatusRequest {
     private String approvalStatus;

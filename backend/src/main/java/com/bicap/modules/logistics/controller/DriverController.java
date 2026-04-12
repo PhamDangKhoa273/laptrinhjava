@@ -1,14 +1,9 @@
 package com.bicap.modules.logistics.controller;
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.modules.user.entity.User;
 
 import com.bicap.core.dto.ApiResponse;
-
 import com.bicap.modules.logistics.dto.CreateDriverRequest;
 import com.bicap.modules.logistics.dto.DriverResponse;
 import com.bicap.modules.logistics.dto.UpdateDriverRequest;
-import com.bicap.core.dto.ApiResponse;
 import com.bicap.core.security.SecurityUtils;
 import com.bicap.modules.logistics.service.DriverService;
 import jakarta.validation.Valid;

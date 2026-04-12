@@ -1,5 +1,4 @@
 package com.bicap.modules.batch.service;
-import com.bicap.modules.batch.entity.QrCode;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;

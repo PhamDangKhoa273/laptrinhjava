@@ -1,7 +1,4 @@
 package com.bicap.modules.logistics.service;
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.modules.user.entity.User;
 
 import com.bicap.modules.logistics.dto.CreateVehicleRequest;
 import com.bicap.modules.logistics.dto.UpdateVehicleRequest;
@@ -16,7 +13,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class VehicleService {
-
 
     public VehicleResponse createVehicle(CreateVehicleRequest request, Long currentUserId) {
         return null;

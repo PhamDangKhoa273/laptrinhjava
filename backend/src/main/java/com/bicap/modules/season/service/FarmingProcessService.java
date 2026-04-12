@@ -1,4 +1,5 @@
 package com.bicap.modules.season.service;
+
 import com.bicap.modules.user.entity.User;
 import com.bicap.modules.batch.service.BlockchainService;
 import com.bicap.modules.season.entity.FarmingProcess;
@@ -7,21 +8,12 @@ import com.bicap.modules.user.repository.UserRepository;
 import com.bicap.modules.season.service.SeasonService;
 import com.bicap.modules.season.repository.FarmingSeasonRepository;
 import com.bicap.modules.season.entity.FarmingSeason;
-
-import com.bicap.modules.user.entity.User;
-
 import com.bicap.modules.season.dto.CreateProcessStepRequest;
 import com.bicap.modules.season.dto.ReorderProcessRequest;
 import com.bicap.modules.season.dto.UpdateProcessStepRequest;
 import com.bicap.modules.season.dto.ProcessStepResponse;
 import com.bicap.modules.season.dto.ProcessTimelineResponse;
-import com.bicap.modules.season.entity.FarmingProcess;
-import com.bicap.modules.season.entity.FarmingSeason;
-import com.bicap.modules.user.entity.User;
 import com.bicap.core.exception.BusinessException;
-import com.bicap.modules.season.repository.FarmingProcessRepository;
-import com.bicap.modules.season.repository.FarmingSeasonRepository;
-import com.bicap.modules.user.repository.UserRepository;
 import com.bicap.core.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -78,15 +70,15 @@ public class FarmingProcessService {
         List<FarmingProcess> processes = farmingProcessRepository.findBySeason_SeasonIdOrderByStepNoAsc(seasonId);
 
         List<ProcessStepResponse> steps = processes.stream()
-                .map(p -> ProcessStepResponse.fromEntity(p, null)) // TxHash can be fetched from history if needed
+                .map(p -> ProcessStepResponse.fromEntity(p, null)) 
                 .collect(Collectors.toList());
 
         ProcessTimelineResponse.SeasonInfo seasonInfo = ProcessTimelineResponse.SeasonInfo.builder()
                 .seasonId(season.getSeasonId())
-                .seasonName(season.getSeasonCode()) // or name if available
+                .seasonName(season.getSeasonCode()) 
                 .startDate(season.getStartDate())
-                .endDate(season.getExpectedHarvestDate())
-                .status(season.getSeasonStatus())
+                .expectedHarvestDate(season.getExpectedHarvestDate())
+                .seasonStatus(season.getSeasonStatus())
                 .build();
 
         return ProcessTimelineResponse.builder()

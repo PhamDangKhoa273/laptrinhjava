@@ -1,9 +1,4 @@
 package com.bicap.core.exception;
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.core.dto.ApiResponse;
 
 import com.bicap.core.dto.ApiErrorDetail;
 import com.bicap.core.dto.ApiResponse;

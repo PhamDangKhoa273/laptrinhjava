@@ -3,11 +3,6 @@ import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.entity.UserRole;
 import com.bicap.modules.user.entity.Role;
 
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.modules.user.entity.Role;
-import com.bicap.modules.user.entity.User;
-import com.bicap.modules.user.entity.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

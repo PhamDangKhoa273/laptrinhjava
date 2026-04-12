@@ -1,5 +1,4 @@
 package com.bicap.modules.logistics.entity;
-import com.bicap.modules.user.entity.User;
 
 import com.bicap.modules.user.entity.User;
 
@@ -43,9 +42,4 @@ public class Driver {
     public void setLicenseNo(String licenseNo) { this.licenseNo = licenseNo; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-
-
-
-
-
 }

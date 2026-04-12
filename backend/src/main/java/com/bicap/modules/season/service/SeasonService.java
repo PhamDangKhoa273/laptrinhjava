@@ -72,7 +72,7 @@ public class SeasonService {
     @Transactional
     public SeasonResponse createSeason(CreateSeasonRequest request, Long currentUserId) {
         Farm farm = farmRepository.findById(request.getFarmId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy Farm."));
+                .orElseThrow(() -> new BusinessException("Không tìm thấy trang trại."));
         checkPermission(farm, currentUserId);
 
         Product product = productRepository.findById(request.getProductId())

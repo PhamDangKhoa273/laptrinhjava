@@ -1,14 +1,9 @@
 package com.bicap.modules.logistics.controller;
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.modules.user.entity.User;
 
 import com.bicap.core.dto.ApiResponse;
-
 import com.bicap.modules.logistics.dto.CreateVehicleRequest;
 import com.bicap.modules.logistics.dto.UpdateVehicleRequest;
 import com.bicap.modules.logistics.dto.VehicleResponse;
-import com.bicap.core.dto.ApiResponse;
 import com.bicap.core.security.SecurityUtils;
 import com.bicap.modules.logistics.service.VehicleService;
 import jakarta.validation.Valid;

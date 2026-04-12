@@ -1,7 +1,4 @@
 package com.bicap.core.security;
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.modules.user.entity.User;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

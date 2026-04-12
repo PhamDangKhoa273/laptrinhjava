@@ -1,5 +1,4 @@
 package com.bicap.modules.user.dto;
-import com.bicap.modules.user.entity.User;
 import com.bicap.core.enums.UserStatus;
 import java.time.LocalDateTime;
 import java.util.List;

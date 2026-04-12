@@ -1,6 +1,4 @@
 package com.bicap.modules.logistics.dto;
-
-
 import java.math.BigDecimal;
 
 public class VehicleResponse {

@@ -4,13 +4,10 @@ import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.service.UserService;
 import com.bicap.modules.user.repository.UserRepository;
 
-import com.bicap.modules.user.entity.User;
-
 import com.bicap.modules.subscription.dto.CreateSubscriptionPaymentRequest;
 import com.bicap.modules.subscription.dto.SubscriptionPaymentResponse;
 import com.bicap.modules.subscription.entity.FarmSubscription;
 import com.bicap.modules.subscription.entity.SubscriptionPayment;
-import com.bicap.modules.user.entity.User;
 import com.bicap.core.enums.RoleName;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.modules.subscription.repository.FarmSubscriptionRepository;

@@ -1,8 +1,5 @@
 package com.bicap.modules.logistics.entity;
 import com.bicap.modules.user.entity.User;
-
-import com.bicap.modules.user.entity.User;
-
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -46,4 +43,6 @@ public class Vehicle {
 
     public BigDecimal getCapacity() { return capacity; }
     public void setCapacity(BigDecimal capacity) { this.capacity = capacity; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 }

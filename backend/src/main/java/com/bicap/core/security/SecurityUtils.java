@@ -1,7 +1,4 @@
 package com.bicap.core.security;
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.modules.user.entity.User;
 
 import com.bicap.core.exception.BusinessException;
 import org.springframework.security.core.Authentication;

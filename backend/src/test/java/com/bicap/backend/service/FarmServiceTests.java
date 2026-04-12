@@ -1,14 +1,17 @@
 package com.bicap.backend.service;
 
-import com.bicap.backend.dto.CreateFarmRequest;
-import com.bicap.backend.dto.FarmResponse;
-import com.bicap.backend.dto.UpdateFarmRequest;
-import com.bicap.backend.entity.Farm;
-import com.bicap.backend.entity.User;
-import com.bicap.backend.enums.RoleName;
-import com.bicap.backend.exception.BusinessException;
-import com.bicap.backend.repository.FarmRepository;
-import com.bicap.backend.repository.UserRepository;
+import com.bicap.modules.farm.dto.CreateFarmRequest;
+import com.bicap.modules.farm.dto.FarmResponse;
+import com.bicap.modules.farm.dto.UpdateFarmRequest;
+import com.bicap.modules.farm.entity.Farm;
+import com.bicap.modules.user.entity.User;
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.farm.repository.FarmRepository;
+import com.bicap.modules.user.repository.UserRepository;
+import com.bicap.modules.user.service.UserService;
+import com.bicap.core.AuditLogService;
+import com.bicap.modules.farm.service.FarmService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

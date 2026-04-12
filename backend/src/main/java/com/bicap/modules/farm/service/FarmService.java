@@ -23,14 +23,12 @@ public class FarmService {
 
     private final FarmRepository farmRepository;
     private final UserRepository userRepository;
-    private final UserService userService;
     private final AuditLogService auditLogService;
 
     public FarmService(FarmRepository farmRepository, UserRepository userRepository, 
-                       UserService userService, AuditLogService auditLogService) {
+                       AuditLogService auditLogService) {
         this.farmRepository = farmRepository;
         this.userRepository = userRepository;
-        this.userService = userService;
         this.auditLogService = auditLogService;
     }
 

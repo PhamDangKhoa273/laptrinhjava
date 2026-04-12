@@ -1,7 +1,4 @@
 package com.bicap.modules.logistics.service;
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.modules.user.entity.User;
 
 import com.bicap.modules.logistics.dto.CreateDriverRequest;
 import com.bicap.modules.logistics.dto.DriverResponse;
@@ -16,7 +13,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class DriverService {
-
 
     public DriverResponse create(CreateDriverRequest request, Long currentUserId) {
         return null;

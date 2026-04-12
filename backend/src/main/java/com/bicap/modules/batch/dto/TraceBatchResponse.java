@@ -13,11 +13,17 @@ public class TraceBatchResponse {
     private List<Map<String, Object>> processList;
     private String note;
 
+    public BatchResponse getBatch() { return batch; }
     public void setBatch(BatchResponse b) { this.batch = b; }
+    public QrCodeResponse getQrInfo() { return qrInfo; }
     public void setQrInfo(QrCodeResponse q) { this.qrInfo = q; }
+    public List<ProcessTraceItemDto> getTimeline() { return timeline; }
     public void setTimeline(List<ProcessTraceItemDto> l) { this.timeline = l; }
+    public Map<String, Object> getSeasonInfo() { return seasonInfo; }
     public void setSeasonInfo(Map<String, Object> m) { this.seasonInfo = m; }
+    public List<Map<String, Object>> getProcessList() { return processList; }
     public void setProcessList(List<Map<String, Object>> l) { this.processList = l; }
+    public String getNote() { return note; }
     public void setNote(String s) { this.note = s; }
 
     public static Builder builder() { return new Builder(); }

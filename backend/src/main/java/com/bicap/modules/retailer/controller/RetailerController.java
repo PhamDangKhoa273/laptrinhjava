@@ -1,14 +1,9 @@
 package com.bicap.modules.retailer.controller;
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.modules.user.entity.User;
 
 import com.bicap.core.dto.ApiResponse;
-
 import com.bicap.modules.retailer.dto.CreateRetailerRequest;
 import com.bicap.modules.retailer.dto.RetailerResponse;
 import com.bicap.modules.retailer.dto.UpdateRetailerRequest;
-import com.bicap.core.dto.ApiResponse;
 import com.bicap.core.security.SecurityUtils;
 import com.bicap.modules.retailer.service.RetailerService;
 import jakarta.validation.Valid;

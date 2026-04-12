@@ -1,5 +1,4 @@
 package com.bicap.modules.user.dto;
-import com.bicap.modules.user.entity.User;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -1,7 +1,4 @@
 package com.bicap.modules.farm.dto;
-
-import java.time.LocalDateTime;
-
 public class FarmResponse {
     private Long farmId;
     private String farmCode;

@@ -1,6 +1,4 @@
 package com.bicap.modules.logistics.dto;
-
-
 public class DriverResponse {
     private Long driverId;
     private String driverCode;

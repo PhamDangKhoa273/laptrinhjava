@@ -1,6 +1,4 @@
 package com.bicap.modules.batch.repository;
-import com.bicap.modules.batch.repository.QrCodeRepository;
-import com.bicap.modules.batch.entity.QrCode;
 
 import com.bicap.modules.batch.entity.QrCode;
 import org.springframework.data.jpa.repository.JpaRepository;

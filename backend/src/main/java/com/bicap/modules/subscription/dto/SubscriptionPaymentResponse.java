@@ -15,15 +15,25 @@ public class SubscriptionPaymentResponse {
     private String transactionRef;
     private LocalDateTime paidAt;
 
+    public Long getPaymentId() { return paymentId; }
     public void setPaymentId(Long id) { this.paymentId = id; }
+    public Long getSubscriptionId() { return subscriptionId; }
     public void setSubscriptionId(Long id) { this.subscriptionId = id; }
+    public String getFarmName() { return farmName; }
     public void setFarmName(String s) { this.farmName = s; }
+    public Long getPayerUserId() { return payerUserId; }
     public void setPayerUserId(Long id) { this.payerUserId = id; }
+    public String getPayerName() { return payerName; }
     public void setPayerName(String s) { this.payerName = s; }
+    public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal d) { this.amount = d; }
+    public String getMethod() { return method; }
     public void setMethod(String s) { this.method = s; }
+    public String getPaymentStatus() { return paymentStatus; }
     public void setPaymentStatus(String s) { this.paymentStatus = s; }
+    public String getTransactionRef() { return transactionRef; }
     public void setTransactionRef(String s) { this.transactionRef = s; }
+    public LocalDateTime getPaidAt() { return paidAt; }
     public void setPaidAt(LocalDateTime t) { this.paidAt = t; }
 
     public static Builder builder() { return new Builder(); }

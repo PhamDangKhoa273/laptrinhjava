@@ -1,6 +1,4 @@
 package com.bicap.modules.season.repository;
-import com.bicap.modules.season.repository.FarmingSeasonRepository;
-import com.bicap.modules.season.entity.FarmingSeason;
 
 import com.bicap.modules.season.entity.FarmingSeason;
 import org.springframework.data.jpa.repository.JpaRepository;

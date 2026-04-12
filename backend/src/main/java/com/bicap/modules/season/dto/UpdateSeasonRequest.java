@@ -8,6 +8,7 @@ public class UpdateSeasonRequest {
     private LocalDate expectedHarvestDate;
     private String farmingMethod;
     private String seasonStatus;
+    private LocalDate actualHarvestDate;
 
     public String getSeasonCode() { return seasonCode; }
     public void setSeasonCode(String s) { this.seasonCode = s; }
@@ -19,4 +20,6 @@ public class UpdateSeasonRequest {
     public void setFarmingMethod(String s) { this.farmingMethod = s; }
     public String getSeasonStatus() { return seasonStatus; }
     public void setSeasonStatus(String s) { this.seasonStatus = s; }
+    public LocalDate getActualHarvestDate() { return actualHarvestDate; }
+    public void setActualHarvestDate(LocalDate d) { this.actualHarvestDate = d; }
 }

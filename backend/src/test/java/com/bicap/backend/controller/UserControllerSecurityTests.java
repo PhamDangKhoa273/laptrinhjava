@@ -1,9 +1,11 @@
 package com.bicap.backend.controller;
 
-import com.bicap.backend.dto.UserResponse;
-import com.bicap.backend.security.CustomUserDetailsService;
-import com.bicap.backend.security.JwtTokenProvider;
-import com.bicap.backend.service.UserService;
+import com.bicap.modules.user.dto.UserResponse;
+import com.bicap.core.security.CustomUserDetailsService;
+import com.bicap.core.security.JwtTokenProvider;
+import com.bicap.modules.user.service.UserService;
+import com.bicap.modules.user.controller.UserController;
+import com.bicap.core.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -24,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = UserController.class)
-@Import(com.bicap.backend.config.SecurityConfig.class)
+@Import(SecurityConfig.class)
 class UserControllerSecurityTests {
 
     @Autowired
@@ -110,8 +112,8 @@ class UserControllerSecurityTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  \"fullName\": \"Updated User\",
-                                  \"phone\": \"0901234567\"
+                                  "fullName": "Updated User",
+                                  "phone": "0901234567"
                                 }
                                 """))
                 .andExpect(status().isOk())

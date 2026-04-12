@@ -5,20 +5,14 @@ import com.bicap.modules.farm.entity.Farm;
 import com.bicap.modules.user.service.UserService;
 import com.bicap.modules.user.repository.UserRepository;
 
-import com.bicap.modules.user.entity.User;
-
 import com.bicap.modules.subscription.dto.CreateFarmSubscriptionRequest;
 import com.bicap.modules.subscription.dto.FarmSubscriptionResponse;
-import com.bicap.modules.farm.entity.Farm;
 import com.bicap.modules.subscription.entity.FarmSubscription;
 import com.bicap.modules.subscription.entity.ServicePackage;
-import com.bicap.modules.user.entity.User;
 import com.bicap.core.enums.RoleName;
 import com.bicap.core.exception.BusinessException;
-import com.bicap.modules.farm.repository.FarmRepository;
 import com.bicap.modules.subscription.repository.FarmSubscriptionRepository;
 import com.bicap.modules.subscription.repository.ServicePackageRepository;
-import com.bicap.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
