@@ -1,10 +1,9 @@
-package com.bicap.backend.controller;
+package com.bicap.modules.user.controller;
 
 import com.bicap.modules.user.dto.UserResponse;
 import com.bicap.core.security.CustomUserDetailsService;
 import com.bicap.core.security.JwtTokenProvider;
 import com.bicap.modules.user.service.UserService;
-import com.bicap.modules.user.controller.UserController;
 import com.bicap.core.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = UserController.class)
 @Import(SecurityConfig.class)
+@SuppressWarnings("null")
 class UserControllerSecurityTests {
 
     @Autowired

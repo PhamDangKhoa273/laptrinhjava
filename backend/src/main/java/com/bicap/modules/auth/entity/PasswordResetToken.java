@@ -2,7 +2,6 @@ package com.bicap.modules.auth.entity;
 
 import com.bicap.modules.user.entity.User;
 import jakarta.persistence.*;
-import lombok.*;
 
 import java.time.LocalDateTime;
 

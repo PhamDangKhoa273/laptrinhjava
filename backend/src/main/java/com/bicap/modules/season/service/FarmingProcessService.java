@@ -5,7 +5,6 @@ import com.bicap.modules.batch.service.BlockchainService;
 import com.bicap.modules.season.entity.FarmingProcess;
 import com.bicap.modules.season.repository.FarmingProcessRepository;
 import com.bicap.modules.user.repository.UserRepository;
-import com.bicap.modules.season.service.SeasonService;
 import com.bicap.modules.season.repository.FarmingSeasonRepository;
 import com.bicap.modules.season.entity.FarmingSeason;
 import com.bicap.modules.season.dto.CreateProcessStepRequest;
@@ -24,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class FarmingProcessService {
 
     private final FarmingProcessRepository farmingProcessRepository;

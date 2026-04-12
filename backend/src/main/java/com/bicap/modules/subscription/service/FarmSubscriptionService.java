@@ -22,6 +22,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class FarmSubscriptionService {
 
     private final FarmSubscriptionRepository farmSubscriptionRepository;

@@ -13,7 +13,6 @@ import com.bicap.modules.product.entity.Product;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.modules.product.repository.ProductRepository;
 import com.bicap.core.security.SecurityUtils;
-import com.bicap.modules.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class ProductBatchService {
 
     private final ProductBatchRepository productBatchRepository;

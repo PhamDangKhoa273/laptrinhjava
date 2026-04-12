@@ -1,9 +1,4 @@
 package com.bicap.modules.user.service;
-import com.bicap.modules.user.entity.User;
-import com.bicap.modules.user.entity.UserRole;
-import com.bicap.modules.user.service.UserService;
-import com.bicap.modules.user.entity.Role;
-import com.bicap.modules.user.repository.UserRepository;
 
 import com.bicap.modules.user.dto.UpdateUserStatusRequest;
 import com.bicap.modules.user.dto.UserResponse;
@@ -28,6 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Service
+@SuppressWarnings("null")
 public class UserService {
 
     private final UserRepository userRepository;

@@ -7,7 +7,9 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface ProductListingRepository extends JpaRepository<ProductListing, Long> {
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+public interface ProductListingRepository extends JpaRepository<ProductListing, Long>, JpaSpecificationExecutor<ProductListing> {
 
     List<ProductListing> findByStatus(String status);
 
