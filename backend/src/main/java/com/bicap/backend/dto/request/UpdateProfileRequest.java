@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/dto/request/UpdateProfileRequest.java
 package com.bicap.backend.dto.request;
+=======
+package com.bicap.modules.user.dto;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/user/dto/UpdateProfileRequest.java
 
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;

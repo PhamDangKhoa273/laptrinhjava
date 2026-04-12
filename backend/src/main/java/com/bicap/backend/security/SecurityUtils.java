@@ -1,6 +1,12 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/security/SecurityUtils.java
 package com.bicap.backend.security;
 
 import com.bicap.backend.exception.BusinessException;
+=======
+package com.bicap.core.security;
+
+import com.bicap.core.exception.BusinessException;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/core/security/SecurityUtils.java
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 

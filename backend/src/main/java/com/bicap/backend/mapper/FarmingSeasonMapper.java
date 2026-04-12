@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/mapper/FarmingSeasonMapper.java
 package com.bicap.backend.mapper;
+=======
+package com.bicap.core.mapper;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/core/mapper/FarmingSeasonMapper.java
 
 import com.bicap.backend.dto.response.SeasonResponse;
 import com.bicap.backend.entity.FarmingSeason;

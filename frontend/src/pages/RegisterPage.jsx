@@ -32,6 +32,7 @@ export function RegisterPage() {
   const [errors, setErrors] = useState({})
   const [apiError, setApiError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const canSubmit = useMemo(() => Object.keys(validateRegisterForm(form)).length === 0, [form])
 
@@ -95,8 +96,34 @@ export function RegisterPage() {
         </div>
 
         <div className="grid-two">
-          <TextInput label="Password" name="password" type="password" value={form.password} onChange={handleChange} error={errors.password} required />
-          <TextInput label="Confirm password" name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} error={errors.confirmPassword} required />
+          <TextInput 
+            label="Password" 
+            name="password" 
+            type={showPassword ? 'text' : 'password'} 
+            value={form.password} 
+            onChange={handleChange} 
+            error={errors.password} 
+            required 
+          />
+          <TextInput 
+            label="Confirm password" 
+            name="confirmPassword" 
+            type={showPassword ? 'text' : 'password'} 
+            value={form.confirmPassword} 
+            onChange={handleChange} 
+            error={errors.confirmPassword} 
+            required 
+          />
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', marginTop: '-0.5rem' }}>
+          <input 
+            type="checkbox" 
+            id="show-pass" 
+            checked={showPassword} 
+            onChange={() => setShowPassword(!showPassword)} 
+          />
+          <label htmlFor="show-pass" style={{ cursor: 'pointer', color: 'var(--text-muted)' }}>Show password</label>
         </div>
 
         <TextAreaField

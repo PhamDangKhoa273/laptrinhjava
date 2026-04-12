@@ -1,4 +1,9 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/entity/Retailer.java
 package com.bicap.backend.entity;
+=======
+package com.bicap.modules.retailer.entity;
+import com.bicap.modules.user.entity.User;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/retailer/entity/Retailer.java
 
 import jakarta.persistence.*;
 

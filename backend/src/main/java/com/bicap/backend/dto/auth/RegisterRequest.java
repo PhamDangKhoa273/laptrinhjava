@@ -17,7 +17,9 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Password là bắt buộc")
-    @Size(min = 6, message = "Password tối thiểu 6 ký tự")
+    @Size(min = 8, message = "Password tối thiểu 8 ký tự")
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$", 
+             message = "Password phải bao gồm ít nhất một chữ hoa, một chữ thường và một chữ số")
     private String password;
 
     @Pattern(regexp = "^(0|\\+84)[0-9]{9,10}$", message = "Số điện thoại không hợp lệ")
@@ -36,4 +38,8 @@ public class RegisterRequest {
     public void setPhone(String phone) { this.phone = phone; }
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/dto/auth/RegisterRequest.java
+=======
+
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/auth/dto/RegisterRequest.java
 }

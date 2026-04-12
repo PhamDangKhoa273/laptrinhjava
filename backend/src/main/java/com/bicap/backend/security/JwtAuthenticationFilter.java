@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/security/JwtAuthenticationFilter.java
 package com.bicap.backend.security;
+=======
+package com.bicap.core.security;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/core/security/JwtAuthenticationFilter.java
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

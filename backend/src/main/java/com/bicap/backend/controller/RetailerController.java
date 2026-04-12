@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/controller/RetailerController.java
 package com.bicap.backend.controller;
 
 import com.bicap.backend.dto.CreateRetailerRequest;
@@ -6,6 +7,17 @@ import com.bicap.backend.dto.UpdateRetailerRequest;
 import com.bicap.backend.dto.response.ApiResponse;
 import com.bicap.backend.security.SecurityUtils;
 import com.bicap.backend.service.RetailerService;
+=======
+package com.bicap.modules.retailer.controller;
+
+import com.bicap.core.dto.ApiResponse;
+
+import com.bicap.modules.retailer.dto.CreateRetailerRequest;
+import com.bicap.modules.retailer.dto.RetailerResponse;
+import com.bicap.modules.retailer.dto.UpdateRetailerRequest;
+import com.bicap.core.security.SecurityUtils;
+import com.bicap.modules.retailer.service.RetailerService;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/retailer/controller/RetailerController.java
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;

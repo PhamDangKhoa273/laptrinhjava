@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/service/QrCodeService.java
 package com.bicap.backend.service;
+=======
+package com.bicap.modules.batch.service;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/batch/service/QrCodeService.java
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;

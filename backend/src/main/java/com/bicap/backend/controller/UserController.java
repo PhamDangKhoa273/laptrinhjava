@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/controller/UserController.java
 package com.bicap.backend.controller;
 
 import com.bicap.backend.dto.UpdateUserStatusRequest;
@@ -6,6 +7,17 @@ import com.bicap.backend.dto.request.CreateUserRequest;
 import com.bicap.backend.dto.request.UpdateProfileRequest;
 import com.bicap.backend.dto.response.ApiResponse;
 import com.bicap.backend.service.UserService;
+=======
+package com.bicap.modules.user.controller;
+import com.bicap.modules.user.service.UserService;
+
+import com.bicap.core.dto.ApiResponse;
+
+import com.bicap.modules.user.dto.UpdateUserStatusRequest;
+import com.bicap.modules.user.dto.AssignRoleRequest;
+import com.bicap.modules.user.dto.CreateUserRequest;
+import com.bicap.modules.user.dto.UpdateProfileRequest;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/user/controller/UserController.java
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;

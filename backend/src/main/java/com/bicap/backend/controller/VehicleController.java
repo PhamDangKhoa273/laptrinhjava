@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/controller/VehicleController.java
 package com.bicap.backend.controller;
 
 import com.bicap.backend.dto.CreateVehicleRequest;
@@ -6,6 +7,17 @@ import com.bicap.backend.dto.VehicleResponse;
 import com.bicap.backend.dto.response.ApiResponse;
 import com.bicap.backend.security.SecurityUtils;
 import com.bicap.backend.service.VehicleService;
+=======
+package com.bicap.modules.logistics.controller;
+
+import com.bicap.core.dto.ApiResponse;
+
+import com.bicap.modules.logistics.dto.CreateVehicleRequest;
+import com.bicap.modules.logistics.dto.UpdateVehicleRequest;
+import com.bicap.modules.logistics.dto.VehicleResponse;
+import com.bicap.core.security.SecurityUtils;
+import com.bicap.modules.logistics.service.VehicleService;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/logistics/controller/VehicleController.java
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -18,6 +18,7 @@ export function LoginPage() {
   const [errors, setErrors] = useState({})
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const canSubmit = useMemo(() => form.email && form.password, [form])
 
@@ -64,7 +65,29 @@ export function LoginPage() {
 
       <form className="form-grid" onSubmit={handleSubmit}>
         <TextInput label="Email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@example.com" error={errors.email} required />
-        <TextInput label="Password" name="password" type="password" value={form.password} onChange={handleChange} placeholder="Enter your password" error={errors.password} required />
+        <TextInput 
+          label="Password" 
+          name="password" 
+          type={showPassword ? 'text' : 'password'} 
+          value={form.password} 
+          onChange={handleChange} 
+          placeholder="Enter your password" 
+          error={errors.password} 
+          required 
+        />
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '-0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+            <input 
+              type="checkbox" 
+              id="show-pass" 
+              checked={showPassword} 
+              onChange={() => setShowPassword(!showPassword)} 
+            />
+            <label htmlFor="show-pass" style={{ cursor: 'pointer', color: 'var(--text-muted)' }}>Show password</label>
+          </div>
+          <Link to="/forgot-password" style={{ fontSize: '0.875rem', color: 'var(--primary-color)' }}>Forgot password?</Link>
+        </div>
 
         {error ? <div className="alert alert-error">{error}</div> : null}
 

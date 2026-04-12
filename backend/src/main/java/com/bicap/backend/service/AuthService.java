@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/service/AuthService.java
 package com.bicap.backend.service;
 
 import com.bicap.backend.dto.UserResponse;
@@ -13,14 +14,35 @@ import com.bicap.backend.repository.UserRoleRepository;
 import com.bicap.backend.security.CustomUserPrincipal;
 import com.bicap.backend.security.JwtTokenProvider;
 import com.bicap.backend.security.SecurityUtils;
+=======
+package com.bicap.modules.auth.service;
+import com.bicap.modules.user.entity.User;
+import com.bicap.modules.user.service.UserService;
+import com.bicap.modules.user.repository.UserRepository;
+
+import com.bicap.modules.user.dto.UserResponse;
+import com.bicap.modules.auth.dto.*;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.auth.entity.PasswordResetToken;
+import com.bicap.modules.auth.repository.PasswordResetTokenRepository;
+import com.bicap.core.service.EmailService;
+import com.bicap.modules.user.repository.UserRoleRepository;
+import com.bicap.core.security.CustomUserPrincipal;
+import com.bicap.core.security.JwtTokenProvider;
+import com.bicap.core.security.SecurityUtils;
+import org.springframework.beans.factory.annotation.Value;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/auth/service/AuthService.java
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.bicap.backend.enums.RoleName.GUEST;
 
@@ -32,18 +54,30 @@ public class AuthService {
     private final UserService userService;
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
-    // Manual Constructor instead of @RequiredArgsConstructor
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
+    // Manual Constructor
     public AuthService(AuthenticationManager authenticationManager,
                        JwtTokenProvider jwtTokenProvider,
                        UserService userService,
                        UserRepository userRepository,
-                       UserRoleRepository userRoleRepository) {
+                       UserRoleRepository userRoleRepository,
+                       PasswordResetTokenRepository passwordResetTokenRepository,
+                       EmailService emailService,
+                       PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userService = userService;
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -61,6 +95,7 @@ public class AuthService {
     }
 
     public LoginResponse login(LoginRequest request) {
+        System.out.println("Processing login attempt for: " + request.getEmail().trim().toLowerCase());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail().trim().toLowerCase(),
@@ -129,5 +164,49 @@ public class AuthService {
                 "logoutMode", "CLIENT_SIDE",
                 "message", "Xóa access token và refresh token ở phía client để hoàn tất đăng xuất"
         );
+    }
+
+    @Transactional
+    public String forgotPassword(ForgotPasswordRequest request) {
+        User user = userRepository.findByEmailIgnoreCase(request.getEmail().toLowerCase())
+                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng với email này"));
+
+        // Delete old tokens
+        passwordResetTokenRepository.deleteByUser(user);
+
+        // Generate new token
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+                .token(token)
+                .user(user)
+                .expiryDate(LocalDateTime.now().plusMinutes(30))
+                .build();
+
+        passwordResetTokenRepository.save(resetToken);
+
+        // Send Email
+        String resetLink = String.format("%s/reset-password?token=%s", frontendUrl, token);
+        emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
+
+        return "Link khôi phục mật khẩu đã được gửi đến email của bạn.";
+    }
+
+    @Transactional
+    public String resetPassword(ResetPasswordRequest request) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(request.getToken())
+                .orElseThrow(() -> new BusinessException("Token không hợp lệ hoặc đã hết hạn"));
+
+        if (resetToken.isExpired()) {
+            passwordResetTokenRepository.delete(resetToken);
+            throw new BusinessException("Token đã hết hạn");
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        passwordResetTokenRepository.delete(resetToken);
+
+        return "Mật khẩu của bạn đã được cập nhật thành công.";
     }
 }

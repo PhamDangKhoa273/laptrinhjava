@@ -1,5 +1,6 @@
 package com.bicap.backend.service;
 
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/service/SubscriptionPaymentService.java
 import com.bicap.backend.dto.CreateSubscriptionPaymentRequest;
 import com.bicap.backend.dto.SubscriptionPaymentResponse;
 import com.bicap.backend.entity.FarmSubscription;
@@ -10,6 +11,16 @@ import com.bicap.backend.exception.BusinessException;
 import com.bicap.backend.repository.FarmSubscriptionRepository;
 import com.bicap.backend.repository.SubscriptionPaymentRepository;
 import com.bicap.backend.repository.UserRepository;
+=======
+import com.bicap.modules.subscription.dto.CreateSubscriptionPaymentRequest;
+import com.bicap.modules.subscription.dto.SubscriptionPaymentResponse;
+import com.bicap.modules.subscription.entity.FarmSubscription;
+import com.bicap.modules.subscription.entity.SubscriptionPayment;
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.subscription.repository.FarmSubscriptionRepository;
+import com.bicap.modules.subscription.repository.SubscriptionPaymentRepository;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/subscription/service/SubscriptionPaymentService.java
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

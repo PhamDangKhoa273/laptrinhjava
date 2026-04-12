@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/entity/AuditLog.java
 package com.bicap.backend.entity;
+=======
+package com.bicap.core;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/core/AuditLog.java
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -48,4 +52,8 @@ public class AuditLog {
     public void setEntityId(Long entityId) { this.entityId = entityId; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/entity/AuditLog.java
+=======
+
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/core/AuditLog.java
 }

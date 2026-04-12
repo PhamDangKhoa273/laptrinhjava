@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/controller/FarmSubscriptionController.java
 package com.bicap.backend.controller;
 
 import com.bicap.backend.dto.CreateFarmSubscriptionRequest;
@@ -6,6 +7,17 @@ import com.bicap.backend.dto.UpdateFarmSubscriptionStatusRequest;
 import com.bicap.backend.dto.response.ApiResponse;
 import com.bicap.backend.security.SecurityUtils;
 import com.bicap.backend.service.FarmSubscriptionService;
+=======
+package com.bicap.modules.subscription.controller;
+
+import com.bicap.core.dto.ApiResponse;
+
+import com.bicap.modules.subscription.dto.CreateFarmSubscriptionRequest;
+import com.bicap.modules.subscription.dto.FarmSubscriptionResponse;
+import com.bicap.modules.subscription.dto.UpdateFarmSubscriptionStatusRequest;
+import com.bicap.core.security.SecurityUtils;
+import com.bicap.modules.subscription.service.FarmSubscriptionService;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/subscription/controller/FarmSubscriptionController.java
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;

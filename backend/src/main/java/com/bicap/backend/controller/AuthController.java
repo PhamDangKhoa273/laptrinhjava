@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/controller/AuthController.java
 package com.bicap.backend.controller;
 
 import com.bicap.backend.dto.UserResponse;
@@ -8,6 +9,14 @@ import com.bicap.backend.dto.auth.RegisterRequest;
 import com.bicap.backend.dto.auth.TokenRefreshResponse;
 import com.bicap.backend.dto.response.ApiResponse;
 import com.bicap.backend.service.AuthService;
+=======
+package com.bicap.modules.auth.controller;
+
+import com.bicap.modules.auth.dto.*;
+import com.bicap.modules.user.dto.UserResponse;
+import com.bicap.core.dto.ApiResponse;
+import com.bicap.modules.auth.service.AuthService;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/auth/controller/AuthController.java
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,5 +56,15 @@ public class AuthController {
     @PostMapping("/logout")
     public ApiResponse<Map<String, String>> logout() {
         return ApiResponse.success("Đăng xuất thành công", authService.logout());
+    }
+
+    @PostMapping("/forgot-password")
+    public ApiResponse<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return ApiResponse.success(authService.forgotPassword(request));
+    }
+
+    @PostMapping("/reset-password")
+    public ApiResponse<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return ApiResponse.success(authService.resetPassword(request));
     }
 }

@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/entity/User.java
 package com.bicap.backend.entity;
 
 import com.bicap.backend.enums.UserStatus;
@@ -8,6 +9,12 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
+=======
+package com.bicap.modules.user.entity;
+
+import com.bicap.core.enums.UserStatus;
+import jakarta.persistence.*;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/user/entity/User.java
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -115,4 +122,18 @@ public class User {
         }
     }
     public static UserBuilder builder() { return new UserBuilder(); }
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/entity/User.java
+=======
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+    public com.bicap.core.enums.UserStatus getStatus() { return status; }
+    public void setStatus(com.bicap.core.enums.UserStatus status) { this.status = status; }
+    public java.time.LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public java.time.LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(java.time.LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/user/entity/User.java
 }

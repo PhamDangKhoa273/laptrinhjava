@@ -1,5 +1,6 @@
 package com.bicap.backend.service;
 
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/service/RetailerService.java
 import com.bicap.backend.dto.CreateRetailerRequest;
 import com.bicap.backend.dto.RetailerResponse;
 import com.bicap.backend.dto.UpdateRetailerRequest;
@@ -9,6 +10,15 @@ import com.bicap.backend.enums.RoleName;
 import com.bicap.backend.exception.BusinessException;
 import com.bicap.backend.repository.RetailerRepository;
 import com.bicap.backend.repository.UserRepository;
+=======
+import com.bicap.modules.retailer.dto.CreateRetailerRequest;
+import com.bicap.modules.retailer.dto.RetailerResponse;
+import com.bicap.modules.retailer.dto.UpdateRetailerRequest;
+import com.bicap.modules.retailer.entity.Retailer;
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.retailer.repository.RetailerRepository;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/retailer/service/RetailerService.java
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

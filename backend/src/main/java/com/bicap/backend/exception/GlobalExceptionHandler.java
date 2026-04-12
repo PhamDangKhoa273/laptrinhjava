@@ -1,7 +1,14 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/exception/GlobalExceptionHandler.java
 package com.bicap.backend.exception;
 
 import com.bicap.backend.dto.response.ApiErrorDetail;
 import com.bicap.backend.dto.response.ApiResponse;
+=======
+package com.bicap.core.exception;
+
+import com.bicap.core.dto.ApiErrorDetail;
+import com.bicap.core.dto.ApiResponse;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/core/exception/GlobalExceptionHandler.java
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

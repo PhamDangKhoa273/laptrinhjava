@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/service/ProductBatchService.java
 package com.bicap.backend.service;
 
 import com.bicap.backend.dto.BatchResponse;
@@ -9,6 +10,23 @@ import com.bicap.backend.entity.*;
 import com.bicap.backend.exception.BusinessException;
 import com.bicap.backend.repository.*;
 import com.bicap.backend.security.SecurityUtils;
+=======
+package com.bicap.modules.batch.service;
+
+import com.bicap.modules.batch.repository.ProductBatchRepository;
+import com.bicap.modules.batch.repository.QrCodeRepository;
+import com.bicap.modules.season.entity.FarmingProcess;
+import com.bicap.modules.season.repository.FarmingProcessRepository;
+import com.bicap.modules.batch.entity.ProductBatch;
+import com.bicap.modules.season.service.SeasonService;
+import com.bicap.modules.batch.entity.QrCode;
+import com.bicap.modules.season.entity.FarmingSeason;
+import com.bicap.modules.batch.dto.*;
+import com.bicap.modules.product.entity.Product;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.product.repository.ProductRepository;
+import com.bicap.core.security.SecurityUtils;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/batch/service/ProductBatchService.java
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,12 +57,10 @@ public class ProductBatchService {
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy sản phẩm với ID: " + request.getProductId()));
 
-        // Validate consistency: Season must be for this Product
         if (!season.getProduct().getProductId().equals(product.getProductId())) {
             throw new BusinessException("Mùa vụ '" + season.getSeasonCode() + "' không thuộc sản phẩm '" + product.getProductName() + "'.");
         }
 
-        // Validate availableQuantity <= quantity
         if (request.getAvailableQuantity().compareTo(request.getQuantity()) > 0) {
             throw new BusinessException("Số lượng khả dụng không được lớn hơn tổng số lượng.");
         }
@@ -65,8 +81,6 @@ public class ProductBatchService {
         batch.setBatchStatus(request.getBatchStatus() != null ? request.getBatchStatus() : "CREATED");
 
         ProductBatch saved = productBatchRepository.save(batch);
-
-        // Blockchain integration
         blockchainService.saveBatch(saved);
 
         return toResponse(saved);
@@ -89,7 +103,6 @@ public class ProductBatchService {
         ProductBatch batch = productBatchRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng với ID: " + id));
 
-        // Validate availableQuantity <= quantity
         if (request.getAvailableQuantity().compareTo(request.getQuantity()) > 0) {
             throw new BusinessException("Số lượng khả dụng không được lớn hơn tổng số lượng.");
         }
@@ -102,8 +115,6 @@ public class ProductBatchService {
         batch.setBatchStatus(request.getBatchStatus());
 
         ProductBatch saved = productBatchRepository.save(batch);
-        
-        // Blockchain integration
         blockchainService.saveBatch(saved);
 
         return toResponse(saved);
@@ -151,9 +162,6 @@ public class ProductBatchService {
                 .build();
     }
 
-    /**
-     * Core Traceability Logic
-     */
     public TraceBatchResponse traceBatch(Long id) {
         ProductBatch batch = productBatchRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng để truy xuất: " + id));
@@ -166,7 +174,6 @@ public class ProductBatchService {
             qrResponse = getQrCode(id);
         } catch (Exception ignored) {}
 
-        // Construct Season Info Map
         Map<String, Object> seasonDetails = new HashMap<>();
         seasonDetails.put("seasonId", season.getSeasonId());
         seasonDetails.put("seasonCode", season.getSeasonCode());
@@ -179,7 +186,6 @@ public class ProductBatchService {
             seasonDetails.put("farmCode", season.getFarm().getFarmCode());
         }
 
-        // Construct Process List
         List<Map<String, Object>> processList = processes.stream().map(p -> {
             Map<String, Object> map = new HashMap<>();
             map.put("stepNo", p.getStepNo());

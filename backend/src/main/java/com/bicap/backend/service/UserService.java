@@ -1,5 +1,6 @@
 package com.bicap.backend.service;
 
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/service/UserService.java
 import com.bicap.backend.dto.UpdateUserStatusRequest;
 import com.bicap.backend.dto.UserResponse;
 import com.bicap.backend.dto.request.AssignRoleRequest;
@@ -15,6 +16,19 @@ import com.bicap.backend.repository.RoleRepository;
 import com.bicap.backend.repository.UserRepository;
 import com.bicap.backend.repository.UserRoleRepository;
 import com.bicap.backend.security.SecurityUtils;
+=======
+import com.bicap.modules.user.dto.UpdateUserStatusRequest;
+import com.bicap.modules.user.dto.UserResponse;
+import com.bicap.modules.user.dto.AssignRoleRequest;
+import com.bicap.modules.user.dto.CreateUserRequest;
+import com.bicap.modules.user.dto.UpdateProfileRequest;
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.enums.UserStatus;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.user.repository.RoleRepository;
+import com.bicap.modules.user.repository.UserRoleRepository;
+import com.bicap.core.security.SecurityUtils;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/user/service/UserService.java
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

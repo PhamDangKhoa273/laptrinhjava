@@ -1,6 +1,12 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/repository/QrCodeRepository.java
 package com.bicap.backend.repository;
 
 import com.bicap.backend.entity.QrCode;
+=======
+package com.bicap.modules.batch.repository;
+import com.bicap.modules.batch.entity.QrCode;
+
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/batch/repository/QrCodeRepository.java
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

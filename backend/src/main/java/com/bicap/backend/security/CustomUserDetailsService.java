@@ -1,8 +1,16 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/security/CustomUserDetailsService.java
 package com.bicap.backend.security;
 
 import com.bicap.backend.entity.User;
 import com.bicap.backend.repository.UserRepository;
 import com.bicap.backend.repository.UserRoleRepository;
+=======
+package com.bicap.core.security;
+
+import com.bicap.modules.user.entity.User;
+import com.bicap.modules.user.repository.UserRepository;
+import com.bicap.modules.user.repository.UserRoleRepository;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/core/security/CustomUserDetailsService.java
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;

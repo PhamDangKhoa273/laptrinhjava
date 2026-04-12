@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/dto/request/CreateUserRequest.java
 package com.bicap.backend.dto.request;
+=======
+package com.bicap.modules.user.dto;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/user/dto/CreateUserRequest.java
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

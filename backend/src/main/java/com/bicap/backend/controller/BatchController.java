@@ -1,5 +1,6 @@
 package com.bicap.backend.controller;
 
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/controller/BatchController.java
 import com.bicap.backend.dto.BatchResponse;
 import com.bicap.backend.dto.CreateBatchRequest;
 import com.bicap.backend.dto.trace.QrCodeResponse;
@@ -7,6 +8,11 @@ import com.bicap.backend.dto.trace.TraceBatchResponse;
 import com.bicap.backend.dto.UpdateBatchRequest;
 import com.bicap.backend.dto.response.ApiResponse;
 import com.bicap.backend.service.ProductBatchService;
+=======
+import com.bicap.core.dto.ApiResponse;
+import com.bicap.modules.batch.dto.*;
+import com.bicap.modules.batch.service.ProductBatchService;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/batch/controller/BatchController.java
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

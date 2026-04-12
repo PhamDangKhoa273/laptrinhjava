@@ -1,7 +1,12 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/service/AuditLogService.java
 package com.bicap.backend.service;
 
 import com.bicap.backend.entity.AuditLog;
 import com.bicap.backend.repository.AuditLogRepository;
+=======
+package com.bicap.core;
+
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/core/AuditLogService.java
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

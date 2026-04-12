@@ -1,14 +1,16 @@
 package com.bicap.backend.service;
 
-import com.bicap.backend.dto.CreateRetailerRequest;
-import com.bicap.backend.dto.RetailerResponse;
-import com.bicap.backend.dto.UpdateRetailerRequest;
-import com.bicap.backend.entity.Retailer;
-import com.bicap.backend.entity.User;
-import com.bicap.backend.enums.RoleName;
-import com.bicap.backend.exception.BusinessException;
-import com.bicap.backend.repository.RetailerRepository;
-import com.bicap.backend.repository.UserRepository;
+import com.bicap.modules.retailer.dto.CreateRetailerRequest;
+import com.bicap.modules.retailer.dto.RetailerResponse;
+import com.bicap.modules.retailer.dto.UpdateRetailerRequest;
+import com.bicap.modules.retailer.entity.Retailer;
+import com.bicap.modules.user.entity.User;
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.retailer.repository.RetailerRepository;
+import com.bicap.modules.user.repository.UserRepository;
+import com.bicap.modules.user.service.UserService;
+import com.bicap.modules.retailer.service.RetailerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

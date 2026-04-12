@@ -1,4 +1,9 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/entity/Driver.java
 package com.bicap.backend.entity;
+=======
+package com.bicap.modules.logistics.entity;
+import com.bicap.modules.user.entity.User;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/logistics/entity/Driver.java
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -51,4 +56,8 @@ public class Driver {
     public void setLicenseNo(String licenseNo) { this.licenseNo = licenseNo; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/entity/Driver.java
+=======
+
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/logistics/entity/Driver.java
 }

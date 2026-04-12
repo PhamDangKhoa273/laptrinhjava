@@ -1,6 +1,9 @@
 package com.bicap.backend.repository;
 
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/repository/FarmingProcessRepository.java
 import com.bicap.backend.entity.FarmingProcess;
+=======
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/modules/season/repository/FarmingProcessRepository.java
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

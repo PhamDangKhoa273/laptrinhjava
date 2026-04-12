@@ -1,11 +1,13 @@
 package com.bicap.backend.controller;
 
-import com.bicap.backend.dto.UserResponse;
-import com.bicap.backend.dto.auth.LoginResponse;
-import com.bicap.backend.dto.auth.TokenRefreshResponse;
-import com.bicap.backend.security.CustomUserDetailsService;
-import com.bicap.backend.security.JwtTokenProvider;
-import com.bicap.backend.service.AuthService;
+import com.bicap.modules.user.dto.UserResponse;
+import com.bicap.modules.auth.dto.LoginResponse;
+import com.bicap.modules.auth.dto.TokenRefreshResponse;
+import com.bicap.core.security.CustomUserDetailsService;
+import com.bicap.core.security.JwtTokenProvider;
+import com.bicap.modules.auth.service.AuthService;
+import com.bicap.modules.auth.controller.AuthController;
+import com.bicap.core.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -27,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = AuthController.class)
-@Import(com.bicap.backend.config.SecurityConfig.class)
+@Import(SecurityConfig.class)
 class AuthControllerTests {
 
     @Autowired
@@ -67,8 +69,8 @@ class AuthControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  \"email\": \"test@example.com\",
-                                  \"password\": \"secret123\"
+                                  "email": "test@example.com",
+                                  "password": "secret123"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -94,7 +96,7 @@ class AuthControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  \"refreshToken\": \"refresh-token\"
+                                  "refreshToken": "refresh-token"
                                 }
                                 """))
                 .andExpect(status().isOk())

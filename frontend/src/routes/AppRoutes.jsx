@@ -14,6 +14,12 @@ import { RetailerWorkspacePage } from '../pages/RetailerWorkspacePage.jsx'
 import { RoleDashboardPage } from '../pages/RoleDashboardPage.jsx'
 import { ShippingWorkspacePage } from '../pages/ShippingWorkspacePage.jsx'
 import { WebsiteAppearancePage } from '../pages/WebsiteAppearancePage.jsx'
+<<<<<<< Updated upstream
+=======
+import { GuestMarketplacePage } from '../pages/GuestMarketplacePage.jsx'
+import { ForgotPasswordPage } from '../pages/ForgotPasswordPage.jsx'
+import { ResetPasswordPage } from '../pages/ResetPasswordPage.jsx'
+>>>>>>> Stashed changes
 import { ROLES } from '../utils/constants'
 import { ProtectedRoute } from './ProtectedRoute.jsx'
 import { PublicOnlyRoute } from './PublicOnlyRoute.jsx'
@@ -120,6 +126,8 @@ export function AppRoutes() {
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
       </Route>
 

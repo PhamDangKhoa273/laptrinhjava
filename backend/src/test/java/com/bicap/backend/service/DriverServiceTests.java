@@ -1,13 +1,15 @@
 package com.bicap.backend.service;
 
-import com.bicap.backend.dto.DriverResponse;
-import com.bicap.backend.dto.UpdateDriverRequest;
-import com.bicap.backend.entity.Driver;
-import com.bicap.backend.entity.User;
-import com.bicap.backend.enums.RoleName;
-import com.bicap.backend.exception.BusinessException;
-import com.bicap.backend.repository.DriverRepository;
-import com.bicap.backend.repository.UserRepository;
+import com.bicap.modules.logistics.dto.DriverResponse;
+import com.bicap.modules.logistics.dto.UpdateDriverRequest;
+import com.bicap.modules.logistics.entity.Driver;
+import com.bicap.modules.user.entity.User;
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.logistics.repository.DriverRepository;
+import com.bicap.modules.user.repository.UserRepository;
+import com.bicap.modules.user.service.UserService;
+import com.bicap.modules.logistics.service.DriverService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream:backend/src/main/java/com/bicap/backend/security/JwtTokenProvider.java
 package com.bicap.backend.security;
+=======
+package com.bicap.core.security;
+>>>>>>> Stashed changes:backend/src/main/java/com/bicap/core/security/JwtTokenProvider.java
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

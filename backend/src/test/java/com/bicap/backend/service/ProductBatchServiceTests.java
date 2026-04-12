@@ -1,10 +1,14 @@
 package com.bicap.backend.service;
 
-import com.bicap.backend.repository.ProductBatchRepository;
-import com.bicap.backend.repository.FarmingSeasonRepository;
-import com.bicap.backend.repository.ProductRepository;
-import com.bicap.backend.repository.FarmingProcessRepository;
-import com.bicap.backend.repository.QrCodeRepository;
+import com.bicap.modules.batch.repository.ProductBatchRepository;
+import com.bicap.modules.season.repository.FarmingSeasonRepository;
+import com.bicap.modules.product.repository.ProductRepository;
+import com.bicap.modules.season.repository.FarmingProcessRepository;
+import com.bicap.modules.batch.repository.QrCodeRepository;
+import com.bicap.modules.batch.service.BlockchainService;
+import com.bicap.modules.batch.service.QrCodeService;
+import com.bicap.modules.season.service.SeasonService;
+import com.bicap.modules.batch.service.ProductBatchService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,4 +37,3 @@ class ProductBatchServiceTests {
         assertNotNull(productBatchService);
     }
 }
-
