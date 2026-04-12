@@ -4,12 +4,14 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.NonNull;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class EmailService {
 
     private final JavaMailSender mailSender;
@@ -17,7 +19,7 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    public void sendEmail(String to, String subject, String content) {
+    public void sendEmail(@NonNull String to, @NonNull String subject, @NonNull String content) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -33,7 +35,7 @@ public class EmailService {
         }
     }
 
-    public void sendPasswordResetEmail(String to, String resetLink) {
+    public void sendPasswordResetEmail(@NonNull String to, @NonNull String resetLink) {
         String content = String.format("""
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
                 <div style="background-color: #007bff; color: white; padding: 20px; text-align: center;">

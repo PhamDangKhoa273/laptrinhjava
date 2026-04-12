@@ -1,18 +1,17 @@
 package com.bicap.modules.subscription.service;
-import com.bicap.core.AuditLogService;
-import com.bicap.modules.user.entity.User;
-import com.bicap.modules.user.service.UserService;
-import com.bicap.modules.user.repository.UserRepository;
 
+import com.bicap.core.AuditLogService;
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.exception.BusinessException;
 import com.bicap.modules.subscription.dto.CreateSubscriptionPaymentRequest;
 import com.bicap.modules.subscription.dto.SubscriptionPaymentResponse;
 import com.bicap.modules.subscription.entity.FarmSubscription;
 import com.bicap.modules.subscription.entity.SubscriptionPayment;
-import com.bicap.core.enums.RoleName;
-import com.bicap.core.exception.BusinessException;
 import com.bicap.modules.subscription.repository.FarmSubscriptionRepository;
 import com.bicap.modules.subscription.repository.SubscriptionPaymentRepository;
+import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.repository.UserRepository;
+import com.bicap.modules.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +20,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class SubscriptionPaymentService {
 
     private final SubscriptionPaymentRepository subscriptionPaymentRepository;

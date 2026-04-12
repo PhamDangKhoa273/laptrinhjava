@@ -4,12 +4,10 @@ import com.bicap.core.AuditLogService;
 import com.bicap.modules.user.entity.User;
 import com.bicap.modules.farm.entity.Farm;
 import com.bicap.modules.farm.repository.FarmRepository;
-import com.bicap.modules.user.service.UserService;
 import com.bicap.modules.user.repository.UserRepository;
 import com.bicap.modules.farm.dto.CreateFarmRequest;
 import com.bicap.modules.farm.dto.UpdateFarmRequest;
 import com.bicap.modules.farm.dto.FarmResponse;
-import com.bicap.core.enums.RoleName;
 import com.bicap.core.exception.BusinessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@SuppressWarnings("null")
 public class FarmService {
 
     private final FarmRepository farmRepository;

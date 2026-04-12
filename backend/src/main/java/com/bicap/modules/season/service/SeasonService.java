@@ -1,6 +1,5 @@
 package com.bicap.modules.season.service;
 
-import com.bicap.core.AuditLogService;
 import com.bicap.modules.user.entity.User;
 import com.bicap.modules.farm.repository.FarmRepository;
 import com.bicap.modules.farm.entity.Farm;
@@ -23,6 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@SuppressWarnings("null")
 public class SeasonService {
 
     private final FarmingSeasonRepository farmingSeasonRepository;
@@ -31,22 +31,19 @@ public class SeasonService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final BlockchainService blockchainService;
-    private final AuditLogService auditLogService;
 
     public SeasonService(FarmingSeasonRepository farmingSeasonRepository,
                          FarmRepository farmRepository,
                          ProductRepository productRepository,
                          UserRepository userRepository,
                          UserService userService,
-                         BlockchainService blockchainService,
-                         AuditLogService auditLogService) {
+                         BlockchainService blockchainService) {
         this.farmingSeasonRepository = farmingSeasonRepository;
         this.farmRepository = farmRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.userService = userService;
         this.blockchainService = blockchainService;
-        this.auditLogService = auditLogService;
     }
 
     public List<SeasonResponse> getAllSeasons() {

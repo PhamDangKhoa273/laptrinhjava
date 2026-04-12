@@ -15,6 +15,7 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 @Service
+@SuppressWarnings("null")
 public class ProductManagementService {
 
     private final ProductRepository productRepository;
