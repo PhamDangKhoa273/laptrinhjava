@@ -18,6 +18,7 @@ import { WebsiteAppearancePage } from '../pages/WebsiteAppearancePage.jsx'
 import { GuestMarketplacePage } from '../pages/GuestMarketplacePage.jsx'
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage.jsx'
 import { ResetPasswordPage } from '../pages/ResetPasswordPage.jsx'
+import { BatchDetailPage } from '../pages/BatchDetailPage.jsx'
 import { ROLES } from '../utils/constants'
 import { ProtectedRoute } from './ProtectedRoute.jsx'
 import { PublicOnlyRoute } from './PublicOnlyRoute.jsx'
@@ -149,6 +150,7 @@ export function AppRoutes() {
             <Route path="/dashboard/farm" element={<RoleDashboardPage {...dashboardConfigs.farm} />} />
             <Route path="/farm/workspace" element={<FarmWorkspacePage />} />
             <Route path="/farm/packages" element={<FarmPackagesPage />} />
+            <Route path="/batches/:id" element={<BatchDetailPage />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.RETAILER]} />}>

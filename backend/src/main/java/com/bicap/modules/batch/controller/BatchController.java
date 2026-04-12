@@ -50,4 +50,9 @@ public class BatchController {
     public ApiResponse<TraceBatchResponse> traceBatch(@PathVariable Long id) {
         return ApiResponse.success(productBatchService.traceBatch(id));
     }
+
+    @GetMapping("/api/v1/batches/{id}/verify")
+    public ApiResponse<VerifyTraceResponse> verifyBatch(@PathVariable Long id) {
+        return ApiResponse.success(productBatchService.verifyBatch(id));
+    }
 }

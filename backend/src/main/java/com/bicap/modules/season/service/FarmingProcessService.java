@@ -2,6 +2,7 @@ package com.bicap.modules.season.service;
 
 import com.bicap.modules.user.entity.User;
 import com.bicap.modules.batch.service.BlockchainService;
+import com.bicap.modules.batch.util.HashUtils;
 import com.bicap.modules.season.entity.FarmingProcess;
 import com.bicap.modules.season.repository.FarmingProcessRepository;
 import com.bicap.modules.user.repository.UserRepository;
@@ -18,7 +19,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,8 +60,17 @@ public class FarmingProcessService {
         FarmingProcess saved = farmingProcessRepository.save(process);
 
         // Blockchain integration
-        String payload = String.format("SEASON:%d|STEP:%d|NAME:%s", seasonId, saved.getStepNo(), saved.getStepName());
-        String txHash = blockchainService.saveProcess(saved.getId(), "CREATE", payload);
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("processId", saved.getId());
+        payload.put("seasonId", seasonId);
+        payload.put("stepNo", saved.getStepNo());
+        payload.put("stepName", saved.getStepName());
+        payload.put("performedAt", saved.getPerformedAt());
+        payload.put("description", saved.getDescription());
+        payload.put("imageUrl", saved.getImageUrl());
+
+        String jsonPayload = HashUtils.toCanonicalJson(payload);
+        String txHash = blockchainService.saveProcess(saved.getId(), "CREATE", jsonPayload);
 
         return ProcessStepResponse.fromEntity(saved, txHash);
     }
@@ -111,8 +123,17 @@ public class FarmingProcessService {
         FarmingProcess updated = farmingProcessRepository.save(process);
 
         // Blockchain integration
-        String payload = String.format("SEASON:%d|STEP:%d|NAME:%s|UPDATE", process.getSeason().getSeasonId(), updated.getStepNo(), updated.getStepName());
-        String txHash = blockchainService.saveProcess(updated.getId(), "UPDATE", payload);
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("processId", updated.getId());
+        payload.put("seasonId", process.getSeason().getSeasonId());
+        payload.put("stepNo", updated.getStepNo());
+        payload.put("stepName", updated.getStepName());
+        payload.put("performedAt", updated.getPerformedAt());
+        payload.put("description", updated.getDescription());
+        payload.put("imageUrl", updated.getImageUrl());
+
+        String jsonPayload = HashUtils.toCanonicalJson(payload);
+        String txHash = blockchainService.saveProcess(updated.getId(), "UPDATE", jsonPayload);
 
         return ProcessStepResponse.fromEntity(updated, txHash);
     }

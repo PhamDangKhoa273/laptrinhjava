@@ -2,6 +2,7 @@ package com.bicap.modules.batch.service;
 
 import com.bicap.modules.batch.repository.ProductBatchRepository;
 import com.bicap.modules.batch.repository.QrCodeRepository;
+import com.bicap.modules.batch.util.HashUtils;
 import com.bicap.modules.season.entity.FarmingProcess;
 import com.bicap.modules.season.repository.FarmingProcessRepository;
 import com.bicap.modules.batch.entity.ProductBatch;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -68,7 +70,21 @@ public class ProductBatchService {
         batch.setBatchStatus(request.getBatchStatus() != null ? request.getBatchStatus() : "CREATED");
 
         ProductBatch saved = productBatchRepository.save(batch);
-        blockchainService.saveBatch(saved);
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("batchId", saved.getBatchId());
+        payload.put("batchCode", saved.getBatchCode());
+        payload.put("seasonId", saved.getSeason().getSeasonId());
+        payload.put("productId", saved.getProduct().getProductId());
+        payload.put("harvestDate", saved.getHarvestDate());
+        payload.put("quantity", saved.getQuantity());
+        payload.put("availableQuantity", saved.getAvailableQuantity());
+        payload.put("qualityGrade", saved.getQualityGrade());
+        payload.put("expiryDate", saved.getExpiryDate());
+        payload.put("batchStatus", saved.getBatchStatus());
+
+        String jsonPayload = HashUtils.toCanonicalJson(payload);
+        blockchainService.saveBatch(saved.getBatchId(), jsonPayload);
 
         return toResponse(saved);
     }
@@ -102,7 +118,21 @@ public class ProductBatchService {
         batch.setBatchStatus(request.getBatchStatus());
 
         ProductBatch saved = productBatchRepository.save(batch);
-        blockchainService.saveBatch(saved);
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("batchId", saved.getBatchId());
+        payload.put("batchCode", saved.getBatchCode());
+        payload.put("seasonId", saved.getSeason().getSeasonId());
+        payload.put("productId", saved.getProduct().getProductId());
+        payload.put("harvestDate", saved.getHarvestDate());
+        payload.put("quantity", saved.getQuantity());
+        payload.put("availableQuantity", saved.getAvailableQuantity());
+        payload.put("qualityGrade", saved.getQualityGrade());
+        payload.put("expiryDate", saved.getExpiryDate());
+        payload.put("batchStatus", saved.getBatchStatus());
+
+        String jsonPayload = HashUtils.toCanonicalJson(payload);
+        blockchainService.saveBatch(saved.getBatchId(), jsonPayload);
 
         return toResponse(saved);
     }
@@ -199,6 +229,34 @@ public class ProductBatchService {
                 .seasonInfo(seasonDetails)
                 .processList(processList)
                 .note("Dữ liệu truy xuất nguồn gốc được xác thực bởi BICAP Platform.")
+                .build();
+    }
+
+    public VerifyTraceResponse verifyBatch(Long batchId) {
+        ProductBatch batch = productBatchRepository.findById(batchId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy batch"));
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("batchId", batch.getBatchId());
+        payload.put("batchCode", batch.getBatchCode());
+        payload.put("seasonId", batch.getSeason().getSeasonId());
+        payload.put("productId", batch.getProduct().getProductId());
+        payload.put("harvestDate", batch.getHarvestDate());
+        payload.put("quantity", batch.getQuantity());
+        payload.put("availableQuantity", batch.getAvailableQuantity());
+        payload.put("qualityGrade", batch.getQualityGrade());
+        payload.put("expiryDate", batch.getExpiryDate());
+        payload.put("batchStatus", batch.getBatchStatus());
+
+        String jsonPayload = HashUtils.toCanonicalJson(payload);
+        String localHash = HashUtils.sha256(jsonPayload);
+        String onChainHash = blockchainService.getOnChainHash("BATCH", batchId, "UPSERT");
+
+        return VerifyTraceResponse.builder()
+                .batchId(batchId)
+                .localHash(localHash)
+                .onChainHash(onChainHash)
+                .matched(localHash.equals(onChainHash))
                 .build();
     }
 

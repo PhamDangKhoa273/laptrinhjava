@@ -4,6 +4,7 @@ import com.bicap.modules.user.entity.User;
 import com.bicap.modules.farm.repository.FarmRepository;
 import com.bicap.modules.farm.entity.Farm;
 import com.bicap.modules.batch.service.BlockchainService;
+import com.bicap.modules.batch.util.HashUtils;
 import com.bicap.modules.user.service.UserService;
 import com.bicap.modules.user.repository.UserRepository;
 import com.bicap.modules.season.repository.FarmingSeasonRepository;
@@ -18,7 +19,9 @@ import com.bicap.core.exception.BusinessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -84,7 +87,19 @@ public class SeasonService {
         season.setSeasonStatus("PLANNED");
 
         FarmingSeason saved = farmingSeasonRepository.save(season);
-        blockchainService.saveSeason(saved);
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("seasonId", saved.getSeasonId());
+        payload.put("seasonCode", saved.getSeasonCode());
+        payload.put("farmId", saved.getFarm().getFarmId());
+        payload.put("productId", saved.getProduct().getProductId());
+        payload.put("startDate", saved.getStartDate());
+        payload.put("expectedHarvestDate", saved.getExpectedHarvestDate());
+        payload.put("seasonStatus", saved.getSeasonStatus());
+
+        String jsonPayload = HashUtils.toCanonicalJson(payload);
+        blockchainService.saveSeason(saved.getSeasonId(), jsonPayload);
+
         return mapToResponse(saved);
     }
 
