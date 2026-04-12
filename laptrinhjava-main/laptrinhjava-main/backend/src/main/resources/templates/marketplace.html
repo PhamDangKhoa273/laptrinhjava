@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<h2>Marketplace</h2>
+
+<form action="/search">
+    <input name="keyword" placeholder="Search...">
+    <button>Search</button>
+</form>
+
+<div th:each="p : ${products}">
+    <a th:href="@{'/product/' + ${p.id}}">
+        <span th:text="${p.name}"></span>
+    </a>
+</div>
+
+</body>
+</html>

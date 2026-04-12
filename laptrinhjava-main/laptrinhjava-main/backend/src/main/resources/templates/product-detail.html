@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<h2 th:text="${product.name}"></h2>
+<p th:text="${product.description}"></p>
+<p th:text="${product.price}"></p>
+
+<form action="/order" method="post">
+    <input type="hidden" name="productId" th:value="${product.id}">
+    <button>Buy</button>
+</form>
+
+</body>
+</html>
