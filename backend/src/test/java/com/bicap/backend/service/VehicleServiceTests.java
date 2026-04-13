@@ -67,8 +67,6 @@ class VehicleServiceTests {
     @Test
     void deactivate_shouldAllowManagerOwner() {
         when(vehicleRepository.findById(30L)).thenReturn(Optional.of(vehicle));
-        when(userRepository.findById(4L)).thenReturn(Optional.of(manager));
-        when(userService.hasRole(manager, RoleName.ADMIN)).thenReturn(false);
         when(vehicleRepository.save(any(Vehicle.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         VehicleResponse response = vehicleService.deactivate(30L, 4L);

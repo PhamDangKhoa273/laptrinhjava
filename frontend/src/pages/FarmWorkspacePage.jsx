@@ -111,7 +111,7 @@ export function FarmWorkspacePage() {
           <ul className="feature-list">
             <li>Approval: {farm?.approvalStatus || 'Not created yet'}</li>
             <li>Certification: {farm?.certificationStatus || 'Not created yet'}</li>
-            <li>Owner: {farm?.ownerFullName || 'Current FARM account'}</li>
+            <li>Owner: {farm?.ownerName || 'Current FARM account'}</li>
           </ul>
         </article>
       </div>

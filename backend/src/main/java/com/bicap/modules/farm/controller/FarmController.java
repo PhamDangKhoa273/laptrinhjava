@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/farms")
+@RequestMapping("/api/v1/farms")
 @RequiredArgsConstructor
 public class FarmController {
 
@@ -33,14 +33,14 @@ public class FarmController {
         return ApiResponse.success(farmService.getFarmById(id));
     }
 
-    @GetMapping("/my-farm")
-    @PreAuthorize("hasRole('FARMER')")
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('FARM')")
     public ApiResponse<FarmResponse> getMyFarm(@AuthenticationPrincipal CustomUserPrincipal currentUser) {
         return ApiResponse.success(farmService.getMyFarm(currentUser.getUserId()));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('FARMER')")
+    @PreAuthorize("hasRole('FARM')")
     public ApiResponse<FarmResponse> createFarm(
             @Valid @RequestBody CreateFarmRequest request,
             @AuthenticationPrincipal CustomUserPrincipal currentUser) {
@@ -48,7 +48,7 @@ public class FarmController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('FARMER')")
+    @PreAuthorize("hasRole('FARM')")
     public ApiResponse<FarmResponse> updateFarm(
             @PathVariable Long id,
             @Valid @RequestBody UpdateFarmRequest request,

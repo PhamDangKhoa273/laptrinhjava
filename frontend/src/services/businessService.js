@@ -21,7 +21,7 @@ export async function getAllFarms() {
 }
 
 export async function updateFarmApprovalStatus(id, approvalStatus) {
-  return unwrap(await api.put(`/farms/${id}/approval-status`, { approvalStatus }))
+  return unwrap(await api.post(`/farms/${id}/review`, { approvalStatus }))
 }
 
 export async function getMyRetailer() {

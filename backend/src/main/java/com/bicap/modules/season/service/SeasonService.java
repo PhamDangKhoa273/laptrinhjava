@@ -1,27 +1,25 @@
 package com.bicap.modules.season.service;
 
-import com.bicap.modules.user.entity.User;
-import com.bicap.modules.farm.repository.FarmRepository;
-import com.bicap.modules.farm.entity.Farm;
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.batch.dto.SeasonBlockchainPayload;
 import com.bicap.modules.batch.service.BlockchainService;
-import com.bicap.modules.batch.util.HashUtils;
-import com.bicap.modules.user.service.UserService;
-import com.bicap.modules.user.repository.UserRepository;
-import com.bicap.modules.season.repository.FarmingSeasonRepository;
-import com.bicap.modules.season.entity.FarmingSeason;
+import com.bicap.modules.farm.entity.Farm;
+import com.bicap.modules.farm.repository.FarmRepository;
 import com.bicap.modules.product.entity.Product;
 import com.bicap.modules.product.repository.ProductRepository;
 import com.bicap.modules.season.dto.CreateSeasonRequest;
-import com.bicap.modules.season.dto.UpdateSeasonRequest;
 import com.bicap.modules.season.dto.SeasonResponse;
-import com.bicap.core.enums.RoleName;
-import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.season.dto.UpdateSeasonRequest;
+import com.bicap.modules.season.entity.FarmingSeason;
+import com.bicap.modules.season.repository.FarmingSeasonRepository;
+import com.bicap.modules.user.entity.User;
+import com.bicap.modules.user.repository.UserRepository;
+import com.bicap.modules.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,6 +55,10 @@ public class SeasonService {
         return farmingSeasonRepository.findByFarm_FarmId(farmId).stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
+    public List<SeasonResponse> getSeasonsByProductId(Long productId) {
+        return farmingSeasonRepository.findByProduct_ProductId(productId).stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
     public SeasonResponse getSeasonById(Long id) {
         FarmingSeason s = farmingSeasonRepository.findById(id).orElseThrow(() -> new BusinessException("Mùa vụ không tồn tại"));
         return mapToResponse(s);
@@ -69,11 +71,19 @@ public class SeasonService {
         return season;
     }
 
+    public FarmingSeason getEntityById(Long seasonId) {
+        return farmingSeasonRepository.findById(seasonId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy mùa vụ."));
+    }
+
     @Transactional
     public SeasonResponse createSeason(CreateSeasonRequest request, Long currentUserId) {
         Farm farm = farmRepository.findById(request.getFarmId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy trang trại."));
         checkPermission(farm, currentUserId);
+        validateFarmApproved(farm);
+        validateSeasonDates(request.getStartDate(), request.getExpectedHarvestDate(), null, null);
+        ensureSeasonCodeUnique(request.getSeasonCode(), null);
 
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new BusinessException("Sản phẩm không tồn tại."));
@@ -84,43 +94,83 @@ public class SeasonService {
         season.setSeasonCode(request.getSeasonCode());
         season.setStartDate(request.getStartDate());
         season.setExpectedHarvestDate(request.getExpectedHarvestDate());
+        season.setFarmingMethod(request.getFarmingMethod());
         season.setSeasonStatus("PLANNED");
 
         FarmingSeason saved = farmingSeasonRepository.save(season);
 
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("seasonId", saved.getSeasonId());
-        payload.put("seasonCode", saved.getSeasonCode());
-        payload.put("farmId", saved.getFarm().getFarmId());
-        payload.put("productId", saved.getProduct().getProductId());
-        payload.put("startDate", saved.getStartDate());
-        payload.put("expectedHarvestDate", saved.getExpectedHarvestDate());
-        payload.put("seasonStatus", saved.getSeasonStatus());
-
-        String jsonPayload = HashUtils.toCanonicalJson(payload);
-        blockchainService.saveSeason(saved.getSeasonId(), jsonPayload);
+        SeasonBlockchainPayload payload = SeasonBlockchainPayload.builder()
+                .seasonId(saved.getSeasonId())
+                .seasonCode(saved.getSeasonCode())
+                .farmId(saved.getFarm().getFarmId())
+                .productId(saved.getProduct().getProductId())
+                .startDate(saved.getStartDate())
+                .farmingMethod(saved.getFarmingMethod())
+                .build();
+        blockchainService.saveSeason(payload);
 
         return mapToResponse(saved);
     }
 
     @Transactional
     public SeasonResponse updateSeason(Long id, UpdateSeasonRequest request, Long currentUserId) {
-        FarmingSeason season = farmingSeasonRepository.findById(id).orElseThrow(() -> new BusinessException("Mùa vụ không tồn tại"));
+        FarmingSeason season = farmingSeasonRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Mùa vụ không tồn tại"));
         checkPermission(season.getFarm(), currentUserId);
+        validateSeasonDates(request.getStartDate(), request.getExpectedHarvestDate(), request.getActualHarvestDate(), request.getSeasonStatus());
+        ensureSeasonCodeUnique(request.getSeasonCode(), id);
+
         season.setSeasonCode(request.getSeasonCode());
         season.setStartDate(request.getStartDate());
         season.setExpectedHarvestDate(request.getExpectedHarvestDate());
+        season.setActualHarvestDate(request.getActualHarvestDate());
+        season.setFarmingMethod(request.getFarmingMethod());
         season.setSeasonStatus(request.getSeasonStatus());
         return mapToResponse(farmingSeasonRepository.save(season));
     }
 
     private void checkPermission(Farm farm, Long currentUserId) {
         if (farm.getOwnerUser() == null || !farm.getOwnerUser().getUserId().equals(currentUserId)) {
-            User user = userRepository.findById(currentUserId).get();
+            User user = userRepository.findById(currentUserId)
+                    .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng hiện tại."));
             if (!userService.hasRole(user, RoleName.ADMIN)) {
                 throw new BusinessException("Bạn không có quyền.");
             }
         }
+    }
+
+    private void validateFarmApproved(Farm farm) {
+        if (!"APPROVED".equalsIgnoreCase(farm.getApprovalStatus())) {
+            throw new BusinessException("Chỉ trang trại đã được duyệt mới được tạo mùa vụ.");
+        }
+    }
+
+    private void validateSeasonDates(java.time.LocalDate startDate,
+                                     java.time.LocalDate expectedHarvestDate,
+                                     java.time.LocalDate actualHarvestDate,
+                                     String seasonStatus) {
+        if (startDate != null && expectedHarvestDate != null && expectedHarvestDate.isBefore(startDate)) {
+            throw new BusinessException("Ngày thu hoạch dự kiến phải lớn hơn hoặc bằng ngày bắt đầu.");
+        }
+        if (actualHarvestDate != null) {
+            if (startDate != null && actualHarvestDate.isBefore(startDate)) {
+                throw new BusinessException("Ngày thu hoạch thực tế không hợp lệ.");
+            }
+            if (seasonStatus == null || !("HARVESTED".equalsIgnoreCase(seasonStatus) || "COMPLETED".equalsIgnoreCase(seasonStatus))) {
+                throw new BusinessException("Chỉ được nhập ngày thu hoạch thực tế khi mùa vụ đã thu hoạch.");
+            }
+        }
+    }
+
+    private void ensureSeasonCodeUnique(String seasonCode, Long currentSeasonId) {
+        if (seasonCode == null || seasonCode.isBlank()) {
+            throw new BusinessException("Mã mùa vụ không được để trống.");
+        }
+        farmingSeasonRepository.findBySeasonCode(seasonCode)
+                .filter(existing -> currentSeasonId == null || !existing.getSeasonId().equals(currentSeasonId))
+                .ifPresent(existing -> {
+                    throw new BusinessException("Mã mùa vụ đã tồn tại.");
+                });
     }
 
     private SeasonResponse mapToResponse(FarmingSeason season) {
@@ -128,10 +178,17 @@ public class SeasonService {
                 .id(season.getSeasonId())
                 .farmId(season.getFarm().getFarmId())
                 .farmName(season.getFarm().getFarmName())
+                .productId(season.getProduct() != null ? season.getProduct().getProductId() : null)
+                .productCode(season.getProduct() != null ? season.getProduct().getProductCode() : null)
+                .productName(season.getProduct() != null ? season.getProduct().getProductName() : null)
                 .seasonCode(season.getSeasonCode())
                 .seasonStatus(season.getSeasonStatus())
                 .startDate(season.getStartDate())
                 .expectedHarvestDate(season.getExpectedHarvestDate())
+                .actualHarvestDate(season.getActualHarvestDate())
+                .farmingMethod(season.getFarmingMethod())
+                .createdAt(season.getCreatedAt())
+                .updatedAt(season.getUpdatedAt())
                 .build();
     }
 }

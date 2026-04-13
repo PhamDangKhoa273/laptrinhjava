@@ -62,8 +62,6 @@ class DriverServiceTests {
     @Test
     void deactivate_shouldAllowManagerOwner() {
         when(driverRepository.findById(20L)).thenReturn(Optional.of(driver));
-        when(userRepository.findById(4L)).thenReturn(Optional.of(manager));
-        when(userService.hasRole(manager, RoleName.ADMIN)).thenReturn(false);
         when(driverRepository.save(any(Driver.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         DriverResponse response = driverService.deactivate(20L, 4L);
