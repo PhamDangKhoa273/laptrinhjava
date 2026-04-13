@@ -1,27 +1,26 @@
 package com.bicap.modules.season.service;
 
-import com.bicap.modules.user.entity.User;
-import com.bicap.modules.batch.service.BlockchainService;
-import com.bicap.modules.batch.util.HashUtils;
-import com.bicap.modules.season.entity.FarmingProcess;
-import com.bicap.modules.season.repository.FarmingProcessRepository;
-import com.bicap.modules.user.repository.UserRepository;
-import com.bicap.modules.season.repository.FarmingSeasonRepository;
-import com.bicap.modules.season.entity.FarmingSeason;
-import com.bicap.modules.season.dto.CreateProcessStepRequest;
-import com.bicap.modules.season.dto.ReorderProcessRequest;
-import com.bicap.modules.season.dto.UpdateProcessStepRequest;
-import com.bicap.modules.season.dto.ProcessStepResponse;
-import com.bicap.modules.season.dto.ProcessTimelineResponse;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.SecurityUtils;
+import com.bicap.modules.batch.dto.ProcessBlockchainPayload;
+import com.bicap.modules.batch.service.BlockchainService;
+import com.bicap.modules.season.dto.CreateProcessStepRequest;
+import com.bicap.modules.season.dto.ProcessStepResponse;
+import com.bicap.modules.season.dto.ProcessTimelineResponse;
+import com.bicap.modules.season.dto.ReorderProcessRequest;
+import com.bicap.modules.season.dto.UpdateProcessStepRequest;
+import com.bicap.modules.season.entity.FarmingProcess;
+import com.bicap.modules.season.entity.FarmingSeason;
+import com.bicap.modules.season.repository.FarmingProcessRepository;
+import com.bicap.modules.season.repository.FarmingSeasonRepository;
+import com.bicap.modules.user.entity.User;
+import com.bicap.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.LinkedHashMap;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,20 +58,19 @@ public class FarmingProcessService {
 
         FarmingProcess saved = farmingProcessRepository.save(process);
 
-        // Blockchain integration
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("processId", saved.getId());
-        payload.put("seasonId", seasonId);
-        payload.put("stepNo", saved.getStepNo());
-        payload.put("stepName", saved.getStepName());
-        payload.put("performedAt", saved.getPerformedAt());
-        payload.put("description", saved.getDescription());
-        payload.put("imageUrl", saved.getImageUrl());
+        validateProcessTimeline(season, request.getPerformedAt());
 
-        String jsonPayload = HashUtils.toCanonicalJson(payload);
-        String txHash = blockchainService.saveProcess(saved.getId(), "CREATE", jsonPayload);
+        ProcessBlockchainPayload payload = ProcessBlockchainPayload.builder()
+                .processId(saved.getId())
+                .seasonId(seasonId)
+                .stepNo(saved.getStepNo())
+                .stepName(saved.getStepName())
+                .performedAt(saved.getPerformedAt())
+                .description(saved.getDescription())
+                .build();
+        blockchainService.saveProcess(payload, "CREATE");
 
-        return ProcessStepResponse.fromEntity(saved, txHash);
+        return ProcessStepResponse.fromEntity(saved, recorder.getFullName());
     }
 
     public ProcessTimelineResponse getProcessesBySeason(Long seasonId) {
@@ -82,7 +80,7 @@ public class FarmingProcessService {
         List<FarmingProcess> processes = farmingProcessRepository.findBySeason_SeasonIdOrderByStepNoAsc(seasonId);
 
         List<ProcessStepResponse> steps = processes.stream()
-                .map(p -> ProcessStepResponse.fromEntity(p, null)) 
+                .map(p -> ProcessStepResponse.fromEntity(p, p.getRecordedBy() != null ? p.getRecordedBy().getFullName() : null))
                 .collect(Collectors.toList());
 
         ProcessTimelineResponse.SeasonInfo seasonInfo = ProcessTimelineResponse.SeasonInfo.builder()
@@ -102,18 +100,21 @@ public class FarmingProcessService {
     public ProcessStepResponse getProcessDetail(Long id) {
         FarmingProcess process = farmingProcessRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bước quy trình với ID: " + id));
-        return ProcessStepResponse.fromEntity(process, null);
+        return ProcessStepResponse.fromEntity(process, process.getRecordedBy() != null ? process.getRecordedBy().getFullName() : null);
     }
 
     @Transactional
     public ProcessStepResponse updateProcessStep(Long id, UpdateProcessStepRequest request) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
         FarmingProcess process = farmingProcessRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bước quy trình với ID: " + id));
+        seasonService.findSeasonAndCheckPermission(process.getSeason().getSeasonId(), currentUserId);
 
         if (farmingProcessRepository.existsBySeason_SeasonIdAndStepNoAndIdNot(process.getSeason().getSeasonId(), request.getStepNo(), id)) {
             throw new BusinessException("Số thứ tự bước " + request.getStepNo() + " đã tồn tại.");
         }
 
+        validateProcessTimeline(process.getSeason(), request.getPerformedAt());
         process.setStepNo(request.getStepNo());
         process.setStepName(request.getStepName());
         process.setPerformedAt(request.getPerformedAt());
@@ -121,51 +122,82 @@ public class FarmingProcessService {
         process.setImageUrl(request.getImageUrl());
 
         FarmingProcess updated = farmingProcessRepository.save(process);
+        ProcessBlockchainPayload payload = ProcessBlockchainPayload.builder()
+                .processId(updated.getId())
+                .seasonId(process.getSeason().getSeasonId())
+                .stepNo(updated.getStepNo())
+                .stepName(updated.getStepName())
+                .performedAt(updated.getPerformedAt())
+                .description(updated.getDescription())
+                .build();
+        blockchainService.saveProcess(payload, "UPDATE");
 
-        // Blockchain integration
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("processId", updated.getId());
-        payload.put("seasonId", process.getSeason().getSeasonId());
-        payload.put("stepNo", updated.getStepNo());
-        payload.put("stepName", updated.getStepName());
-        payload.put("performedAt", updated.getPerformedAt());
-        payload.put("description", updated.getDescription());
-        payload.put("imageUrl", updated.getImageUrl());
-
-        String jsonPayload = HashUtils.toCanonicalJson(payload);
-        String txHash = blockchainService.saveProcess(updated.getId(), "UPDATE", jsonPayload);
-
-        return ProcessStepResponse.fromEntity(updated, txHash);
+        return ProcessStepResponse.fromEntity(updated, updated.getRecordedBy() != null ? updated.getRecordedBy().getFullName() : null);
     }
 
     @Transactional
     public void deleteProcessStep(Long id) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
         FarmingProcess process = farmingProcessRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bước quy trình với ID: " + id));
-        
-        blockchainService.saveProcess(id, "DELETE", "DELETED");
+        seasonService.findSeasonAndCheckPermission(process.getSeason().getSeasonId(), currentUserId);
+
+        ProcessBlockchainPayload payload = ProcessBlockchainPayload.builder()
+                .processId(process.getId())
+                .seasonId(process.getSeason().getSeasonId())
+                .stepNo(process.getStepNo())
+                .stepName(process.getStepName())
+                .performedAt(process.getPerformedAt())
+                .description("DELETED")
+                .build();
+        blockchainService.saveProcess(payload, "DELETE");
         farmingProcessRepository.delete(process);
     }
 
     @Transactional
     public ProcessStepResponse reorderProcessStep(Long id, Integer stepNo) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
         FarmingProcess process = farmingProcessRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bước quy trình với ID: " + id));
-        
+        seasonService.findSeasonAndCheckPermission(process.getSeason().getSeasonId(), currentUserId);
+        if (farmingProcessRepository.existsBySeason_SeasonIdAndStepNoAndIdNot(process.getSeason().getSeasonId(), stepNo, id)) {
+            throw new BusinessException("Số thứ tự bước đã tồn tại trong mùa vụ này.");
+        }
+
         process.setStepNo(stepNo);
         FarmingProcess updated = farmingProcessRepository.save(process);
-        return ProcessStepResponse.fromEntity(updated, null);
+        return ProcessStepResponse.fromEntity(updated, updated.getRecordedBy() != null ? updated.getRecordedBy().getFullName() : null);
     }
 
     @Transactional
     public void reorderProcesses(Long seasonId, ReorderProcessRequest request) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        seasonService.findSeasonAndCheckPermission(seasonId, currentUserId);
         int index = 1;
         for (Long processId : request.getProcessIds()) {
             int currentStep = index++;
-            farmingProcessRepository.findById(processId).ifPresent(p -> {
-                p.setStepNo(currentStep);
-                farmingProcessRepository.save(p);
-            });
+            FarmingProcess process = farmingProcessRepository.findById(processId)
+                    .orElseThrow(() -> new BusinessException("Không tìm thấy bước quy trình với ID: " + processId));
+            if (!process.getSeason().getSeasonId().equals(seasonId)) {
+                throw new BusinessException("Bước quy trình không thuộc mùa vụ cần sắp xếp.");
+            }
+            process.setStepNo(currentStep);
+            farmingProcessRepository.save(process);
+        }
+    }
+
+    private void validateProcessTimeline(FarmingSeason season, LocalDateTime performedAt) {
+        if (performedAt == null) {
+            throw new BusinessException("Thời điểm thực hiện không được để trống.");
+        }
+        if (season.getStartDate() != null && performedAt.toLocalDate().isBefore(season.getStartDate())) {
+            throw new BusinessException("Thời điểm thực hiện không được trước ngày bắt đầu mùa vụ.");
+        }
+        if (season.getActualHarvestDate() != null && performedAt.toLocalDate().isAfter(season.getActualHarvestDate())) {
+            throw new BusinessException("Thời điểm thực hiện không được sau ngày thu hoạch thực tế.");
+        }
+        if ("COMPLETED".equalsIgnoreCase(season.getSeasonStatus()) || "CLOSED".equalsIgnoreCase(season.getSeasonStatus())) {
+            throw new BusinessException("Không thể cập nhật quy trình cho mùa vụ đã đóng.");
         }
     }
 }

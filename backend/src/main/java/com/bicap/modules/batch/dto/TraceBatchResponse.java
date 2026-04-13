@@ -1,50 +1,39 @@
 package com.bicap.modules.batch.dto;
 
 import java.util.List;
-import java.util.Map;
-import java.time.LocalDate;
-import java.math.BigDecimal;
 
 public class TraceBatchResponse {
     private BatchResponse batch;
     private QrCodeResponse qrInfo;
     private List<ProcessTraceItemDto> timeline;
-    private Map<String, Object> seasonInfo;
-    private List<Map<String, Object>> processList;
+    private TraceSeasonInfoDto seasonInfo;
+    private List<TraceProcessStepDto> processList;
     private String note;
 
     public BatchResponse getBatch() { return batch; }
-    public void setBatch(BatchResponse b) { this.batch = b; }
+    public void setBatch(BatchResponse batch) { this.batch = batch; }
     public QrCodeResponse getQrInfo() { return qrInfo; }
-    public void setQrInfo(QrCodeResponse q) { this.qrInfo = q; }
+    public void setQrInfo(QrCodeResponse qrInfo) { this.qrInfo = qrInfo; }
     public List<ProcessTraceItemDto> getTimeline() { return timeline; }
-    public void setTimeline(List<ProcessTraceItemDto> l) { this.timeline = l; }
-    public Map<String, Object> getSeasonInfo() { return seasonInfo; }
-    public void setSeasonInfo(Map<String, Object> m) { this.seasonInfo = m; }
-    public List<Map<String, Object>> getProcessList() { return processList; }
-    public void setProcessList(List<Map<String, Object>> l) { this.processList = l; }
+    public void setTimeline(List<ProcessTraceItemDto> timeline) { this.timeline = timeline; }
+    public TraceSeasonInfoDto getSeasonInfo() { return seasonInfo; }
+    public void setSeasonInfo(TraceSeasonInfoDto seasonInfo) { this.seasonInfo = seasonInfo; }
+    public List<TraceProcessStepDto> getProcessList() { return processList; }
+    public void setProcessList(List<TraceProcessStepDto> processList) { this.processList = processList; }
     public String getNote() { return note; }
-    public void setNote(String s) { this.note = s; }
+    public void setNote(String note) { this.note = note; }
 
     public static Builder builder() { return new Builder(); }
+
     public static class Builder {
-        private TraceBatchResponse r = new TraceBatchResponse();
-        public Builder batch(BatchResponse b) { r.setBatch(b); return this; }
-        public Builder qrInfo(QrCodeResponse q) { r.setQrInfo(q); return this; }
-        public Builder seasonInfo(Map<String, Object> m) { r.setSeasonInfo(m); return this; }
-        public Builder processList(List<Map<String, Object>> l) { r.setProcessList(l); return this; }
-        public Builder note(String s) { r.setNote(s); return this; }
-        public Builder batchId(Long l) { return this; }
-        public Builder batchCode(String s) { return this; }
-        public Builder harvestDate(LocalDate d) { return this; }
-        public Builder quantity(BigDecimal d) { return this; }
-        public Builder availableQuantity(BigDecimal d) { return this; }
-        public Builder qualityGrade(String s) { return this; }
-        public Builder batchStatus(String s) { return this; }
-        public Builder expiryDate(LocalDate d) { return this; }
-        public Builder productId(Long l) { return this; }
-        public Builder seasonId(Long l) { return this; }
-        public Builder timeline(List<ProcessTraceItemDto> l) { r.setTimeline(l); return this; }
-        public TraceBatchResponse build() { return r; }
+        private final TraceBatchResponse response = new TraceBatchResponse();
+
+        public Builder batch(BatchResponse batch) { response.setBatch(batch); return this; }
+        public Builder qrInfo(QrCodeResponse qrInfo) { response.setQrInfo(qrInfo); return this; }
+        public Builder seasonInfo(TraceSeasonInfoDto seasonInfo) { response.setSeasonInfo(seasonInfo); return this; }
+        public Builder processList(List<TraceProcessStepDto> processList) { response.setProcessList(processList); return this; }
+        public Builder timeline(List<ProcessTraceItemDto> timeline) { response.setTimeline(timeline); return this; }
+        public Builder note(String note) { response.setNote(note); return this; }
+        public TraceBatchResponse build() { return response; }
     }
 }

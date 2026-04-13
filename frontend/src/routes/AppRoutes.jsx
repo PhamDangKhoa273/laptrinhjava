@@ -6,10 +6,12 @@ import { AdminUsersPage } from '../pages/AdminUsersPage.jsx'
 import { AdminDashboardPage } from '../pages/AdminDashboardPage.jsx'
 import { DashboardHomePage } from '../pages/DashboardHomePage.jsx'
 import { FarmPackagesPage } from '../pages/FarmPackagesPage.jsx'
+import { FarmPhase3Page } from '../pages/FarmPhase3Page.jsx'
 import { FarmWorkspacePage } from '../pages/FarmWorkspacePage.jsx'
 import { LoginPage } from '../pages/LoginPage.jsx'
 import { NotFoundPage } from '../pages/NotFoundPage.jsx'
 import { ProfilePage } from '../pages/ProfilePage.jsx'
+import { PublicTracePage } from '../pages/PublicTracePage.jsx'
 import { RegisterPage } from '../pages/RegisterPage.jsx'
 import { RetailerWorkspacePage } from '../pages/RetailerWorkspacePage.jsx'
 import { RoleDashboardPage } from '../pages/RoleDashboardPage.jsx'
@@ -150,6 +152,7 @@ export function AppRoutes() {
             <Route path="/dashboard/farm" element={<RoleDashboardPage {...dashboardConfigs.farm} />} />
             <Route path="/farm/workspace" element={<FarmWorkspacePage />} />
             <Route path="/farm/packages" element={<FarmPackagesPage />} />
+            <Route path="/farm/phase3" element={<FarmPhase3Page />} />
             <Route path="/batches/:id" element={<BatchDetailPage />} />
           </Route>
 
@@ -173,6 +176,7 @@ export function AppRoutes() {
         </Route>
       </Route>
 
+      <Route path="/public/trace" element={<PublicTracePage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )

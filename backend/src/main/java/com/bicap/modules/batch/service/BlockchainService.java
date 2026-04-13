@@ -1,6 +1,10 @@
 package com.bicap.modules.batch.service;
 
 import com.bicap.modules.batch.config.BlockchainProperties;
+import com.bicap.modules.batch.dto.BatchBlockchainPayload;
+import com.bicap.modules.batch.dto.BlockchainResult;
+import com.bicap.modules.batch.dto.ProcessBlockchainPayload;
+import com.bicap.modules.batch.dto.SeasonBlockchainPayload;
 import com.bicap.modules.batch.entity.BlockchainTransaction;
 import com.bicap.modules.batch.repository.BlockchainTransactionRepository;
 import com.bicap.modules.batch.util.HashUtils;
@@ -23,6 +27,7 @@ import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.DefaultGasProvider;
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,10 +37,8 @@ public class BlockchainService {
     private final BlockchainTransactionRepository transactionRepository;
     private final BlockchainProperties properties;
 
-    public BlockchainService(
-            BlockchainTransactionRepository transactionRepository,
-            BlockchainProperties properties
-    ) {
+    public BlockchainService(BlockchainTransactionRepository transactionRepository,
+                             BlockchainProperties properties) {
         this.transactionRepository = transactionRepository;
         this.properties = properties;
     }
@@ -49,46 +52,43 @@ public class BlockchainService {
     }
 
     @Transactional
-    public String saveProcess(Long processId, String actionType, String dataPayload) {
-        return saveTransaction("PROCESS", processId, actionType, dataPayload).getTxHash();
+    public BlockchainResult saveSeason(SeasonBlockchainPayload payload) {
+        return saveTransaction("SEASON", payload.getSeasonId(), "CREATE", HashUtils.toCanonicalJson(payload.toMap()));
     }
 
     @Transactional
-    public String saveSeason(Long seasonId, String dataPayload) {
-        return saveTransaction("SEASON", seasonId, "CREATE", dataPayload).getTxHash();
+    public BlockchainResult saveProcess(ProcessBlockchainPayload payload, String actionType) {
+        return saveTransaction("PROCESS", payload.getProcessId(), actionType, HashUtils.toCanonicalJson(payload.toMap()));
     }
 
     @Transactional
-    public String saveBatch(Long batchId, String dataPayload) {
-        return saveTransaction("BATCH", batchId, "UPSERT", dataPayload).getTxHash();
+    public BlockchainResult saveBatch(BatchBlockchainPayload payload) {
+        return saveTransaction("BATCH", payload.getBatchId(), "UPSERT", HashUtils.toCanonicalJson(payload.toMap()));
     }
 
     @Transactional
-    public BlockchainTransaction saveTransaction(
-            String relatedEntityType,
-            Long relatedEntityId,
-            String actionType,
-            String dataPayload
-    ) {
+    public BlockchainResult saveTransaction(String relatedEntityType,
+                                            Long relatedEntityId,
+                                            String actionType,
+                                            String dataPayload) {
         String dataHash = HashUtils.sha256(dataPayload);
+        BlockchainTransaction tx = new BlockchainTransaction();
+        tx.setRelatedEntityType(relatedEntityType);
+        tx.setRelatedEntityId(relatedEntityId);
+        tx.setActionType(actionType);
 
         if (!properties.isEnabled()) {
-            BlockchainTransaction tx = new BlockchainTransaction();
-            tx.setRelatedEntityType(relatedEntityType);
-            tx.setRelatedEntityId(relatedEntityId);
-            tx.setActionType(actionType);
             tx.setTxHash("DISABLED-" + dataHash);
             tx.setTxStatus("DISABLED");
-            return transactionRepository.save(tx);
+            BlockchainTransaction saved = transactionRepository.save(tx);
+            return toResult(saved, "Blockchain đang tắt, đã lưu hash nội bộ.");
         }
 
         try {
             Web3j web3j = web3j();
             Credentials credentials = credentials();
-            RawTransactionManager txManager =
-                    new RawTransactionManager(web3j, credentials, properties.getChainId());
+            RawTransactionManager txManager = new RawTransactionManager(web3j, credentials, properties.getChainId());
 
-            // Call addProduct(uint _id, string _name, string _origin, string _timestamp)
             Function function = new Function(
                     "addProduct",
                     Arrays.asList(
@@ -101,56 +101,53 @@ public class BlockchainService {
             );
 
             String encodedFunction = FunctionEncoder.encode(function);
-
-            org.web3j.protocol.core.methods.response.EthSendTransaction response =
-                    txManager.sendTransaction(
-                            DefaultGasProvider.GAS_PRICE,
-                            DefaultGasProvider.GAS_LIMIT,
-                            properties.getContractAddress(),
-                            encodedFunction,
-                            BigInteger.ZERO
-                    );
+            org.web3j.protocol.core.methods.response.EthSendTransaction response = txManager.sendTransaction(
+                    DefaultGasProvider.GAS_PRICE,
+                    DefaultGasProvider.GAS_LIMIT,
+                    properties.getContractAddress(),
+                    encodedFunction,
+                    BigInteger.ZERO
+            );
 
             if (response.hasError()) {
                 throw new RuntimeException(response.getError().getMessage());
             }
 
-            BlockchainTransaction tx = new BlockchainTransaction();
-            tx.setRelatedEntityType(relatedEntityType);
-            tx.setRelatedEntityId(relatedEntityId);
-            tx.setActionType(actionType);
             tx.setTxHash(response.getTransactionHash());
             tx.setTxStatus("SUCCESS");
-
-            return transactionRepository.save(tx);
-        } catch (Exception e) {
-            BlockchainTransaction tx = new BlockchainTransaction();
-            tx.setRelatedEntityType(relatedEntityType);
-            tx.setRelatedEntityId(relatedEntityId);
-            tx.setActionType(actionType);
+            BlockchainTransaction saved = transactionRepository.save(tx);
+            return toResult(saved, "Ghi dữ liệu blockchain thành công.");
+        } catch (Exception exception) {
             tx.setTxHash(null);
-            tx.setTxStatus("FAILED: " + e.getMessage());
-            return transactionRepository.save(tx);
+            tx.setTxStatus("FAILED: " + exception.getMessage());
+            BlockchainTransaction saved = transactionRepository.save(tx);
+            return toResult(saved, "Không thể ghi blockchain, dữ liệu DB vẫn được giữ lại.");
         }
+    }
+
+    private BlockchainResult toResult(BlockchainTransaction transaction, String message) {
+        return BlockchainResult.builder()
+                .txHash(transaction.getTxHash())
+                .status(transaction.getTxStatus())
+                .message(message)
+                .timestamp(transaction.getCreatedAt() != null ? transaction.getCreatedAt() : LocalDateTime.now())
+                .build();
     }
 
     public String getOnChainHash(String entityType, Long entityId, String actionType) {
         try {
             Web3j web3j = web3j();
-
-            // Call getProduct(uint _id) returns (string, string, string)
             Function function = new Function(
                     "getProduct",
                     List.of(new Uint256(BigInteger.valueOf(entityId))),
                     Arrays.asList(
-                            new TypeReference<Utf8String>() {},  // name (relatedEntityType)
-                            new TypeReference<Utf8String>() {},  // origin (actionType)
-                            new TypeReference<Utf8String>() {}   // timestamp (dataHash)
+                            new TypeReference<Utf8String>() {},
+                            new TypeReference<Utf8String>() {},
+                            new TypeReference<Utf8String>() {}
                     )
             );
 
             String encoded = FunctionEncoder.encode(function);
-
             EthCall response = web3j.ethCall(
                     Transaction.createEthCallTransaction(
                             credentials().getAddress(),
@@ -160,15 +157,11 @@ public class BlockchainService {
                     DefaultBlockParameterName.LATEST
             ).send();
 
-            List<Type> decoded = FunctionReturnDecoder.decode(
-                    response.getValue(),
-                    function.getOutputParameters()
-            );
-
+            @SuppressWarnings("rawtypes")
+            List<Type> decoded = FunctionReturnDecoder.decode(response.getValue(), function.getOutputParameters());
             if (decoded.size() < 3) {
                 return null;
             }
-
             return decoded.get(2).getValue().toString();
         } catch (Exception e) {
             throw new RuntimeException("Không thể đọc hash từ blockchain", e);

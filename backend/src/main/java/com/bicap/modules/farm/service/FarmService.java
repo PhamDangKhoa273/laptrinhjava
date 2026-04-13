@@ -1,14 +1,16 @@
 package com.bicap.modules.farm.service;
 
 import com.bicap.core.AuditLogService;
-import com.bicap.modules.user.entity.User;
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.farm.dto.CreateFarmRequest;
+import com.bicap.modules.farm.dto.FarmResponse;
+import com.bicap.modules.farm.dto.UpdateFarmRequest;
 import com.bicap.modules.farm.entity.Farm;
 import com.bicap.modules.farm.repository.FarmRepository;
+import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.repository.UserRepository;
-import com.bicap.modules.farm.dto.CreateFarmRequest;
-import com.bicap.modules.farm.dto.UpdateFarmRequest;
-import com.bicap.modules.farm.dto.FarmResponse;
-import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,12 +24,16 @@ public class FarmService {
 
     private final FarmRepository farmRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
     private final AuditLogService auditLogService;
 
-    public FarmService(FarmRepository farmRepository, UserRepository userRepository, 
+    public FarmService(FarmRepository farmRepository,
+                       UserRepository userRepository,
+                       UserService userService,
                        AuditLogService auditLogService) {
         this.farmRepository = farmRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
         this.auditLogService = auditLogService;
     }
 
@@ -51,6 +57,19 @@ public class FarmService {
         User owner = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new BusinessException("User không tồn tại"));
 
+        if (!userService.hasRole(owner, RoleName.FARM)) {
+            throw new BusinessException("Bạn không có quyền đăng ký nông trại");
+        }
+        if (farmRepository.findByOwnerUserUserId(currentUserId).isPresent()) {
+            throw new BusinessException("Người dùng này đã có nông trại");
+        }
+        if (farmRepository.existsByFarmCode(request.getFarmCode())) {
+            throw new BusinessException("Mã nông trại đã tồn tại");
+        }
+        if (farmRepository.existsByBusinessLicenseNo(request.getBusinessLicenseNo())) {
+            throw new BusinessException("Số giấy phép kinh doanh đã tồn tại");
+        }
+
         Farm farm = new Farm();
         farm.setFarmCode(request.getFarmCode());
         farm.setFarmName(request.getFarmName());
@@ -63,7 +82,7 @@ public class FarmService {
         farm.setPhone(owner.getPhone());
         farm.setEmail(owner.getEmail());
         farm.setDescription(request.getDescription());
-        farm.setCertificationStatus("NONE");
+        farm.setCertificationStatus("PENDING");
         farm.setApprovalStatus("PENDING");
         farm.setOwnerUser(owner);
 
@@ -77,8 +96,13 @@ public class FarmService {
         Farm farm = farmRepository.findById(farmId)
                 .orElseThrow(() -> new BusinessException("Farm không tồn tại"));
 
-        if (!farm.getOwnerUser().getUserId().equals(currentUserId)) {
-            throw new BusinessException("Bạn không có quyền cập nhật.");
+        boolean isOwner = farm.getOwnerUser() != null && farm.getOwnerUser().getUserId().equals(currentUserId);
+        if (!isOwner) {
+            User actingUser = userRepository.findById(currentUserId)
+                    .orElseThrow(() -> new BusinessException("User không tồn tại"));
+            if (!userService.hasRole(actingUser, RoleName.ADMIN)) {
+                throw new BusinessException("Bạn không có quyền cập nhật.");
+            }
         }
 
         farm.setFarmName(request.getFarmName());
@@ -103,12 +127,16 @@ public class FarmService {
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new BusinessException("Admin không tồn tại"));
 
+        if (!userService.hasRole(admin, RoleName.ADMIN)) {
+            throw new BusinessException("Bạn không có quyền duyệt nông trại");
+        }
+
         farm.setApprovalStatus(status.toUpperCase());
         farm.setReviewedByUser(admin);
         farm.setReviewedAt(LocalDateTime.now());
 
         Farm saved = farmRepository.save(farm);
-        auditLogService.log(adminId, "APPROVE_FARM", "FARM", saved.getFarmId());
+        auditLogService.log(adminId, "CHANGE_APPROVAL_STATUS", "FARM", saved.getFarmId());
         return mapToResponse(saved);
     }
 
