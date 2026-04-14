@@ -6,11 +6,14 @@ import com.bicap.modules.listing.dto.ListingResponse;
 import com.bicap.modules.listing.dto.UpdateListingRequest;
 import com.bicap.modules.listing.service.ProductListingService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/listings")
@@ -37,9 +40,26 @@ public class ProductListingController {
      * GET /api/v1/listings — Public marketplace listings (ACTIVE only)
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ListingResponse>>> getPublicListings() {
-        List<ListingResponse> listings = listingService.getPublicListings();
-        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách listing thành công", listings));
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getPublicListings(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        if (page < 0) {
+            throw new IllegalArgumentException("page không được nhỏ hơn 0");
+        }
+        if (size < 1 || size > 100) {
+            throw new IllegalArgumentException("size phải nằm trong khoảng 1 đến 100");
+        }
+
+        Page<ListingResponse> listings = listingService.getPublicListings(page, size, sort);
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("items", listings.getContent());
+        payload.put("page", listings.getNumber());
+        payload.put("size", listings.getSize());
+        payload.put("totalItems", listings.getTotalElements());
+        payload.put("totalPages", listings.getTotalPages());
+        payload.put("sort", sort);
+        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách listing thành công", payload));
     }
 
     /**
@@ -68,7 +88,7 @@ public class ProductListingController {
     @PreAuthorize("hasRole('FARM')")
     public ResponseEntity<ApiResponse<ListingResponse>> updateListing(
             @PathVariable Long id,
-            @RequestBody UpdateListingRequest request) {
+            @Valid @RequestBody UpdateListingRequest request) {
         ListingResponse response = listingService.updateListing(id, request);
         return ResponseEntity.ok(ApiResponse.success("Cập nhật listing thành công", response));
     }

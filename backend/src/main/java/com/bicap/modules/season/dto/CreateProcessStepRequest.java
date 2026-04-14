@@ -1,21 +1,27 @@
 package com.bicap.modules.season.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 public class CreateProcessStepRequest {
     @NotNull(message = "step_no is required")
+    @Min(value = 1, message = "step_no must be greater than 0")
     private Integer stepNo;
 
     @NotBlank(message = "step_name is required")
+    @Size(max = 255, message = "step_name must be at most 255 characters")
     private String stepName;
 
     @NotNull(message = "performed_at is required")
     private LocalDateTime performedAt;
 
+    @Size(max = 2000, message = "description must be at most 2000 characters")
     private String description;
-    
+
+    @Size(max = 1000, message = "image_url must be at most 1000 characters")
     private String imageUrl;
 
     public Integer getStepNo() { return stepNo; }

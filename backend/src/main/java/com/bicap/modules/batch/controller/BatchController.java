@@ -17,7 +17,7 @@ public class BatchController {
     private final ProductBatchService productBatchService;
 
     @PostMapping("/api/v1/batches")
-    @PreAuthorize("hasAnyAuthority('ADMIN','FARM')")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
     public ApiResponse<BatchResponse> createBatch(@Valid @RequestBody CreateBatchRequest request) {
         return ApiResponse.success("Tạo lô hàng thành công", productBatchService.createBatch(request));
     }
@@ -33,14 +33,14 @@ public class BatchController {
     }
 
     @PutMapping("/api/v1/batches/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN','FARM')")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
     public ApiResponse<BatchResponse> updateBatch(@PathVariable Long id,
                                                   @Valid @RequestBody UpdateBatchRequest request) {
         return ApiResponse.success("Cập nhật lô hàng thành công", productBatchService.updateBatch(id, request));
     }
 
     @PostMapping("/api/v1/batches/{id}/qr")
-    @PreAuthorize("hasAnyAuthority('ADMIN','FARM')")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
     public ApiResponse<QrCodeResponse> generateQr(@PathVariable Long id) {
         return ApiResponse.success("Tạo mã QR thành công", productBatchService.generateQrCode(id));
     }

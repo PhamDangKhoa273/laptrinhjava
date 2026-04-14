@@ -9,11 +9,16 @@ import com.bicap.modules.listing.dto.ListingResponse;
 import com.bicap.modules.listing.dto.UpdateListingRequest;
 import com.bicap.modules.listing.entity.ProductListing;
 import com.bicap.modules.listing.repository.ProductListingRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ProductListingService {
@@ -39,6 +44,7 @@ public class ProductListingService {
         if (!batchOwnerId.equals(currentUserId)) {
             throw new BusinessException("Bạn chỉ được tạo listing từ batch thuộc farm của mình");
         }
+        validateBatchEligibility(batch);
 
         // Verify quantity does not exceed batch available quantity
         if (request.getQuantityAvailable().compareTo(batch.getAvailableQuantity()) > 0) {
@@ -51,11 +57,11 @@ public class ProductListingService {
         ProductListing listing = new ProductListing();
         listing.setBatch(batch);
         listing.setTitle(request.getTitle().trim());
-        listing.setDescription(request.getDescription());
+        listing.setDescription(trimToNull(request.getDescription()));
         listing.setPrice(request.getPrice());
         listing.setQuantityAvailable(request.getQuantityAvailable());
-        listing.setUnit(request.getUnit() != null ? request.getUnit() : "kg");
-        listing.setImageUrl(request.getImageUrl());
+        listing.setUnit(trimToDefault(request.getUnit(), "kg"));
+        listing.setImageUrl(trimToNull(request.getImageUrl()));
         listing.setStatus("ACTIVE");
 
         ProductListing saved = listingRepository.save(listing);
@@ -63,9 +69,12 @@ public class ProductListingService {
     }
 
     public List<ListingResponse> getPublicListings() {
-        return listingRepository.findByStatus("ACTIVE").stream()
-                .map(this::toResponse)
-                .toList();
+        return getPublicListings(0, 20, "createdAt,desc").getContent();
+    }
+
+    public Page<ListingResponse> getPublicListings(int page, int size, String sort) {
+        Pageable pageable = PageRequest.of(page, size, resolvePublicSort(sort));
+        return listingRepository.findByStatus("ACTIVE", pageable).map(this::toResponse);
     }
 
     public List<ListingResponse> getAllListings() {
@@ -100,11 +109,13 @@ public class ProductListingService {
             throw new BusinessException("Bạn không có quyền cập nhật listing này");
         }
 
+        validateBatchEligibility(listing.getBatch());
+
         if (request.getTitle() != null) {
             listing.setTitle(request.getTitle().trim());
         }
         if (request.getDescription() != null) {
-            listing.setDescription(request.getDescription());
+            listing.setDescription(trimToNull(request.getDescription()));
         }
         if (request.getPrice() != null) {
             listing.setPrice(request.getPrice());
@@ -120,17 +131,36 @@ public class ProductListingService {
             listing.setQuantityAvailable(request.getQuantityAvailable());
         }
         if (request.getUnit() != null) {
-            listing.setUnit(request.getUnit());
+            listing.setUnit(trimToDefault(request.getUnit(), "kg"));
         }
         if (request.getImageUrl() != null) {
-            listing.setImageUrl(request.getImageUrl());
+            listing.setImageUrl(trimToNull(request.getImageUrl()));
         }
         if (request.getStatus() != null) {
-            listing.setStatus(request.getStatus());
+            String normalizedStatus = request.getStatus().trim().toUpperCase();
+            if (!Set.of("ACTIVE", "INACTIVE", "HIDDEN", "SOLD_OUT").contains(normalizedStatus)) {
+                throw new BusinessException("Trạng thái listing không hợp lệ.");
+            }
+            listing.setStatus(normalizedStatus);
         }
 
         ProductListing saved = listingRepository.save(listing);
         return toResponse(saved);
+    }
+
+    private Sort resolvePublicSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return Sort.by(Sort.Direction.DESC, "createdAt");
+        }
+
+        String[] parts = sort.split(",", 2);
+        String sortField = parts[0].trim();
+        String direction = parts.length > 1 ? parts[1].trim().toLowerCase() : "desc";
+        if (!Set.of("createdAt", "price", "title").contains(sortField)) {
+            throw new BusinessException("sort chỉ hỗ trợ createdAt, price hoặc title");
+        }
+        Sort.Direction sortDirection = "asc".equals(direction) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        return Sort.by(sortDirection, sortField);
     }
 
     private ListingResponse toResponse(ProductListing listing) {
@@ -140,8 +170,13 @@ public class ProductListingService {
                 .batchId(batch.getBatchId())
                 .batchCode(batch.getBatchCode())
                 .productName(batch.getProduct() != null ? batch.getProduct().getProductName() : null)
+                .productCode(batch.getProduct() != null ? batch.getProduct().getProductCode() : null)
                 .farmName(batch.getSeason() != null && batch.getSeason().getFarm() != null
                         ? batch.getSeason().getFarm().getFarmName() : null)
+                .farmCode(batch.getSeason() != null && batch.getSeason().getFarm() != null
+                        ? batch.getSeason().getFarm().getFarmCode() : null)
+                .province(batch.getSeason() != null && batch.getSeason().getFarm() != null
+                        ? batch.getSeason().getFarm().getProvince() : null)
                 .title(listing.getTitle())
                 .description(listing.getDescription())
                 .price(listing.getPrice())
@@ -153,5 +188,28 @@ public class ProductListingService {
                 .createdAt(listing.getCreatedAt())
                 .updatedAt(listing.getUpdatedAt())
                 .build();
+    }
+
+    private void validateBatchEligibility(ProductBatch batch) {
+        if (batch.getAvailableQuantity() == null || batch.getAvailableQuantity().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Batch đã hết hàng, không thể tạo hoặc cập nhật listing.");
+        }
+        if (batch.getExpiryDate() != null && batch.getExpiryDate().isBefore(java.time.LocalDate.now())) {
+            throw new BusinessException("Batch đã hết hạn, không thể đưa lên sàn.");
+        }
+        if (batch.getBatchStatus() != null && "SOLD_OUT".equalsIgnoreCase(batch.getBatchStatus())) {
+            throw new BusinessException("Batch đã bán hết, không thể đưa lên sàn.");
+        }
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String trimToDefault(String value, String fallback) {
+        String trimmed = trimToNull(value);
+        return trimmed != null ? trimmed : fallback;
     }
 }

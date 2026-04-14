@@ -360,6 +360,82 @@
   gap: 1rem;
 }
 
+.mp-hint {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.82rem;
+}
+
+.mp-card--skeleton {
+  cursor: default;
+}
+
+.mp-card--skeleton:hover {
+  transform: none;
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+}
+
+.mp-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+}
+
+.mp-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  animation: mp-shimmer 1.3s infinite;
+}
+
+.mp-skeleton--image {
+  height: 160px;
+  border-radius: 0;
+}
+
+.mp-skeleton--title {
+  height: 18px;
+  width: 70%;
+  margin-bottom: 0.7rem;
+}
+
+.mp-skeleton--line {
+  height: 12px;
+  width: 100%;
+  margin-bottom: 0.55rem;
+}
+
+.mp-skeleton--line.short {
+  width: 64%;
+}
+
+.mp-skeleton--chip {
+  height: 22px;
+  width: 90px;
+  margin-bottom: 0.8rem;
+}
+
+.mp-skeleton--price {
+  height: 24px;
+  width: 120px;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.mp-skeleton--button {
+  height: 36px;
+  width: 180px;
+}
+
+@keyframes mp-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 .mp-spinner {
   width: 40px;
   height: 40px;

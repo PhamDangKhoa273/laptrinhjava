@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '../components/Button.jsx'
 import { TextInput } from '../components/TextInput.jsx'
 import { traceBatch, verifyBatch } from '../services/phase3Service'
@@ -20,6 +20,14 @@ export function PublicTracePage() {
   const [verifyResult, setVerifyResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const initialBatchId = params.get('batchId')
+    if (initialBatchId && Number(initialBatchId) > 0) {
+      setBatchId(initialBatchId)
+    }
+  }, [])
 
   async function handleSubmit(event) {
     event.preventDefault()

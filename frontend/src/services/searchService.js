@@ -10,33 +10,18 @@ function shouldKeepValue(value) {
   return true
 }
 
-export async function getPublicListings(params = {}) {
+export async function searchListings(params = {}) {
   const cleanParams = Object.fromEntries(
     Object.entries(params).filter(([, value]) => shouldKeepValue(value)),
   )
-  const payload = unwrap(await api.get('/listings', { params: cleanParams }))
+
+  const payload = unwrap(await api.get('/search', { params: cleanParams }))
   return {
     items: payload.items || [],
     page: payload.page || 0,
-    size: payload.size || cleanParams.size || 9,
+    size: payload.size || cleanParams.size || 20,
     totalItems: payload.totalItems || 0,
     totalPages: payload.totalPages || 0,
     sort: payload.sort || cleanParams.sort || 'createdAt,desc',
   }
-}
-
-export async function getListingById(id) {
-  return unwrap(await api.get(`/listings/${id}`))
-}
-
-export async function getMyListings() {
-  return unwrap(await api.get('/listings/my'))
-}
-
-export async function createListing(payload) {
-  return unwrap(await api.post('/listings', payload))
-}
-
-export async function updateListing(id, payload) {
-  return unwrap(await api.put(`/listings/${id}`, payload))
 }

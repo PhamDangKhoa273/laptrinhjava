@@ -9,7 +9,10 @@ public class ListingResponse {
     private Long batchId;
     private String batchCode;
     private String productName;
+    private String productCode;
     private String farmName;
+    private String farmCode;
+    private String province;
     private String title;
     private String description;
     private BigDecimal price;
@@ -30,7 +33,10 @@ public class ListingResponse {
         public Builder batchId(Long v) { r.batchId = v; return this; }
         public Builder batchCode(String v) { r.batchCode = v; return this; }
         public Builder productName(String v) { r.productName = v; return this; }
+        public Builder productCode(String v) { r.productCode = v; return this; }
         public Builder farmName(String v) { r.farmName = v; return this; }
+        public Builder farmCode(String v) { r.farmCode = v; return this; }
+        public Builder province(String v) { r.province = v; return this; }
         public Builder title(String v) { r.title = v; return this; }
         public Builder description(String v) { r.description = v; return this; }
         public Builder price(BigDecimal v) { r.price = v; return this; }
@@ -49,7 +55,10 @@ public class ListingResponse {
     public Long getBatchId() { return batchId; }
     public String getBatchCode() { return batchCode; }
     public String getProductName() { return productName; }
+    public String getProductCode() { return productCode; }
     public String getFarmName() { return farmName; }
+    public String getFarmCode() { return farmCode; }
+    public String getProvince() { return province; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
     public BigDecimal getPrice() { return price; }
