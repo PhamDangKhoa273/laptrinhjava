@@ -48,10 +48,32 @@ public class SeasonService {
     }
 
     public List<SeasonResponse> getAllSeasons() {
-        return farmingSeasonRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+        Long currentUserId = com.bicap.core.security.SecurityUtils.getCurrentUserIdOrNull();
+        if (currentUserId == null) {
+            return farmingSeasonRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+        }
+
+        User user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng hiện tại."));
+        if (userService.hasRole(user, RoleName.ADMIN)) {
+            return farmingSeasonRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+        }
+
+        return farmingSeasonRepository.findAll().stream()
+                .filter(season -> season.getFarm() != null
+                        && season.getFarm().getOwnerUser() != null
+                        && currentUserId.equals(season.getFarm().getOwnerUser().getUserId()))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     public List<SeasonResponse> getSeasonsByFarmId(Long farmId) {
+        Farm farm = farmRepository.findById(farmId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy trang trại."));
+        Long currentUserId = com.bicap.core.security.SecurityUtils.getCurrentUserIdOrNull();
+        if (currentUserId != null) {
+            checkPermission(farm, currentUserId);
+        }
         return farmingSeasonRepository.findByFarm_FarmId(farmId).stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
@@ -78,8 +100,21 @@ public class SeasonService {
 
     @Transactional
     public SeasonResponse createSeason(CreateSeasonRequest request, Long currentUserId) {
-        Farm farm = farmRepository.findById(request.getFarmId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy trang trại."));
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng hiện tại."));
+
+        Farm farm;
+        if (userService.hasRole(currentUser, RoleName.ADMIN)) {
+            farm = farmRepository.findById(request.getFarmId())
+                    .orElseThrow(() -> new BusinessException("Không tìm thấy trang trại."));
+        } else {
+            farm = farmRepository.findByOwnerUser_UserId(currentUserId)
+                    .orElseThrow(() -> new BusinessException("Bạn chưa có trang trại được gán."));
+            if (request.getFarmId() != null && !farm.getFarmId().equals(request.getFarmId())) {
+                throw new BusinessException("Bạn không thể tạo mùa vụ cho trang trại khác.");
+            }
+        }
+
         checkPermission(farm, currentUserId);
         validateFarmApproved(farm);
         validateSeasonDates(request.getStartDate(), request.getExpectedHarvestDate(), null, null);
@@ -117,15 +152,22 @@ public class SeasonService {
         FarmingSeason season = farmingSeasonRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Mùa vụ không tồn tại"));
         checkPermission(season.getFarm(), currentUserId);
-        validateSeasonDates(request.getStartDate(), request.getExpectedHarvestDate(), request.getActualHarvestDate(), request.getSeasonStatus());
-        ensureSeasonCodeUnique(request.getSeasonCode(), id);
+        String nextSeasonCode = request.getSeasonCode() != null ? request.getSeasonCode() : season.getSeasonCode();
+        java.time.LocalDate nextStartDate = request.getStartDate() != null ? request.getStartDate() : season.getStartDate();
+        java.time.LocalDate nextExpectedHarvestDate = request.getExpectedHarvestDate() != null ? request.getExpectedHarvestDate() : season.getExpectedHarvestDate();
+        java.time.LocalDate nextActualHarvestDate = request.getActualHarvestDate() != null ? request.getActualHarvestDate() : season.getActualHarvestDate();
+        String nextFarmingMethod = request.getFarmingMethod() != null ? request.getFarmingMethod() : season.getFarmingMethod();
+        String nextSeasonStatus = request.getSeasonStatus() != null ? request.getSeasonStatus() : season.getSeasonStatus();
 
-        season.setSeasonCode(request.getSeasonCode());
-        season.setStartDate(request.getStartDate());
-        season.setExpectedHarvestDate(request.getExpectedHarvestDate());
-        season.setActualHarvestDate(request.getActualHarvestDate());
-        season.setFarmingMethod(request.getFarmingMethod());
-        season.setSeasonStatus(request.getSeasonStatus());
+        validateSeasonDates(nextStartDate, nextExpectedHarvestDate, nextActualHarvestDate, nextSeasonStatus);
+        ensureSeasonCodeUnique(nextSeasonCode, id);
+
+        season.setSeasonCode(nextSeasonCode);
+        season.setStartDate(nextStartDate);
+        season.setExpectedHarvestDate(nextExpectedHarvestDate);
+        season.setActualHarvestDate(nextActualHarvestDate);
+        season.setFarmingMethod(nextFarmingMethod);
+        season.setSeasonStatus(nextSeasonStatus);
         return mapToResponse(farmingSeasonRepository.save(season));
     }
 

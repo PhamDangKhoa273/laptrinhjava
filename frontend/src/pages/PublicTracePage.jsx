@@ -4,6 +4,16 @@ import { TextInput } from '../components/TextInput.jsx'
 import { traceBatch, verifyBatch } from '../services/phase3Service'
 import { getErrorMessage } from '../utils/helpers'
 
+function formatDate(value) {
+  if (!value) return 'N/A'
+  return new Date(value).toLocaleDateString('vi-VN')
+}
+
+function formatDateTime(value) {
+  if (!value) return 'N/A'
+  return new Date(value).toLocaleString('vi-VN')
+}
+
 export function PublicTracePage() {
   const [batchId, setBatchId] = useState('')
   const [traceResult, setTraceResult] = useState(null)
@@ -13,7 +23,7 @@ export function PublicTracePage() {
 
   async function handleSubmit(event) {
     event.preventDefault()
-    if (!batchId.trim()) return
+    if (!batchId.trim() || Number(batchId) <= 0) return
 
     setLoading(true)
     setError('')
@@ -40,13 +50,13 @@ export function PublicTracePage() {
         <div>
           <p className="eyebrow">Public trace</p>
           <h2>Tra cứu nguồn gốc lô hàng</h2>
-          <p>Nhập mã batch ID để xem mùa vụ, quy trình và thông tin QR truy xuất công khai.</p>
+          <p>Nhập batch ID để xem mùa vụ, quy trình, QR và đối chiếu hash blockchain công khai.</p>
         </div>
       </div>
 
       <article className="glass-card">
         <form className="form-grid" onSubmit={handleSubmit}>
-          <TextInput label="Batch ID" name="batchId" value={batchId} onChange={(event) => setBatchId(event.target.value)} required />
+          <TextInput label="Batch ID" name="batchId" type="number" min="1" value={batchId} onChange={(event) => setBatchId(event.target.value)} required />
           <Button type="submit" disabled={loading}>{loading ? 'Đang truy xuất...' : 'Tra cứu'}</Button>
         </form>
         {error ? <div className="alert alert-error top-gap">{error}</div> : null}
@@ -58,9 +68,10 @@ export function PublicTracePage() {
             <h3>Thông tin lô sản phẩm</h3>
             <ul className="feature-list">
               <li>Mã batch: {traceResult.batch.batchCode}</li>
-              <li>Ngày thu hoạch: {traceResult.batch.harvestDate}</li>
+              <li>Ngày thu hoạch: {formatDate(traceResult.batch.harvestDate)}</li>
               <li>Chất lượng: {traceResult.batch.qualityGrade}</li>
               <li>Trạng thái: {traceResult.batch.batchStatus}</li>
+              <li>Số lượng còn lại: {traceResult.batch.availableQuantity}/{traceResult.batch.quantity}</li>
             </ul>
           </article>
 
@@ -69,9 +80,20 @@ export function PublicTracePage() {
             <ul className="feature-list">
               <li>Mã mùa vụ: {traceResult.seasonInfo?.seasonCode}</li>
               <li>Nông trại: {traceResult.seasonInfo?.farmName}</li>
+              <li>Mã nông trại: {traceResult.seasonInfo?.farmCode || 'N/A'}</li>
               <li>Phương thức canh tác: {traceResult.seasonInfo?.farmingMethod}</li>
-              <li>Bắt đầu: {traceResult.seasonInfo?.startDate}</li>
+              <li>Bắt đầu: {formatDate(traceResult.seasonInfo?.startDate)}</li>
             </ul>
+          </article>
+
+          <article className="glass-card">
+            <h3>Thông tin QR</h3>
+            <ul className="feature-list">
+              <li>Serial: {traceResult.qrInfo?.serialNo || 'Chưa tạo'}</li>
+              <li>URL: {traceResult.qrInfo?.qrUrl || 'Chưa tạo'}</li>
+              <li>Payload: {traceResult.qrInfo?.qrValue || 'Chưa tạo'}</li>
+            </ul>
+            {traceResult.qrInfo?.qrImageBase64 ? <img alt="QR batch" src={`data:image/png;base64,${traceResult.qrInfo.qrImageBase64}`} style={{ maxWidth: 180 }} /> : null}
           </article>
 
           <article className="glass-card">
@@ -88,10 +110,11 @@ export function PublicTracePage() {
             <ul className="feature-list">
               {(traceResult.processList || []).map((item, index) => (
                 <li key={`${item.stepNo}-${index}`}>
-                  Bước {item.stepNo}: {item.stepName} ({item.performedAt})
+                  Bước {item.stepNo}: {item.stepName} ({formatDateTime(item.performedAt)})
                 </li>
               ))}
             </ul>
+            {traceResult.note ? <p>{traceResult.note}</p> : null}
           </article>
         </div>
       ) : null}

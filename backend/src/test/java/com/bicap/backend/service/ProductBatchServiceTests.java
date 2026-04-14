@@ -99,6 +99,7 @@ class ProductBatchServiceTests {
     @Test
     void generateQrCode_shouldIncludeTraceUrlAndSerial() {
         when(productBatchRepository.findById(30L)).thenReturn(Optional.of(batch));
+        when(seasonService.findSeasonAndCheckPermission(10L, 1L)).thenReturn(season);
         when(qrCodeRepository.findByBatch_BatchId(30L)).thenReturn(Optional.empty());
         when(qrCodeService.generateBase64Png(any())).thenReturn("base64-image");
         when(qrCodeRepository.save(any(QrCode.class))).thenAnswer(invocation -> {
@@ -107,10 +108,14 @@ class ProductBatchServiceTests {
             return qrCode;
         });
 
-        QrCodeResponse response = productBatchService.generateQrCode(30L);
+        try (org.mockito.MockedStatic<com.bicap.core.security.SecurityUtils> mocked = mockStatic(com.bicap.core.security.SecurityUtils.class)) {
+            mocked.when(com.bicap.core.security.SecurityUtils::getCurrentUserId).thenReturn(1L);
 
-        assertEquals("QR-BATCH-30", response.getSerialNo());
-        assertEquals("/trace/batches/30", response.getQrUrl());
-        assertTrue(response.getQrCodeData().contains("batchId=30"));
+            QrCodeResponse response = productBatchService.generateQrCode(30L);
+
+            assertEquals("QR-BATCH-30", response.getSerialNo());
+            assertEquals("/trace/batches/30", response.getQrUrl());
+            assertTrue(response.getQrCodeData().contains("batchId=30"));
+        }
     }
 }

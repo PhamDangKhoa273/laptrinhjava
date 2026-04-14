@@ -71,7 +71,7 @@ public class BlockchainService {
                                             Long relatedEntityId,
                                             String actionType,
                                             String dataPayload) {
-        String dataHash = HashUtils.sha256(dataPayload);
+        String dataHash = canonicalizeHash(dataPayload);
         BlockchainTransaction tx = new BlockchainTransaction();
         tx.setRelatedEntityType(relatedEntityType);
         tx.setRelatedEntityId(relatedEntityId);
@@ -89,8 +89,18 @@ public class BlockchainService {
             Credentials credentials = credentials();
             RawTransactionManager txManager = new RawTransactionManager(web3j, credentials, properties.getChainId());
 
+            // 1. Kiểm tra xem đã tồn tại trên chain chưa
+            boolean exists = false;
+            try {
+                exists = productExists(relatedEntityId);
+            } catch (Exception e) {
+                // Nếu lỗi khi kiểm tra, tạm coi là chưa có hoặc bỏ qua để thử add
+            }
+
+            String functionName = exists ? "updateProduct" : "addProduct";
+
             Function function = new Function(
-                    "addProduct",
+                    functionName,
                     Arrays.asList(
                             new Uint256(BigInteger.valueOf(relatedEntityId)),
                             new Utf8String(relatedEntityType),
@@ -123,6 +133,10 @@ public class BlockchainService {
             BlockchainTransaction saved = transactionRepository.save(tx);
             return toResult(saved, "Không thể ghi blockchain, dữ liệu DB vẫn được giữ lại.");
         }
+    }
+
+    public String canonicalizeHash(String dataPayload) {
+        return HashUtils.sha256(dataPayload);
     }
 
     private BlockchainResult toResult(BlockchainTransaction transaction, String message) {
@@ -165,6 +179,35 @@ public class BlockchainService {
             return decoded.get(2).getValue().toString();
         } catch (Exception e) {
             throw new RuntimeException("Không thể đọc hash từ blockchain", e);
+        }
+    }
+
+    public boolean productExists(Long entityId) {
+        try {
+            Web3j web3j = web3j();
+            Function function = new Function(
+                    "productExists",
+                    List.of(new Uint256(BigInteger.valueOf(entityId))),
+                    List.of(new TypeReference<org.web3j.abi.datatypes.Bool>() {})
+            );
+
+            String encoded = FunctionEncoder.encode(function);
+            EthCall response = web3j.ethCall(
+                    Transaction.createEthCallTransaction(
+                            credentials().getAddress(),
+                            properties.getContractAddress(),
+                            encoded
+                    ),
+                    DefaultBlockParameterName.LATEST
+            ).send();
+
+            List<Type> decoded = FunctionReturnDecoder.decode(response.getValue(), function.getOutputParameters());
+            if (decoded.isEmpty()) {
+                return false;
+            }
+            return (boolean) decoded.get(0).getValue();
+        } catch (Exception e) {
+            return false;
         }
     }
 }
