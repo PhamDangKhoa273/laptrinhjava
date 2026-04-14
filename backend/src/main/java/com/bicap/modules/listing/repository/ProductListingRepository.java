@@ -2,6 +2,8 @@ package com.bicap.modules.listing.repository;
 
 import com.bicap.modules.listing.entity.ProductListing;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,6 +14,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 public interface ProductListingRepository extends JpaRepository<ProductListing, Long>, JpaSpecificationExecutor<ProductListing> {
 
     List<ProductListing> findByStatus(String status);
+
+    Page<ProductListing> findByStatus(String status, Pageable pageable);
 
     @Query("SELECT pl FROM ProductListing pl " +
            "JOIN pl.batch b " +

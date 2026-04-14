@@ -21,6 +21,7 @@ import { GuestMarketplacePage } from '../pages/GuestMarketplacePage.jsx'
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage.jsx'
 import { ResetPasswordPage } from '../pages/ResetPasswordPage.jsx'
 import { BatchDetailPage } from '../pages/BatchDetailPage.jsx'
+import { ListingDetailPage } from '../pages/ListingDetailPage.jsx'
 import { ROLES } from '../utils/constants'
 import { ProtectedRoute } from './ProtectedRoute.jsx'
 import { PublicOnlyRoute } from './PublicOnlyRoute.jsx'
@@ -177,6 +178,7 @@ export function AppRoutes() {
       </Route>
 
       <Route path="/public/trace" element={<PublicTracePage />} />
+      <Route path="/listings/:id" element={<ListingDetailPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )

@@ -21,14 +21,14 @@ public class SeasonController {
     private final SeasonService seasonService;
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN','FARM')")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
     public ApiResponse<SeasonResponse> createSeason(@Valid @RequestBody CreateSeasonRequest request) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         return ApiResponse.success("Tạo mùa vụ thành công", seasonService.createSeason(request, currentUserId));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN','FARM')")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
     public ApiResponse<SeasonResponse> updateSeason(@PathVariable Long id, 
                                                     @Valid @RequestBody UpdateSeasonRequest request) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
