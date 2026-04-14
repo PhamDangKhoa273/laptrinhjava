@@ -29,7 +29,6 @@ import java.util.UUID;
 import static com.bicap.core.enums.RoleName.GUEST;
 
 @Service
-@SuppressWarnings("null")
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;

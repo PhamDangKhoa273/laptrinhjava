@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@SuppressWarnings("null")
 public class FarmService {
 
     private final FarmRepository farmRepository;

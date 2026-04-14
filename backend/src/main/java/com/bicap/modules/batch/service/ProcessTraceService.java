@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-@SuppressWarnings("null")
 public class ProcessTraceService {
 
     private final JdbcTemplate jdbcTemplate;

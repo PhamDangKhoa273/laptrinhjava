@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@SuppressWarnings("null")
 public class SeasonService {
 
     private final FarmingSeasonRepository farmingSeasonRepository;
