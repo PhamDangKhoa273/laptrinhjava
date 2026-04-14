@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class FarmingProcessService {
 
     private final FarmingProcessRepository farmingProcessRepository;

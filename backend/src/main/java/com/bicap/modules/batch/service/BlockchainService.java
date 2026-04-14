@@ -171,12 +171,11 @@ public class BlockchainService {
                     DefaultBlockParameterName.LATEST
             ).send();
 
-            @SuppressWarnings("rawtypes")
-            List<Type> decoded = FunctionReturnDecoder.decode(response.getValue(), function.getOutputParameters());
-            if (decoded.size() < 3) {
+            List decoded = FunctionReturnDecoder.decode(response.getValue(), function.getOutputParameters());
+            if (decoded == null || decoded.size() < 3) {
                 return null;
             }
-            return decoded.get(2).getValue().toString();
+            return ((Type) decoded.get(2)).getValue().toString();
         } catch (Exception e) {
             throw new RuntimeException("Không thể đọc hash từ blockchain", e);
         }
@@ -201,11 +200,11 @@ public class BlockchainService {
                     DefaultBlockParameterName.LATEST
             ).send();
 
-            List<Type> decoded = FunctionReturnDecoder.decode(response.getValue(), function.getOutputParameters());
-            if (decoded.isEmpty()) {
+            List decoded = FunctionReturnDecoder.decode(response.getValue(), function.getOutputParameters());
+            if (decoded == null || decoded.isEmpty()) {
                 return false;
             }
-            return (boolean) decoded.get(0).getValue();
+            return (boolean) ((Type) decoded.get(0)).getValue();
         } catch (Exception e) {
             return false;
         }

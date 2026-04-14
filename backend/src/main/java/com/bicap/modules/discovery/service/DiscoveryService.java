@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-@SuppressWarnings("null")
 public class DiscoveryService {
 
     private final ProductListingRepository listingRepository;

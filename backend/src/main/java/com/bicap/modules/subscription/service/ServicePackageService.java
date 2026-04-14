@@ -14,7 +14,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class ServicePackageService {
 
     private final ServicePackageRepository repository;
