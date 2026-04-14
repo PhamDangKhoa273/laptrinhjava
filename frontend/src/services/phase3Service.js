@@ -1,7 +1,41 @@
 import { api } from './api'
+import { getMyFarm } from './businessService'
+import { getProducts } from './adminService'
 
 function unwrap(response) {
   return response.data?.data || response.data
+}
+
+function normalizeTimelineResponse(payload) {
+  if (!payload) return { seasonInfo: null, steps: [] }
+
+  const seasonInfo = payload.seasonInfo || payload.season || null
+  const steps = Array.isArray(payload.steps) ? payload.steps : []
+
+  return {
+    ...payload,
+    seasonInfo,
+    steps,
+  }
+}
+
+function normalizeQrInfo(qrInfo) {
+  if (!qrInfo) return null
+  return {
+    ...qrInfo,
+    qrValue: qrInfo.qrValue || qrInfo.qrCodeData || '',
+    qrCodeData: qrInfo.qrCodeData || qrInfo.qrValue || '',
+  }
+}
+
+function normalizeTraceResponse(payload) {
+  if (!payload) return null
+  return {
+    ...payload,
+    qrInfo: normalizeQrInfo(payload.qrInfo),
+    processList: Array.isArray(payload.processList) ? payload.processList : [],
+    timeline: Array.isArray(payload.timeline) ? payload.timeline : [],
+  }
 }
 
 export async function getSeasons() {
@@ -25,7 +59,7 @@ export async function updateSeason(id, payload) {
 }
 
 export async function getSeasonProcesses(seasonId) {
-  return unwrap(await api.get(`/processes/season/${seasonId}`))
+  return normalizeTimelineResponse(unwrap(await api.get(`/processes/season/${seasonId}`)))
 }
 
 export async function createSeasonProcess(seasonId, payload) {
@@ -57,18 +91,27 @@ export async function updateBatch(id, payload) {
 }
 
 export async function getBatchQr(id) {
-  return unwrap(await api.get(`/batches/${id}/qr`))
+  return normalizeQrInfo(unwrap(await api.get(`/batches/${id}/qr`)))
 }
 
 export async function generateBatchQr(id) {
-  return unwrap(await api.post(`/batches/${id}/qr`))
+  return normalizeQrInfo(unwrap(await api.post(`/batches/${id}/qr`)))
 }
 
 export async function traceBatch(id, isPublic = false) {
   const path = isPublic ? `/public/trace/batches/${id}` : `/trace/batches/${id}`
-  return unwrap(await api.get(path))
+  return normalizeTraceResponse(unwrap(await api.get(path)))
 }
 
 export async function verifyBatch(id) {
   return unwrap(await api.get(`/batches/${id}/verify`))
+}
+
+export async function getPhase3FarmContext() {
+  const [farm, products] = await Promise.allSettled([getMyFarm(), getProducts()])
+
+  return {
+    farm: farm.status === 'fulfilled' ? farm.value : null,
+    products: products.status === 'fulfilled' && Array.isArray(products.value) ? products.value : [],
+  }
 }

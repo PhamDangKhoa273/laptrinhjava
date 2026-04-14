@@ -54,12 +54,16 @@ class SeasonServiceTests {
     private Farm approvedFarm;
     private Product product;
     private User owner;
+    private User admin;
 
     @BeforeEach
     void setUp() {
         owner = new User();
         owner.setUserId(2L);
         owner.setFullName("Farm Owner");
+
+        admin = new User();
+        admin.setUserId(1L);
 
         approvedFarm = new Farm();
         approvedFarm.setFarmId(10L);
@@ -84,7 +88,9 @@ class SeasonServiceTests {
         request.setExpectedHarvestDate(LocalDate.of(2026, 5, 1));
 
         approvedFarm.setApprovalStatus("PENDING");
-        when(farmRepository.findById(10L)).thenReturn(Optional.of(approvedFarm));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(owner));
+        when(userService.hasRole(owner, RoleName.ADMIN)).thenReturn(false);
+        when(farmRepository.findByOwnerUser_UserId(2L)).thenReturn(Optional.of(approvedFarm));
 
         assertThrows(BusinessException.class, () -> seasonService.createSeason(request, 2L));
     }
@@ -98,7 +104,9 @@ class SeasonServiceTests {
         request.setStartDate(LocalDate.of(2026, 5, 1));
         request.setExpectedHarvestDate(LocalDate.of(2026, 4, 1));
 
-        when(farmRepository.findById(10L)).thenReturn(Optional.of(approvedFarm));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(owner));
+        when(userService.hasRole(owner, RoleName.ADMIN)).thenReturn(false);
+        when(farmRepository.findByOwnerUser_UserId(2L)).thenReturn(Optional.of(approvedFarm));
 
         assertThrows(BusinessException.class, () -> seasonService.createSeason(request, 2L));
     }
@@ -113,7 +121,9 @@ class SeasonServiceTests {
         request.setExpectedHarvestDate(LocalDate.of(2026, 5, 1));
         request.setFarmingMethod("Organic");
 
-        when(farmRepository.findById(10L)).thenReturn(Optional.of(approvedFarm));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(owner));
+        when(userService.hasRole(owner, RoleName.ADMIN)).thenReturn(false);
+        when(farmRepository.findByOwnerUser_UserId(2L)).thenReturn(Optional.of(approvedFarm));
         when(productRepository.findById(20L)).thenReturn(Optional.of(product));
         when(farmingSeasonRepository.findBySeasonCode("SEASON-01")).thenReturn(Optional.empty());
         when(farmingSeasonRepository.save(any(FarmingSeason.class))).thenAnswer(invocation -> {
@@ -134,9 +144,6 @@ class SeasonServiceTests {
 
     @Test
     void findSeasonAndCheckPermission_shouldAllowAdmin() {
-        User admin = new User();
-        admin.setUserId(1L);
-
         FarmingSeason season = new FarmingSeason();
         season.setSeasonId(99L);
         season.setFarm(approvedFarm);

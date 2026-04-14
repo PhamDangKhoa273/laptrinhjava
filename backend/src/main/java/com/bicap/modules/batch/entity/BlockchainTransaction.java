@@ -18,6 +18,13 @@ public class BlockchainTransaction {
     private String txStatus;
     private LocalDateTime createdAt;
 
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
+
     public Long getTxId() { return txId; }
     public void setTxId(Long id) { this.txId = id; }
     public Long getId() { return txId; }

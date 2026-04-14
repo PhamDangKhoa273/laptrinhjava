@@ -80,7 +80,9 @@ public class ProductBatchService {
     }
 
     public List<BatchResponse> getAllBatches() {
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
         return productBatchRepository.findAll().stream()
+                .filter(batch -> currentUserId == null || canAccessBatch(batch, currentUserId))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
@@ -88,24 +90,32 @@ public class ProductBatchService {
     public BatchResponse getBatchById(Long id) {
         ProductBatch batch = productBatchRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng với ID: " + id));
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
+        if (currentUserId != null) {
+            seasonService.findSeasonAndCheckPermission(batch.getSeason().getSeasonId(), currentUserId);
+        }
         return toResponse(batch);
     }
 
     @Transactional
     public BatchResponse updateBatch(Long id, UpdateBatchRequest request) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
         ProductBatch batch = productBatchRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng với ID: " + id));
+        seasonService.findSeasonAndCheckPermission(batch.getSeason().getSeasonId(), currentUserId);
 
-        if (request.getAvailableQuantity().compareTo(request.getQuantity()) > 0) {
+        java.math.BigDecimal nextQuantity = request.getQuantity() != null ? request.getQuantity() : batch.getQuantity();
+        java.math.BigDecimal nextAvailableQuantity = request.getAvailableQuantity() != null ? request.getAvailableQuantity() : batch.getAvailableQuantity();
+        if (nextAvailableQuantity != null && nextQuantity != null && nextAvailableQuantity.compareTo(nextQuantity) > 0) {
             throw new BusinessException("Số lượng khả dụng không được lớn hơn tổng số lượng.");
         }
 
-        batch.setHarvestDate(request.getHarvestDate());
-        batch.setQuantity(request.getQuantity());
-        batch.setAvailableQuantity(request.getAvailableQuantity());
-        batch.setQualityGrade(request.getQualityGrade());
-        batch.setExpiryDate(request.getExpiryDate());
-        batch.setBatchStatus(request.getBatchStatus());
+        batch.setHarvestDate(request.getHarvestDate() != null ? request.getHarvestDate() : batch.getHarvestDate());
+        batch.setQuantity(nextQuantity);
+        batch.setAvailableQuantity(nextAvailableQuantity);
+        batch.setQualityGrade(request.getQualityGrade() != null ? request.getQualityGrade() : batch.getQualityGrade());
+        batch.setExpiryDate(request.getExpiryDate() != null ? request.getExpiryDate() : batch.getExpiryDate());
+        batch.setBatchStatus(request.getBatchStatus() != null ? request.getBatchStatus() : batch.getBatchStatus());
 
         ProductBatch saved = productBatchRepository.save(batch);
         BatchBlockchainPayload payload = BatchBlockchainPayload.builder()
@@ -124,8 +134,10 @@ public class ProductBatchService {
 
     @Transactional
     public QrCodeResponse generateQrCode(Long batchId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
         ProductBatch batch = productBatchRepository.findById(batchId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng với ID: " + batchId));
+        seasonService.findSeasonAndCheckPermission(batch.getSeason().getSeasonId(), currentUserId);
 
         String qrUrl = "/trace/batches/" + batch.getBatchId();
         String qrValue = "batchId=" + batch.getBatchId() + "|batchCode=" + batch.getBatchCode() + "|seasonId=" + batch.getSeason().getSeasonId() + "|traceUrl=" + qrUrl;
@@ -153,6 +165,13 @@ public class ProductBatchService {
     }
 
     public QrCodeResponse getQrCode(Long batchId) {
+        ProductBatch batch = productBatchRepository.findById(batchId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng với ID: " + batchId));
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
+        if (currentUserId != null) {
+            seasonService.findSeasonAndCheckPermission(batch.getSeason().getSeasonId(), currentUserId);
+        }
+
         QrCode qrCode = qrCodeRepository.findByBatch_BatchId(batchId)
                 .orElseThrow(() -> new BusinessException("Chưa tạo mã QR cho lô hàng này."));
 
@@ -233,15 +252,34 @@ public class ProductBatchService {
                 .qualityGrade(batch.getQualityGrade())
                 .build();
         String jsonPayload = HashUtils.toCanonicalJson(payload.toMap());
-        String localHash = HashUtils.sha256(jsonPayload);
-        String onChainHash = blockchainService.getOnChainHash("BATCH", batchId, "UPSERT");
+        System.out.println("DEBUG - Batch JSON Payload: " + jsonPayload);
+        String localHash = blockchainService.canonicalizeHash(jsonPayload);
+
+        String onChainHash = null;
+        boolean matched = false;
+        try {
+            onChainHash = blockchainService.getOnChainHash("BATCH", batchId, "UPSERT");
+            matched = onChainHash != null && localHash.equals(onChainHash);
+        } catch (Exception ignored) {
+            onChainHash = null;
+            matched = false;
+        }
 
         return VerifyTraceResponse.builder()
                 .batchId(batchId)
                 .localHash(localHash)
                 .onChainHash(onChainHash)
-                .matched(localHash.equals(onChainHash))
+                .matched(matched)
                 .build();
+    }
+
+    private boolean canAccessBatch(ProductBatch batch, Long currentUserId) {
+        try {
+            seasonService.findSeasonAndCheckPermission(batch.getSeason().getSeasonId(), currentUserId);
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     private BatchResponse toResponse(ProductBatch batch) {
