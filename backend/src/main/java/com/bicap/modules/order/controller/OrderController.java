@@ -1,8 +1,7 @@
 package com.bicap.modules.order.controller;
 
 import com.bicap.core.dto.ApiResponse;
-import com.bicap.modules.order.dto.CreateOrderRequest;
-import com.bicap.modules.order.dto.OrderResponse;
+import com.bicap.modules.order.dto.*;
 import com.bicap.modules.order.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -47,5 +46,24 @@ public class OrderController {
     public ResponseEntity<ApiResponse<OrderResponse>> getOrderById(@PathVariable Long id) {
         OrderResponse response = orderService.getOrderById(id);
         return ResponseEntity.ok(ApiResponse.success("Lấy chi tiết đơn hàng thành công", response));
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('RETAILER') or hasRole('FARM') or hasRole('SHIPPING_MANAGER')")
+    public ResponseEntity<ApiResponse<OrderResponse>> updateOrderStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateOrderStatusRequest request) {
+        OrderResponse response = orderService.updateOrderStatus(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật trạng thái đơn hàng thành công", response));
+    }
+
+    @GetMapping("/{id}/status-history")
+    @PreAuthorize("hasRole('RETAILER') or hasRole('FARM') or hasRole('SHIPPING_MANAGER')")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderStatusHistory(@PathVariable Long id) {
+        List<OrderStatusHistoryResponse> history = orderService.getOrderStatusHistory(id);
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("items", history);
+        payload.put("totalItems", history.size());
+        return ResponseEntity.ok(ApiResponse.success("Lấy lịch sử thay đổi trạng thái thành công", payload));
     }
 }
