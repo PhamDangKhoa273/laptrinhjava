@@ -1,5 +1,6 @@
 package com.bicap.modules.user.dto;
 
+import com.bicap.core.enums.RoleName;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -25,6 +26,8 @@ public class CreateUserRequest {
     @Size(max = 255, message = "Avatar URL khÃ´ng vÆ°á»£t quÃ¡ 255 kÃ½ tá»±")
     private String avatarUrl;
 
+    private RoleName initialRole;
+
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
 
@@ -39,4 +42,7 @@ public class CreateUserRequest {
 
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+
+    public RoleName getInitialRole() { return initialRole; }
+    public void setInitialRole(RoleName initialRole) { this.initialRole = initialRole; }
 }

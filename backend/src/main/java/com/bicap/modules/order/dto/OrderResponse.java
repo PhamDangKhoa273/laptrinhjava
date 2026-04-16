@@ -11,6 +11,15 @@ public class OrderResponse {
     private Long farmId;
     private BigDecimal totalAmount;
     private String status;
+    private String paymentStatus;
+    private BigDecimal depositAmount;
+    private LocalDateTime depositPaidAt;
+    private String cancellationReason;
+    private LocalDateTime cancelledAt;
+    private LocalDateTime deliveryConfirmedAt;
+    private Long deliveryConfirmedByUserId;
+    private String deliveryProofImageUrl;
+    private String shippingProofImageUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<OrderItemResponse> items;
@@ -44,6 +53,51 @@ public class OrderResponse {
 
         public Builder status(String status) {
             response.status = status;
+            return this;
+        }
+
+        public Builder paymentStatus(String paymentStatus) {
+            response.paymentStatus = paymentStatus;
+            return this;
+        }
+
+        public Builder depositAmount(BigDecimal depositAmount) {
+            response.depositAmount = depositAmount;
+            return this;
+        }
+
+        public Builder depositPaidAt(LocalDateTime depositPaidAt) {
+            response.depositPaidAt = depositPaidAt;
+            return this;
+        }
+
+        public Builder cancellationReason(String cancellationReason) {
+            response.cancellationReason = cancellationReason;
+            return this;
+        }
+
+        public Builder cancelledAt(LocalDateTime cancelledAt) {
+            response.cancelledAt = cancelledAt;
+            return this;
+        }
+
+        public Builder deliveryConfirmedAt(LocalDateTime deliveryConfirmedAt) {
+            response.deliveryConfirmedAt = deliveryConfirmedAt;
+            return this;
+        }
+
+        public Builder deliveryConfirmedByUserId(Long deliveryConfirmedByUserId) {
+            response.deliveryConfirmedByUserId = deliveryConfirmedByUserId;
+            return this;
+        }
+
+        public Builder deliveryProofImageUrl(String deliveryProofImageUrl) {
+            response.deliveryProofImageUrl = deliveryProofImageUrl;
+            return this;
+        }
+
+        public Builder shippingProofImageUrl(String shippingProofImageUrl) {
+            response.shippingProofImageUrl = shippingProofImageUrl;
             return this;
         }
 
@@ -85,6 +139,42 @@ public class OrderResponse {
 
     public String getStatus() {
         return status;
+    }
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public BigDecimal getDepositAmount() {
+        return depositAmount;
+    }
+
+    public LocalDateTime getDepositPaidAt() {
+        return depositPaidAt;
+    }
+
+    public String getCancellationReason() {
+        return cancellationReason;
+    }
+
+    public LocalDateTime getCancelledAt() {
+        return cancelledAt;
+    }
+
+    public LocalDateTime getDeliveryConfirmedAt() {
+        return deliveryConfirmedAt;
+    }
+
+    public Long getDeliveryConfirmedByUserId() {
+        return deliveryConfirmedByUserId;
+    }
+
+    public String getDeliveryProofImageUrl() {
+        return deliveryProofImageUrl;
+    }
+
+    public String getShippingProofImageUrl() {
+        return shippingProofImageUrl;
     }
 
     public LocalDateTime getCreatedAt() {

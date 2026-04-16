@@ -146,6 +146,30 @@ class UserServiceTests {
     }
 
     @Test
+    void changeStatus_shouldThrowWhenStatusDoesNotChange() {
+        UpdateUserStatusRequest request = new UpdateUserStatusRequest();
+        request.setStatus(UserStatus.ACTIVE);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        assertThrows(BusinessException.class, () -> userService.changeStatus(1L, request));
+    }
+
+    @Test
+    void removeRole_shouldDeleteRequestedRoleWhenMoreThanOneRoleExists() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(roleRepository.findByRoleName(RoleName.FARM.name())).thenReturn(Optional.of(farmRole));
+        when(userRoleRepository.findByUser(user))
+                .thenReturn(List.of(buildUserRole(user, guestRole), buildUserRole(user, farmRole)))
+                .thenReturn(List.of(buildUserRole(user, guestRole)));
+
+        UserResponse response = userService.removeRole(1L, RoleName.FARM);
+
+        assertEquals(List.of("GUEST"), response.getRoles());
+        verify(userRoleRepository).delete(any(UserRole.class));
+    }
+
+    @Test
     void hasRole_shouldReturnTrueWhenRoleExists() {
         when(userRoleRepository.findByUser(user)).thenReturn(List.of(buildUserRole(user, farmRole)));
         assertTrue(userService.hasRole(user, RoleName.FARM));

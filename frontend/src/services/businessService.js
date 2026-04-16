@@ -48,6 +48,14 @@ export async function createSubscription(payload) {
   return unwrap(await api.post('/farm-subscriptions', payload))
 }
 
+export async function getMySubscriptionPayments() {
+  return unwrap(await api.get('/subscription-payments/me'))
+}
+
+export async function createSubscriptionPayment(payload) {
+  return unwrap(await api.post('/subscription-payments', payload))
+}
+
 export async function getDrivers() {
   return unwrap(await api.get('/drivers'))
 }

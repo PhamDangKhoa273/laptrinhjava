@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByRetailerId(Long retailerId);
+    List<Order> findByFarmId(Long farmId);
+    boolean existsByDepositAmountIsNotNullAndOrderIdNot(Long orderId);
 }

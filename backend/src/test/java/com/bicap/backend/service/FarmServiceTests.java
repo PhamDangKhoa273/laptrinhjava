@@ -128,7 +128,16 @@ class FarmServiceTests {
         when(userRepository.findById(2L)).thenReturn(Optional.of(farmUser));
         when(userService.hasRole(farmUser, RoleName.ADMIN)).thenReturn(false);
 
-        assertThrows(BusinessException.class, () -> farmService.changeApprovalStatus(10L, "APPROVED", 2L));
+        assertThrows(BusinessException.class, () -> farmService.changeApprovalStatus(10L, "APPROVED", null, 2L));
+    }
+
+    @Test
+    void changeApprovalStatus_shouldRequireCommentWhenRejecting() {
+        when(farmRepository.findById(10L)).thenReturn(Optional.of(farm));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(adminUser));
+        when(userService.hasRole(adminUser, RoleName.ADMIN)).thenReturn(true);
+
+        assertThrows(BusinessException.class, () -> farmService.changeApprovalStatus(10L, "REJECTED", "", 1L));
     }
 
     @Test
@@ -138,9 +147,10 @@ class FarmServiceTests {
         when(userService.hasRole(adminUser, RoleName.ADMIN)).thenReturn(true);
         when(farmRepository.save(any(Farm.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        FarmResponse response = farmService.changeApprovalStatus(10L, "APPROVED", 1L);
+        FarmResponse response = farmService.changeApprovalStatus(10L, "APPROVED", "Đủ điều kiện", 1L);
 
         assertEquals("APPROVED", response.getApprovalStatus());
+        assertEquals("VALID", response.getCertificationStatus());
         verify(auditLogService).log(1L, "CHANGE_APPROVAL_STATUS", "FARM", 10L);
     }
 }
