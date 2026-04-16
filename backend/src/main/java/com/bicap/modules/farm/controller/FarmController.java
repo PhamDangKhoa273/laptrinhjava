@@ -63,7 +63,16 @@ public class FarmController {
             @PathVariable Long id,
             @Valid @RequestBody FarmReviewRequest request,
             @AuthenticationPrincipal CustomUserPrincipal currentUser) {
-        return ApiResponse.success(farmService.changeApprovalStatus(id, request.getApprovalStatus(), currentUser.getUserId()));
+        return ApiResponse.success(farmService.changeApprovalStatus(id, request.getApprovalStatus(), request.getReviewComment(), currentUser.getUserId()));
+    }
+
+    @PutMapping("/{id}/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<FarmResponse> adminUpdateFarm(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateFarmRequest request,
+            @AuthenticationPrincipal CustomUserPrincipal currentUser) {
+        return ApiResponse.success(farmService.adminUpdateFarm(id, request, currentUser.getUserId()));
     }
 
     @DeleteMapping("/{id}")

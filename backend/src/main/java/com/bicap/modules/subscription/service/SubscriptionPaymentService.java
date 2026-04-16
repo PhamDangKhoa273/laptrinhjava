@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -87,6 +88,13 @@ public class SubscriptionPaymentService {
         return toResponse(payment);
     }
 
+    public List<SubscriptionPaymentResponse> getMyPayments(Long currentUserId) {
+        return subscriptionPaymentRepository.findByFarmSubscriptionFarmOwnerUserUserIdOrderByPaidAtDesc(currentUserId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public SubscriptionPayment getEntityById(Long paymentId) {
         return subscriptionPaymentRepository.findById(paymentId)
                 .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y subscription payment"));
@@ -96,6 +104,9 @@ public class SubscriptionPaymentService {
         return SubscriptionPaymentResponse.builder()
                 .subscriptionPaymentId(payment.getSubscriptionPaymentId())
                 .subscriptionId(payment.getFarmSubscription() != null ? payment.getFarmSubscription().getSubscriptionId() : null)
+                .farmName(payment.getFarmSubscription() != null && payment.getFarmSubscription().getFarm() != null
+                        ? payment.getFarmSubscription().getFarm().getFarmName()
+                        : null)
                 .payerUserId(payment.getPayerUser() != null ? payment.getPayerUser().getUserId() : null)
                 .payerFullName(payment.getPayerUser() != null ? payment.getPayerUser().getFullName() : null)
                 .amount(payment.getAmount())

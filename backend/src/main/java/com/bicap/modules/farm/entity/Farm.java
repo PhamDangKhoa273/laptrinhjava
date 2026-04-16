@@ -40,6 +40,7 @@ public class Farm {
     private String businessLicenseNo;
     private String certificationStatus;
     private String approvalStatus;
+    private String reviewComment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_user_id")
@@ -82,6 +83,8 @@ public class Farm {
     public void setCertificationStatus(String s) { this.certificationStatus = s; }
     public String getApprovalStatus() { return approvalStatus; }
     public void setApprovalStatus(String s) { this.approvalStatus = s; }
+    public String getReviewComment() { return reviewComment; }
+    public void setReviewComment(String s) { this.reviewComment = s; }
     public User getOwnerUser() { return ownerUser; }
     public void setOwnerUser(User u) { this.ownerUser = u; }
     public User getReviewedByUser() { return reviewedByUser; }

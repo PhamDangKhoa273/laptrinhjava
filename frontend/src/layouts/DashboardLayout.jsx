@@ -9,7 +9,8 @@ import { ROLES } from '../utils/constants'
 const adminLinks = [
   { to: '/dashboard', label: 'Tổng quan', description: 'Tổng quan phiên đăng nhập và kết nối hệ thống' },
   { to: '/dashboard/admin/accounts', label: 'Quản lý tài khoản', description: 'Quản trị người dùng và nhà bán lẻ trên hệ thống' },
-  { to: '/dashboard/admin/operations', label: 'Quản lý vận hành', description: 'Duyệt nông trại và theo dõi gói dịch vụ' },
+  { to: '/dashboard/admin/operations', label: 'Nông trại và vận hành', description: 'Duyệt nông trại và theo dõi gói dịch vụ' },
+  { to: '/admin/operations-plus', label: 'Control center', description: 'Gom listing approval, report, notification và guest content vào một chỗ' },
   { to: '/dashboard/admin/products', label: 'Sản phẩm', description: 'Quản lý danh mục, thông tin sản phẩm và dữ liệu' },
   { to: '/dashboard/admin/blockchain', label: 'Blockchain', description: 'Giám sát hợp đồng thông minh và cấu hình blockchain' },
   { to: '/dashboard/appearance', label: 'Giao diện website', description: 'Quản lý tài nguyên hiển thị và xem trước giao diện' },
@@ -20,21 +21,25 @@ const roleLinks = {
   [ROLES.FARM]: [
     { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
     { to: '/dashboard/farm', label: 'Farm dashboard', description: 'Tổng quan vai trò nông trại' },
+    { to: '/farm/workflow', label: 'Farm workflow', description: 'Theo dõi notification, report và tiến độ duyệt listing' },
     { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
   ],
   [ROLES.RETAILER]: [
     { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
     { to: '/dashboard/retailer', label: 'Retailer dashboard', description: 'Tổng quan vai trò nhà bán lẻ' },
+    { to: '/retailer/orders', label: 'Order workflow', description: 'Đặt cọc, hủy đơn và xác nhận giao hàng' },
     { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
   ],
   [ROLES.SHIPPING_MANAGER]: [
     { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
     { to: '/dashboard/shipping-manager', label: 'Shipping dashboard', description: 'Tổng quan vai trò vận chuyển' },
+    { to: '/shipping/proof', label: 'Shipping proof', description: 'Ghi nhận bằng chứng giao vận' },
     { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
   ],
   [ROLES.DRIVER]: [
     { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
     { to: '/dashboard/driver', label: 'Driver dashboard', description: 'Tổng quan vai trò tài xế' },
+    { to: '/driver/proof', label: 'Delivery proof', description: 'Ghi nhận bằng chứng giao vận khi đi tuyến' },
     { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
   ],
   [ROLES.GUEST]: [

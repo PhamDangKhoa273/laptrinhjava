@@ -73,6 +73,17 @@ export function PublicTracePage() {
       {traceResult?.batch ? (
         <div className="content-grid top-gap">
           <article className="glass-card">
+            <h3>Transaction coherence snapshot</h3>
+            <ul className="feature-list">
+              <li>Farm: {traceResult.seasonInfo?.farmName || 'N/A'} ({traceResult.seasonInfo?.farmCode || 'N/A'})</li>
+              <li>Batch: {traceResult.batch.batchCode || 'N/A'} • Status: {traceResult.batch.batchStatus || 'N/A'}</li>
+              <li>QR serial: {traceResult.qrInfo?.serialNo || 'Chưa tạo'}</li>
+              <li>Blockchain match: {verifyResult?.matched ? 'YES' : 'NO'}</li>
+              <li>Available quantity: {traceResult.batch.availableQuantity}/{traceResult.batch.quantity}</li>
+            </ul>
+            <p>Khối này giúp guest hoặc retailer đối chiếu nhanh tính khép kín giữa farm, batch, QR và blockchain trước khi tin vào listing/order liên quan.</p>
+          </article>
+          <article className="glass-card">
             <h3>Thông tin lô sản phẩm</h3>
             <ul className="feature-list">
               <li>Mã batch: {traceResult.batch.batchCode}</li>
@@ -115,13 +126,15 @@ export function PublicTracePage() {
 
           <article className="glass-card">
             <h3>Timeline quy trình</h3>
-            <ul className="feature-list">
-              {(traceResult.processList || []).map((item, index) => (
-                <li key={`${item.stepNo}-${index}`}>
-                  Bước {item.stepNo}: {item.stepName} ({formatDateTime(item.performedAt)})
-                </li>
-              ))}
-            </ul>
+            {traceResult.processList?.length ? (
+              <ul className="feature-list">
+                {traceResult.processList.map((item, index) => (
+                  <li key={`${item.stepNo}-${index}`}>
+                    Bước {item.stepNo}: {item.stepName} ({formatDateTime(item.performedAt)})
+                  </li>
+                ))}
+              </ul>
+            ) : <p>Chưa có timeline quy trình để đối chiếu.</p>}
             {traceResult.note ? <p>{traceResult.note}</p> : null}
           </article>
         </div>

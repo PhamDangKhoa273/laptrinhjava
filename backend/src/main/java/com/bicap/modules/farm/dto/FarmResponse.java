@@ -15,6 +15,11 @@ public class FarmResponse {
     private String approvalStatus;
     private Long ownerId;
     private String ownerName;
+    private Long reviewedByUserId;
+    private String reviewedByFullName;
+    private String reviewComment;
+    private java.time.LocalDateTime reviewedAt;
+    private String description;
 
     // Getters and Setters
     public Long getFarmId() { return farmId; }
@@ -47,6 +52,16 @@ public class FarmResponse {
     public void setOwnerId(Long id) { this.ownerId = id; }
     public String getOwnerName() { return ownerName; }
     public void setOwnerName(String s) { this.ownerName = s; }
+    public Long getReviewedByUserId() { return reviewedByUserId; }
+    public void setReviewedByUserId(Long id) { this.reviewedByUserId = id; }
+    public String getReviewedByFullName() { return reviewedByFullName; }
+    public void setReviewedByFullName(String s) { this.reviewedByFullName = s; }
+    public String getReviewComment() { return reviewComment; }
+    public void setReviewComment(String s) { this.reviewComment = s; }
+    public java.time.LocalDateTime getReviewedAt() { return reviewedAt; }
+    public void setReviewedAt(java.time.LocalDateTime t) { this.reviewedAt = t; }
+    public String getDescription() { return description; }
+    public void setDescription(String s) { this.description = s; }
 
     public static Builder builder() { return new Builder(); }
     public static class Builder {
@@ -66,6 +81,11 @@ public class FarmResponse {
         public Builder approvalStatus(String s) { r.setApprovalStatus(s); return this; }
         public Builder ownerId(Long l) { r.setOwnerId(l); return this; }
         public Builder ownerName(String s) { r.setOwnerName(s); return this; }
+        public Builder reviewedByUserId(Long l) { r.setReviewedByUserId(l); return this; }
+        public Builder reviewedByFullName(String s) { r.setReviewedByFullName(s); return this; }
+        public Builder reviewComment(String s) { r.setReviewComment(s); return this; }
+        public Builder reviewedAt(java.time.LocalDateTime t) { r.setReviewedAt(t); return this; }
+        public Builder description(String s) { r.setDescription(s); return this; }
         public FarmResponse build() { return r; }
     }
 }

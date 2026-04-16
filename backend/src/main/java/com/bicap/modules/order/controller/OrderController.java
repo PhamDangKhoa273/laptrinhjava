@@ -1,12 +1,14 @@
 package com.bicap.modules.order.controller;
 
 import com.bicap.core.dto.ApiResponse;
+import com.bicap.modules.media.dto.MediaFileResponse;
 import com.bicap.modules.order.dto.*;
 import com.bicap.modules.order.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,7 +34,7 @@ public class OrderController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('RETAILER')")
+    @PreAuthorize("hasAnyRole('RETAILER','FARM','SHIPPING_MANAGER','DRIVER','ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getOrders() {
         List<OrderResponse> orders = orderService.getOrders();
         Map<String, Object> payload = new LinkedHashMap<>();
@@ -42,10 +44,19 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('RETAILER')")
+    @PreAuthorize("hasAnyRole('RETAILER','FARM','SHIPPING_MANAGER','DRIVER','ADMIN')")
     public ResponseEntity<ApiResponse<OrderResponse>> getOrderById(@PathVariable Long id) {
         OrderResponse response = orderService.getOrderById(id);
         return ResponseEntity.ok(ApiResponse.success("Lấy chi tiết đơn hàng thành công", response));
+    }
+
+    @PostMapping("/{id}/deposit")
+    @PreAuthorize("hasRole('RETAILER')")
+    public ResponseEntity<ApiResponse<OrderResponse>> payDeposit(
+            @PathVariable Long id,
+            @Valid @RequestBody OrderDepositRequest request) {
+        OrderResponse response = orderService.payDeposit(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Thanh toán đặt cọc thành công", response));
     }
 
     @PatchMapping("/{id}/status")
@@ -58,12 +69,52 @@ public class OrderController {
     }
 
     @GetMapping("/{id}/status-history")
-    @PreAuthorize("hasRole('RETAILER') or hasRole('FARM') or hasRole('SHIPPING_MANAGER')")
+    @PreAuthorize("hasAnyRole('RETAILER','FARM','SHIPPING_MANAGER','DRIVER','ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderStatusHistory(@PathVariable Long id) {
         List<OrderStatusHistoryResponse> history = orderService.getOrderStatusHistory(id);
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("items", history);
         payload.put("totalItems", history.size());
         return ResponseEntity.ok(ApiResponse.success("Lấy lịch sử thay đổi trạng thái thành công", payload));
+    }
+
+    @PostMapping("/{id}/shipping-proof")
+    @PreAuthorize("hasRole('SHIPPING_MANAGER') or hasRole('DRIVER')")
+    public ResponseEntity<ApiResponse<OrderResponse>> uploadShippingProof(
+            @PathVariable Long id,
+            @Valid @RequestBody DeliveryProofRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật bằng chứng vận chuyển thành công", orderService.uploadShippingProof(id, request)));
+    }
+
+    @PostMapping(value = "/{id}/shipping-proof/upload", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('SHIPPING_MANAGER') or hasRole('DRIVER')")
+    public ResponseEntity<ApiResponse<MediaFileResponse>> uploadShippingProofFile(
+            @PathVariable Long id,
+            @RequestPart("file") MultipartFile file) {
+        return ResponseEntity.ok(ApiResponse.success("Upload bằng chứng vận chuyển thành công", orderService.uploadShippingProofFile(id, file)));
+    }
+
+    @PostMapping("/{id}/confirm-delivery")
+    @PreAuthorize("hasRole('RETAILER')")
+    public ResponseEntity<ApiResponse<OrderResponse>> confirmDelivery(
+            @PathVariable Long id,
+            @Valid @RequestBody ConfirmDeliveryRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Xác nhận nhận hàng thành công", orderService.confirmDelivery(id, request)));
+    }
+
+    @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasRole('RETAILER')")
+    public ResponseEntity<ApiResponse<OrderResponse>> cancelOrder(
+            @PathVariable Long id,
+            @Valid @RequestBody CancelOrderRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Hủy đơn hàng thành công", orderService.cancelOrder(id, request)));
+    }
+
+    @PostMapping(value = "/{id}/delivery-proof/upload", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('RETAILER')")
+    public ResponseEntity<ApiResponse<MediaFileResponse>> uploadDeliveryProofFile(
+            @PathVariable Long id,
+            @RequestPart("file") MultipartFile file) {
+        return ResponseEntity.ok(ApiResponse.success("Upload bằng chứng giao hàng thành công", orderService.uploadDeliveryProofFile(id, file)));
     }
 }

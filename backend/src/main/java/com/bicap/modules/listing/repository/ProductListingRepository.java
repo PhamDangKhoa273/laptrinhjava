@@ -17,6 +17,8 @@ public interface ProductListingRepository extends JpaRepository<ProductListing, 
 
     Page<ProductListing> findByStatus(String status, Pageable pageable);
 
+    Page<ProductListing> findByStatusAndApprovalStatus(String status, String approvalStatus, Pageable pageable);
+
     @Query("SELECT pl FROM ProductListing pl " +
            "JOIN pl.batch b " +
            "JOIN b.season s " +

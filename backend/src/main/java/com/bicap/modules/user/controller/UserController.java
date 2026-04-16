@@ -4,6 +4,7 @@ import com.bicap.core.dto.ApiResponse;
 import com.bicap.modules.user.dto.UpdateUserStatusRequest;
 import com.bicap.modules.user.dto.AssignRoleRequest;
 import com.bicap.modules.user.dto.CreateUserRequest;
+import com.bicap.modules.user.dto.RemoveRoleRequest;
 import com.bicap.modules.user.dto.UpdateProfileRequest;
 import com.bicap.modules.user.service.UserService;
 import jakarta.validation.Valid;
@@ -112,6 +113,18 @@ public class UserController {
         return ApiResponse.success(
                 "GÃ¡n role thÃ nh cÃ´ng",
                 userService.assignRole(id, request)
+        );
+    }
+
+    @DeleteMapping("/{id}/roles")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<?> removeRole(
+            @PathVariable Long id,
+            @Valid @RequestBody RemoveRoleRequest request
+    ) {
+        return ApiResponse.success(
+                "Gỡ role thành công",
+                userService.removeRole(id, request.getRoleName())
         );
     }
 }

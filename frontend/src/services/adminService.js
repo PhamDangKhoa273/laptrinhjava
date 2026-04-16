@@ -24,8 +24,8 @@ export async function getFarms() {
   }
 }
 
-export async function reviewFarm(id, approvalStatus, certificationStatus) {
-  return unwrap(await api.put(`/farms/${id}/review`, { approvalStatus, certificationStatus }))
+export async function reviewFarm(id, approvalStatus, reviewComment = '') {
+  return unwrap(await api.post(`/farms/${id}/review`, { approvalStatus, reviewComment }))
 }
 
 export async function getRetailers() {
@@ -78,26 +78,30 @@ export async function deleteCategory(id) {
   return unwrap(await api.delete(`/categories/${id}`))
 }
 
+export async function getUserById(id) {
+  return unwrap(await api.get(`/users/${id}`))
+}
+
+export async function getFarmById(id) {
+  return unwrap(await api.get(`/farms/${id}`))
+}
+
 export async function createAdminAccount(data) {
-  try {
-    return unwrap(await api.post('/admin/accounts/create', data))
-  } catch (error) {
-    return { success: true, message: 'Đã tạo Mock Admin thành công' }
-  }
+  return unwrap(await api.post('/users', data))
 }
 
-export async function deleteUserAccount(id) {
-  try {
-    return unwrap(await api.delete(`/admin/accounts/${id}`))
-  } catch (error) {
-    return { success: true, message: 'Đã xoá Mock User thành công' }
-  }
+export async function removeUserRole(id, roleName) {
+  return unwrap(await api.delete(`/users/${id}/roles`, { data: { roleName } }))
 }
 
-export async function deploySmartContract(payload) {
-  try {
-    return unwrap(await api.post('/admin/blockchain/deploy', payload))
-  } catch (error) {
-    return { success: true, txId: '0xmock' + Math.floor(Math.random()*10000) }
-  }
+export async function updateFarmDetailByAdmin(id, data) {
+  return unwrap(await api.put(`/farms/${id}/admin`, data))
+}
+
+export async function deleteUserAccount() {
+  throw new Error('Delete user account flow is disabled until safe soft-delete is implemented.')
+}
+
+export async function deploySmartContract() {
+  throw new Error('Smart contract deployment is not wired to a real admin endpoint yet.')
 }

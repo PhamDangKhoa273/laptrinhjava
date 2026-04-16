@@ -119,7 +119,7 @@ public class FarmService {
     }
 
     @Transactional
-    public FarmResponse changeApprovalStatus(Long farmId, String status, Long adminId) {
+    public FarmResponse changeApprovalStatus(Long farmId, String status, String reviewComment, Long adminId) {
         Farm farm = farmRepository.findById(farmId)
                 .orElseThrow(() -> new BusinessException("Farm không tồn tại"));
 
@@ -130,13 +130,38 @@ public class FarmService {
             throw new BusinessException("Bạn không có quyền duyệt nông trại");
         }
 
-        farm.setApprovalStatus(status.toUpperCase());
+        String normalizedStatus = status.toUpperCase();
+        if (!List.of("APPROVED", "REJECTED", "PENDING", "DEACTIVATED").contains(normalizedStatus)) {
+            throw new BusinessException("Trạng thái duyệt nông trại không hợp lệ");
+        }
+        if ("REJECTED".equals(normalizedStatus) && (reviewComment == null || reviewComment.trim().isEmpty())) {
+            throw new BusinessException("Từ chối nông trại phải có ghi chú đánh giá");
+        }
+
+        farm.setApprovalStatus(normalizedStatus);
+        if ("APPROVED".equals(normalizedStatus)) {
+            farm.setCertificationStatus("VALID");
+        }
+        if ("REJECTED".equals(normalizedStatus)) {
+            farm.setCertificationStatus("PENDING_REVIEW");
+        }
+        farm.setReviewComment(reviewComment == null ? null : reviewComment.trim());
         farm.setReviewedByUser(admin);
         farm.setReviewedAt(LocalDateTime.now());
 
         Farm saved = farmRepository.save(farm);
         auditLogService.log(adminId, "CHANGE_APPROVAL_STATUS", "FARM", saved.getFarmId());
         return mapToResponse(saved);
+    }
+
+    @Transactional
+    public FarmResponse adminUpdateFarm(Long farmId, UpdateFarmRequest request, Long adminId) {
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new BusinessException("Admin không tồn tại"));
+        if (!userService.hasRole(admin, RoleName.ADMIN)) {
+            throw new BusinessException("Bạn không có quyền cập nhật hồ sơ nông trại");
+        }
+        return updateFarm(farmId, request, adminId);
     }
 
     @Transactional
@@ -165,6 +190,11 @@ public class FarmService {
                 .approvalStatus(farm.getApprovalStatus())
                 .ownerId(farm.getOwnerUser() != null ? farm.getOwnerUser().getUserId() : null)
                 .ownerName(farm.getOwnerUser() != null ? farm.getOwnerUser().getFullName() : null)
+                .reviewedByUserId(farm.getReviewedByUser() != null ? farm.getReviewedByUser().getUserId() : null)
+                .reviewedByFullName(farm.getReviewedByUser() != null ? farm.getReviewedByUser().getFullName() : null)
+                .reviewComment(farm.getReviewComment())
+                .reviewedAt(farm.getReviewedAt())
+                .description(farm.getDescription())
                 .build();
     }
 }

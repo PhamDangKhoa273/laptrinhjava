@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { getPublicListings } from '../services/listingService'
 import { searchListings } from '../services/searchService'
+import { getPublishedContent } from '../services/workflowService.js'
 import './GuestMarketplace.css'
 
 function formatPrice(price) {
@@ -66,6 +67,32 @@ function ProductCard({ item, onOpen }) {
   )
 }
 
+function ContentCard({ item }) {
+  return (
+    <article className="mp-card" style={{ cursor: 'default' }}>
+      <div className="mp-card__image" style={{ background: item.mediaUrl ? '#102a43' : 'linear-gradient(135deg, #1f2937 0%, #374151 100%)' }}>
+        {item.mediaUrl ? (
+          <img src={item.mediaUrl} alt={item.title} onError={(event) => { event.target.style.display = 'none' }} />
+        ) : (
+          <div className="mp-card__placeholder">
+            <span className="mp-card__placeholder-icon">📘</span>
+            <span className="mp-card__placeholder-text">{item.contentType}</span>
+          </div>
+        )}
+      </div>
+      <div className="mp-card__body">
+        <span className="mp-card__category">{item.contentType}</span>
+        <h3 className="mp-card__title">{item.title}</h3>
+        {item.summary ? <p className="mp-card__desc">{item.summary}</p> : null}
+        <p className="mp-card__farm">Tác giả: {item.createdByName || 'BICAP'}</p>
+        <div className="mp-card__actions" style={{ marginTop: 12 }}>
+          <Link className="mp-retry-btn" to={`/dashboard/guest?content=${item.slug}`}>Xem nội dung</Link>
+        </div>
+      </div>
+    </article>
+  )
+}
+
 function ProductCardSkeleton() {
   return (
     <div className="mp-card mp-card--skeleton" aria-hidden="true">
@@ -100,9 +127,12 @@ export function GuestMarketplacePage() {
   const initialSize = parsePositiveInt(searchParams.get('size'), 9) || 9
 
   const [items, setItems] = useState([])
+  const [contentItems, setContentItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [contentLoading, setContentLoading] = useState(true)
   const [isDebouncing, setIsDebouncing] = useState(false)
   const [error, setError] = useState(null)
+  const [contentError, setContentError] = useState(null)
   const [search, setSearch] = useState(initialSearch)
   const [province, setProvince] = useState(initialProvince)
   const [minPrice, setMinPrice] = useState(initialMinPrice)
@@ -145,8 +175,24 @@ export function GuestMarketplacePage() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, province, minPrice, maxPrice, sort, page])
+
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        setContentLoading(true)
+        const data = await getPublishedContent()
+        setContentItems(Array.isArray(data) ? data : [])
+        setContentError(null)
+      } catch (err) {
+        setContentError('Không tải được nội dung giáo dục công khai.')
+      } finally {
+        setContentLoading(false)
+      }
+    }
+
+    loadContent()
+  }, [])
 
   async function loadDefaultListings(targetPage = 0) {
     try {
@@ -214,9 +260,9 @@ export function GuestMarketplacePage() {
       <div className="mp-hero">
         <div className="mp-hero__content">
           <p className="mp-hero__eyebrow">SÀN NÔNG SẢN BICAP</p>
-          <h1 className="mp-hero__title">TV1 + TV2 đã thành marketplace/search tử tế</h1>
+          <h1 className="mp-hero__title">Marketplace công khai + content hub cho guest</h1>
           <p className="mp-hero__subtitle">
-            Tìm theo tên sản phẩm, mã lô, tỉnh thành, khoảng giá. Có phân trang, sắp xếp, debounce, đồng bộ URL, và nối thẳng sang traceability công khai.
+            Không chỉ tìm nông sản, giờ guest còn xem được nội dung giáo dục, bài viết, video và kiến thức nền tảng ngay trên public UI.
           </p>
         </div>
 
@@ -276,10 +322,36 @@ export function GuestMarketplacePage() {
           <span className="mp-stat__label">Nông trại</span>
         </div>
         <div className="mp-stat">
-          <span className="mp-stat__value">{stats.provinceCount || '—'}</span>
-          <span className="mp-stat__label">Tỉnh thành</span>
+          <span className="mp-stat__value">{contentItems.length || '—'}</span>
+          <span className="mp-stat__label">Nội dung công khai</span>
         </div>
       </div>
+
+      <section style={{ marginBottom: 28 }}>
+        <div className="section-heading" style={{ marginBottom: 16 }}>
+          <div>
+            <p className="eyebrow">Guest educational content</p>
+            <h2 style={{ marginBottom: 6 }}>Bài viết, video và kiến thức công khai</h2>
+            <p style={{ margin: 0, color: '#5f6b7a' }}>Phần này giúp phase 2-4 tròn hơn thay vì chỉ có marketplace.</p>
+          </div>
+        </div>
+        {contentError ? <div className="mp-empty"><p>{contentError}</p></div> : null}
+        {contentLoading ? (
+          <div className="mp-grid">
+            {Array.from({ length: 3 }).map((_, index) => <ProductCardSkeleton key={`content-${index}`} />)}
+          </div>
+        ) : contentItems.length === 0 ? (
+          <div className="mp-empty">
+            <span className="mp-empty__icon">📘</span>
+            <h3>Chưa có nội dung công khai</h3>
+            <p>Admin có thể tạo bài viết/video từ trang vận hành.</p>
+          </div>
+        ) : (
+          <div className="mp-grid">
+            {contentItems.slice(0, 6).map((item) => <ContentCard key={item.contentId} item={item} />)}
+          </div>
+        )}
+      </section>
 
       {error && !showSkeleton ? (
         <div className="mp-empty">
