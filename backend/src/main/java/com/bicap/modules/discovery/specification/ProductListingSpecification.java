@@ -1,5 +1,6 @@
 package com.bicap.modules.discovery.specification;
 
+import com.bicap.core.enums.ListingStatus;
 import com.bicap.modules.batch.entity.ProductBatch;
 import com.bicap.modules.farm.entity.Farm;
 import com.bicap.modules.listing.entity.ProductListing;
@@ -21,7 +22,7 @@ public class ProductListingSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             // 1. Chỉ lấy sản phẩm ACTIVE
-            predicates.add(cb.equal(root.get("status"), "ACTIVE"));
+            predicates.add(cb.equal(root.get("status"), ListingStatus.ACTIVE.name()));
 
             // Lọc quantity > 0 để chắc chắn còn hàng
             predicates.add(cb.greaterThan(root.get("quantityAvailable"), BigDecimal.ZERO));

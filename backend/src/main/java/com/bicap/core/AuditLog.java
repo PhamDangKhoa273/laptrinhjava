@@ -27,6 +27,9 @@ public class AuditLog {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "details", length = 1000)
+    private String details;
+
     // Manual Getters/Setters for Lombok fallback
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -40,4 +43,6 @@ public class AuditLog {
     public void setEntityId(Long entityId) { this.entityId = entityId; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getDetails() { return details; }
+    public void setDetails(String details) { this.details = details; }
 }

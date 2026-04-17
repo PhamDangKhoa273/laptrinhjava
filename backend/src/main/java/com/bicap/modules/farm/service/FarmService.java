@@ -235,6 +235,9 @@ public class FarmService {
         if (farm.getBusinessLicenseFileUrl() != null && !farm.getBusinessLicenseFileUrl().isBlank()) {
             return farm.getBusinessLicenseFileUrl();
         }
+        if (mediaFileRepository == null || farm.getFarmId() == null) {
+            return null;
+        }
         return mediaFileRepository.findTopByEntityTypeAndEntityIdOrderByCreatedAtDesc("FARM_LICENSE", farm.getFarmId())
                 .map(this::toFileUrl)
                 .orElse(null);

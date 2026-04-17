@@ -1,5 +1,6 @@
 package com.bicap.modules.batch.entity;
 
+import com.bicap.core.enums.QrCodeStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -40,4 +41,6 @@ public class QrCode {
     public void setGeneratedAt(LocalDateTime t) { this.generatedAt = t; }
     public void setBatch(ProductBatch b) { this.batch = b; }
     public ProductBatch getBatch() { return batch; }
+    public QrCodeStatus getStatusEnum() { return status == null ? null : QrCodeStatus.valueOf(status); }
+    public void setStatus(QrCodeStatus status) { this.status = status != null ? status.name() : null; }
 }
