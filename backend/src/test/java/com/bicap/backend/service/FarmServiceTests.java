@@ -1,14 +1,17 @@
 package com.bicap.backend.service;
 
-import com.bicap.backend.dto.CreateFarmRequest;
-import com.bicap.backend.dto.FarmResponse;
-import com.bicap.backend.dto.UpdateFarmRequest;
-import com.bicap.backend.entity.Farm;
-import com.bicap.backend.entity.User;
-import com.bicap.backend.enums.RoleName;
-import com.bicap.backend.exception.BusinessException;
-import com.bicap.backend.repository.FarmRepository;
-import com.bicap.backend.repository.UserRepository;
+import com.bicap.modules.farm.dto.CreateFarmRequest;
+import com.bicap.modules.farm.dto.FarmResponse;
+import com.bicap.modules.farm.dto.UpdateFarmRequest;
+import com.bicap.modules.farm.entity.Farm;
+import com.bicap.modules.user.entity.User;
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.farm.repository.FarmRepository;
+import com.bicap.modules.user.repository.UserRepository;
+import com.bicap.modules.user.service.UserService;
+import com.bicap.core.AuditLogService;
+import com.bicap.modules.farm.service.FarmService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -125,7 +128,16 @@ class FarmServiceTests {
         when(userRepository.findById(2L)).thenReturn(Optional.of(farmUser));
         when(userService.hasRole(farmUser, RoleName.ADMIN)).thenReturn(false);
 
-        assertThrows(BusinessException.class, () -> farmService.changeApprovalStatus(10L, "APPROVED", 2L));
+        assertThrows(BusinessException.class, () -> farmService.changeApprovalStatus(10L, "APPROVED", null, 2L));
+    }
+
+    @Test
+    void changeApprovalStatus_shouldRequireCommentWhenRejecting() {
+        when(farmRepository.findById(10L)).thenReturn(Optional.of(farm));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(adminUser));
+        when(userService.hasRole(adminUser, RoleName.ADMIN)).thenReturn(true);
+
+        assertThrows(BusinessException.class, () -> farmService.changeApprovalStatus(10L, "REJECTED", "", 1L));
     }
 
     @Test
@@ -135,9 +147,10 @@ class FarmServiceTests {
         when(userService.hasRole(adminUser, RoleName.ADMIN)).thenReturn(true);
         when(farmRepository.save(any(Farm.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        FarmResponse response = farmService.changeApprovalStatus(10L, "APPROVED", 1L);
+        FarmResponse response = farmService.changeApprovalStatus(10L, "APPROVED", "Đủ điều kiện", 1L);
 
         assertEquals("APPROVED", response.getApprovalStatus());
+        assertEquals("VALID", response.getCertificationStatus());
         verify(auditLogService).log(1L, "CHANGE_APPROVAL_STATUS", "FARM", 10L);
     }
 }

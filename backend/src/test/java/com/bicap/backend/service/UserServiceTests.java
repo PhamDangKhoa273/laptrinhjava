@@ -1,18 +1,19 @@
 package com.bicap.backend.service;
 
-import com.bicap.backend.dto.UpdateUserStatusRequest;
-import com.bicap.backend.dto.UserResponse;
-import com.bicap.backend.dto.request.AssignRoleRequest;
-import com.bicap.backend.dto.request.CreateUserRequest;
-import com.bicap.backend.entity.Role;
-import com.bicap.backend.entity.User;
-import com.bicap.backend.entity.UserRole;
-import com.bicap.backend.enums.RoleName;
-import com.bicap.backend.enums.UserStatus;
-import com.bicap.backend.exception.BusinessException;
-import com.bicap.backend.repository.RoleRepository;
-import com.bicap.backend.repository.UserRepository;
-import com.bicap.backend.repository.UserRoleRepository;
+import com.bicap.modules.user.dto.UpdateUserStatusRequest;
+import com.bicap.modules.user.dto.UserResponse;
+import com.bicap.modules.user.dto.AssignRoleRequest;
+import com.bicap.modules.user.dto.CreateUserRequest;
+import com.bicap.modules.user.entity.Role;
+import com.bicap.modules.user.entity.User;
+import com.bicap.modules.user.entity.UserRole;
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.enums.UserStatus;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.user.repository.RoleRepository;
+import com.bicap.modules.user.repository.UserRepository;
+import com.bicap.modules.user.repository.UserRoleRepository;
+import com.bicap.modules.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -142,6 +143,30 @@ class UserServiceTests {
         UserResponse response = userService.changeStatus(1L, request);
 
         assertEquals(UserStatus.INACTIVE, response.getStatus());
+    }
+
+    @Test
+    void changeStatus_shouldThrowWhenStatusDoesNotChange() {
+        UpdateUserStatusRequest request = new UpdateUserStatusRequest();
+        request.setStatus(UserStatus.ACTIVE);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        assertThrows(BusinessException.class, () -> userService.changeStatus(1L, request));
+    }
+
+    @Test
+    void removeRole_shouldDeleteRequestedRoleWhenMoreThanOneRoleExists() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(roleRepository.findByRoleName(RoleName.FARM.name())).thenReturn(Optional.of(farmRole));
+        when(userRoleRepository.findByUser(user))
+                .thenReturn(List.of(buildUserRole(user, guestRole), buildUserRole(user, farmRole)))
+                .thenReturn(List.of(buildUserRole(user, guestRole)));
+
+        UserResponse response = userService.removeRole(1L, RoleName.FARM);
+
+        assertEquals(List.of("GUEST"), response.getRoles());
+        verify(userRoleRepository).delete(any(UserRole.class));
     }
 
     @Test

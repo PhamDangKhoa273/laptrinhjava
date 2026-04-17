@@ -1,13 +1,15 @@
 package com.bicap.backend.service;
 
-import com.bicap.backend.dto.DriverResponse;
-import com.bicap.backend.dto.UpdateDriverRequest;
-import com.bicap.backend.entity.Driver;
-import com.bicap.backend.entity.User;
-import com.bicap.backend.enums.RoleName;
-import com.bicap.backend.exception.BusinessException;
-import com.bicap.backend.repository.DriverRepository;
-import com.bicap.backend.repository.UserRepository;
+import com.bicap.modules.logistics.dto.DriverResponse;
+import com.bicap.modules.logistics.dto.UpdateDriverRequest;
+import com.bicap.modules.logistics.entity.Driver;
+import com.bicap.modules.user.entity.User;
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.logistics.repository.DriverRepository;
+import com.bicap.modules.user.repository.UserRepository;
+import com.bicap.modules.user.service.UserService;
+import com.bicap.modules.logistics.service.DriverService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,8 +61,6 @@ class DriverServiceTests {
     @Test
     void deactivate_shouldAllowManagerOwner() {
         when(driverRepository.findById(20L)).thenReturn(Optional.of(driver));
-        when(userRepository.findById(4L)).thenReturn(Optional.of(manager));
-        when(userService.hasRole(manager, RoleName.ADMIN)).thenReturn(false);
         when(driverRepository.save(any(Driver.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         DriverResponse response = driverService.deactivate(20L, 4L);

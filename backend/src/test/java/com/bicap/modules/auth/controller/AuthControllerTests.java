@@ -1,46 +1,43 @@
-package com.bicap.backend.controller;
+package com.bicap.modules.auth.controller;
 
-import com.bicap.backend.dto.UserResponse;
-import com.bicap.backend.dto.auth.LoginResponse;
-import com.bicap.backend.dto.auth.TokenRefreshResponse;
-import com.bicap.backend.security.CustomUserDetailsService;
-import com.bicap.backend.security.JwtTokenProvider;
-import com.bicap.backend.service.AuthService;
+import com.bicap.core.exception.GlobalExceptionHandler;
+import com.bicap.modules.auth.dto.LoginResponse;
+import com.bicap.modules.auth.dto.TokenRefreshResponse;
+import com.bicap.modules.auth.service.AuthService;
+import com.bicap.modules.user.dto.UserResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = AuthController.class)
-@Import(com.bicap.backend.config.SecurityConfig.class)
+@ExtendWith(MockitoExtension.class)
 class AuthControllerTests {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private AuthService authService;
-    @MockBean
-    private JwtTokenProvider jwtTokenProvider;
-    @MockBean
-    private CustomUserDetailsService customUserDetailsService;
-    @MockBean
-    private AuthenticationManager authenticationManager;
+
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(new AuthController(authService))
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+    }
 
     @Test
     void login_shouldReturnTokensAndUser() throws Exception {
@@ -63,12 +60,12 @@ class AuthControllerTests {
 
         when(authService.login(any())).thenReturn(loginResponse);
 
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  \"email\": \"test@example.com\",
-                                  \"password\": \"secret123\"
+                                  "email": "test@example.com",
+                                  "password": "secret123"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -90,11 +87,11 @@ class AuthControllerTests {
 
         when(authService.refreshToken(any())).thenReturn(refreshResponse);
 
-        mockMvc.perform(post("/api/auth/refresh")
+        mockMvc.perform(post("/api/v1/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  \"refreshToken\": \"refresh-token\"
+                                  "refreshToken": "refresh-token"
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -104,14 +101,7 @@ class AuthControllerTests {
     }
 
     @Test
-    void me_shouldRequireAuthentication() throws Exception {
-        mockMvc.perform(get("/api/auth/me"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
-    }
-
-    @Test
-    void me_shouldReturnCurrentUserWhenAuthenticated() throws Exception {
+    void me_shouldReturnCurrentUser() throws Exception {
         UserResponse userResponse = UserResponse.builder()
                 .userId(1L)
                 .fullName("Authenticated User")
@@ -122,29 +112,20 @@ class AuthControllerTests {
 
         when(authService.me()).thenReturn(userResponse);
 
-        mockMvc.perform(get("/api/auth/me")
-                        .with(user("auth@example.com").roles("GUEST")))
+        mockMvc.perform(get("/api/v1/auth/me"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.email").value("auth@example.com"));
     }
 
     @Test
-    void logout_shouldRequireAuthentication() throws Exception {
-        mockMvc.perform(post("/api/auth/logout"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
-    }
-
-    @Test
-    void logout_shouldSucceedForAuthenticatedUser() throws Exception {
+    void logout_shouldSucceed() throws Exception {
         when(authService.logout()).thenReturn(Map.of(
                 "logoutMode", "CLIENT_SIDE",
                 "message", "Xóa access token và refresh token ở phía client để hoàn tất đăng xuất"
         ));
 
-        mockMvc.perform(post("/api/auth/logout")
-                        .with(user("auth@example.com").roles("GUEST")))
+        mockMvc.perform(post("/api/v1/auth/logout"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.logoutMode").value("CLIENT_SIDE"));

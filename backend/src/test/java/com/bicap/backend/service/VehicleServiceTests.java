@@ -1,13 +1,16 @@
 package com.bicap.backend.service;
 
-import com.bicap.backend.dto.UpdateVehicleRequest;
-import com.bicap.backend.dto.VehicleResponse;
-import com.bicap.backend.entity.User;
-import com.bicap.backend.entity.Vehicle;
-import com.bicap.backend.enums.RoleName;
-import com.bicap.backend.exception.BusinessException;
-import com.bicap.backend.repository.UserRepository;
-import com.bicap.backend.repository.VehicleRepository;
+import com.bicap.modules.logistics.dto.UpdateVehicleRequest;
+import com.bicap.modules.logistics.dto.VehicleResponse;
+import com.bicap.modules.user.entity.User;
+import com.bicap.modules.logistics.entity.Vehicle;
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.exception.BusinessException;
+import com.bicap.modules.user.repository.UserRepository;
+import com.bicap.modules.logistics.repository.VehicleRepository;
+import com.bicap.modules.user.service.UserService;
+import com.bicap.core.AuditLogService;
+import com.bicap.modules.logistics.service.VehicleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,8 +66,6 @@ class VehicleServiceTests {
     @Test
     void deactivate_shouldAllowManagerOwner() {
         when(vehicleRepository.findById(30L)).thenReturn(Optional.of(vehicle));
-        when(userRepository.findById(4L)).thenReturn(Optional.of(manager));
-        when(userService.hasRole(manager, RoleName.ADMIN)).thenReturn(false);
         when(vehicleRepository.save(any(Vehicle.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         VehicleResponse response = vehicleService.deactivate(30L, 4L);

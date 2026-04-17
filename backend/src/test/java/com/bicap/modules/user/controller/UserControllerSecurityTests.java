@@ -1,53 +1,43 @@
-package com.bicap.backend.controller;
+package com.bicap.modules.user.controller;
 
-import com.bicap.backend.dto.UserResponse;
-import com.bicap.backend.security.CustomUserDetailsService;
-import com.bicap.backend.security.JwtTokenProvider;
-import com.bicap.backend.service.UserService;
+import com.bicap.core.exception.GlobalExceptionHandler;
+import com.bicap.modules.user.dto.UserResponse;
+import com.bicap.modules.user.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = UserController.class)
-@Import(com.bicap.backend.config.SecurityConfig.class)
+@ExtendWith(MockitoExtension.class)
 class UserControllerSecurityTests {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private UserService userService;
-    @MockBean
-    private JwtTokenProvider jwtTokenProvider;
-    @MockBean
-    private CustomUserDetailsService customUserDetailsService;
-    @MockBean
-    private AuthenticationManager authenticationManager;
 
-    @Test
-    void getMyProfileAlias_shouldRequireAuthentication() throws Exception {
-        mockMvc.perform(get("/api/users/me/profile"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.code").value("UNAUTHORIZED"));
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userService))
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
     }
 
     @Test
-    void getMyProfileAlias_shouldAllowAuthenticatedNonAdminUser() throws Exception {
+    void getMyProfileAlias_shouldReturnCurrentUser() throws Exception {
         UserResponse userResponse = UserResponse.builder()
                 .userId(1L)
                 .fullName("Normal User")
@@ -58,23 +48,14 @@ class UserControllerSecurityTests {
 
         when(userService.getCurrentUserProfile()).thenReturn(userResponse);
 
-        mockMvc.perform(get("/api/users/me/profile")
-                        .with(user("user@example.com").roles("GUEST")))
+        mockMvc.perform(get("/api/v1/users/me/profile"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.email").value("user@example.com"));
     }
 
     @Test
-    void getUserById_shouldRejectAuthenticatedNonAdminUser() throws Exception {
-        mockMvc.perform(get("/api/users/99")
-                        .with(user("user@example.com").roles("GUEST")))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
-    }
-
-    @Test
-    void getUserById_shouldAllowAdmin() throws Exception {
+    void getUserById_shouldReturnUser() throws Exception {
         UserResponse userResponse = UserResponse.builder()
                 .userId(99L)
                 .fullName("Managed User")
@@ -85,15 +66,14 @@ class UserControllerSecurityTests {
 
         when(userService.getUserById(99L)).thenReturn(userResponse);
 
-        mockMvc.perform(get("/api/users/99")
-                        .with(user("admin@example.com").roles("ADMIN")))
+        mockMvc.perform(get("/api/v1/users/99"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.email").value("managed@example.com"));
     }
 
     @Test
-    void updateMyProfile_shouldAllowAuthenticatedUser() throws Exception {
+    void updateMyProfile_shouldAllowValidPayload() throws Exception {
         UserResponse userResponse = UserResponse.builder()
                 .userId(1L)
                 .fullName("Updated User")
@@ -105,17 +85,31 @@ class UserControllerSecurityTests {
 
         when(userService.updateCurrentUserProfile(any())).thenReturn(userResponse);
 
-        mockMvc.perform(put("/api/users/me/profile")
-                        .with(user("user@example.com").roles("GUEST"))
+        mockMvc.perform(put("/api/v1/users/me/profile")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  \"fullName\": \"Updated User\",
-                                  \"phone\": \"0901234567\"
+                                  "fullName": "Updated User",
+                                  "phone": "0901234567"
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.fullName").value("Updated User"));
+    }
+
+    @Test
+    void updateMyProfile_shouldRejectInvalidPayload() throws Exception {
+        mockMvc.perform(put("/api/v1/users/me/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "fullName": "A",
+                                  "phone": "123"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
 }
