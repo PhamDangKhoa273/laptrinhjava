@@ -12,12 +12,19 @@ public class ProcessStepResponse {
     private String imageUrl;
     private String recordedByName;
 
+    public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    public Integer getStepNo() { return stepNo; }
     public void setStepNo(Integer i) { this.stepNo = i; }
+    public String getStepName() { return stepName; }
     public void setStepName(String s) { this.stepName = s; }
+    public LocalDateTime getPerformedAt() { return performedAt; }
     public void setPerformedAt(LocalDateTime t) { this.performedAt = t; }
+    public String getDescription() { return description; }
     public void setDescription(String s) { this.description = s; }
+    public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String s) { this.imageUrl = s; }
+    public String getRecordedByName() { return recordedByName; }
     public void setRecordedByName(String s) { this.recordedByName = s; }
 
     public static ProcessStepResponse fromEntity(FarmingProcess p, String recorderName) {

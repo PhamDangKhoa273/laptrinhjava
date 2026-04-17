@@ -1,14 +1,9 @@
 package com.bicap.modules.logistics.controller;
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.modules.user.entity.User;
 
 import com.bicap.core.dto.ApiResponse;
-
 import com.bicap.modules.logistics.dto.CreateVehicleRequest;
 import com.bicap.modules.logistics.dto.UpdateVehicleRequest;
 import com.bicap.modules.logistics.dto.VehicleResponse;
-import com.bicap.core.dto.ApiResponse;
 import com.bicap.core.security.SecurityUtils;
 import com.bicap.modules.logistics.service.VehicleService;
 import jakarta.validation.Valid;
@@ -19,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/v1/vehicles")
 @RequiredArgsConstructor
 public class VehicleController {
@@ -29,7 +25,7 @@ public class VehicleController {
     @PreAuthorize("hasRole('SHIPPING_MANAGER')")
     public ApiResponse<VehicleResponse> createVehicle(@Valid @RequestBody CreateVehicleRequest request) {
         return ApiResponse.success(
-                "Táº¡o vehicle thÃ nh cÃ´ng",
+                "Tạo vehicle thành công",
                 vehicleService.createVehicle(request, SecurityUtils.getCurrentUserId())
         );
     }
@@ -51,7 +47,7 @@ public class VehicleController {
     public ApiResponse<VehicleResponse> update(@PathVariable Long id,
                                                @Valid @RequestBody UpdateVehicleRequest request) {
         return ApiResponse.success(
-                "Cáº­p nháº­t vehicle thÃ nh cÃ´ng",
+                "Cập nhật vehicle thành công",
                 vehicleService.update(id, request, SecurityUtils.getCurrentUserId())
         );
     }
@@ -60,7 +56,7 @@ public class VehicleController {
     @PreAuthorize("hasAnyRole('SHIPPING_MANAGER','ADMIN')")
     public ApiResponse<VehicleResponse> deactivate(@PathVariable Long id) {
         return ApiResponse.success(
-                "Ngá»«ng kÃ­ch hoáº¡t vehicle thÃ nh cÃ´ng",
+                "Ngừng kích hoạt vehicle thành công",
                 vehicleService.deactivate(id, SecurityUtils.getCurrentUserId())
         );
     }

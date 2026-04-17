@@ -1,15 +1,31 @@
 package com.bicap.modules.listing.dto;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Size;
+
 import java.math.BigDecimal;
 
 public class UpdateListingRequest {
 
+    @Size(max = 255, message = "Tiêu đề không được vượt quá 255 ký tự")
     private String title;
+
+    @Size(max = 3000, message = "Mô tả không được vượt quá 3000 ký tự")
     private String description;
+
+    @DecimalMin(value = "0.01", message = "Giá phải lớn hơn 0")
     private BigDecimal price;
+
+    @DecimalMin(value = "0.01", message = "Số lượng phải lớn hơn 0")
     private BigDecimal quantityAvailable;
+
+    @Size(max = 50, message = "Đơn vị không được vượt quá 50 ký tự")
     private String unit;
+
+    @Size(max = 500, message = "Image URL không được vượt quá 500 ký tự")
     private String imageUrl;
+
+    @Size(max = 20, message = "Trạng thái không được vượt quá 20 ký tự")
     private String status;
 
     // Getters and Setters

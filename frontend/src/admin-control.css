@@ -1,0 +1,178 @@
+.admin-control-page {
+  gap: 28px;
+}
+
+.admin-summary-card {
+  min-height: 132px;
+  display: grid;
+  gap: 8px;
+}
+
+.admin-summary-card strong {
+  font-size: 2rem;
+  color: #f4fbff;
+}
+
+.admin-control-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.admin-control-grid-wide {
+  grid-template-columns: 1.1fr 1fr;
+}
+
+.admin-panel-card {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.panel-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.business-card-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.inline-actions-stretch {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.clickable-chip {
+  border: none;
+  cursor: pointer;
+}
+
+.clickable-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-queue-card {
+  border-radius: 22px;
+}
+
+.detail-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.action-row-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.admin-detail-drawer {
+  position: sticky;
+  top: 24px;
+}
+
+.farm-review-history {
+  display: grid;
+  gap: 14px;
+}
+
+.detail-card {
+  border-radius: 22px;
+}
+
+.subtle-card {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.admin-catalog-panel {
+  min-height: 620px;
+}
+
+.catalog-editor-grid {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.catalog-list {
+  display: grid;
+  gap: 10px;
+  max-height: 540px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.catalog-list-item {
+  width: 100%;
+  text-align: left;
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  margin: 0;
+  border: 1px solid rgba(162, 184, 214, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #e8f0f8;
+}
+
+.catalog-list-item span,
+.catalog-list-item small {
+  color: #8ea5c1;
+}
+
+.catalog-list-item.is-active {
+  background: linear-gradient(135deg, rgba(29, 143, 255, 0.18), rgba(51, 212, 139, 0.18));
+  border-color: rgba(95, 168, 255, 0.24);
+}
+
+.status-blocked {
+  background: rgba(255, 210, 125, 0.14);
+  color: #ffd27d;
+}
+
+.status-pending {
+  background: rgba(95, 168, 255, 0.12);
+  color: #93cbff;
+}
+
+.status-approved {
+  background: rgba(43, 184, 92, 0.12);
+  color: #91f2b3;
+}
+
+.status-rejected,
+.status-deactivated {
+  background: rgba(255, 93, 93, 0.12);
+  color: #ffb0b0;
+}
+
+@media (max-width: 1180px) {
+  .admin-control-grid,
+  .admin-control-grid-wide,
+  .catalog-editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-detail-drawer {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .panel-header-row,
+  .detail-topline {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .action-row-wrap {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}

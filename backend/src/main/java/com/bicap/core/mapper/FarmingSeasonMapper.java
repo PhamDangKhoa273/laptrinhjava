@@ -1,5 +1,4 @@
 package com.bicap.core.mapper;
-import com.bicap.modules.season.entity.FarmingSeason;
 
 import com.bicap.modules.season.dto.SeasonResponse;
 import com.bicap.modules.season.entity.FarmingSeason;

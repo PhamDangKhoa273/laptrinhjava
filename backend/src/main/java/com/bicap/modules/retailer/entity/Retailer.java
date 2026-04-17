@@ -1,8 +1,6 @@
 package com.bicap.modules.retailer.entity;
 import com.bicap.modules.user.entity.User;
 
-import com.bicap.modules.user.entity.User;
-
 import jakarta.persistence.*;
 
 @Entity

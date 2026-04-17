@@ -1,5 +1,4 @@
 package com.bicap.modules.season.dto;
-import com.bicap.modules.farm.entity.Farm;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

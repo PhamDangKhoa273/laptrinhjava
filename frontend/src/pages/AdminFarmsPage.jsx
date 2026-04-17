@@ -53,7 +53,7 @@ export function AdminFarmsPage() {
     switch (status) {
       case 'APPROVED':
         return 'bg-green-100 text-green-800'
-      case 'REJECT':
+      case 'REJECTED':
         return 'bg-red-100 text-red-800'
       case 'PENDING':
         return 'bg-yellow-100 text-yellow-800'
@@ -121,8 +121,8 @@ export function AdminFarmsPage() {
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{farm.farmCode}</td>
                   <td className="px-6 py-4 text-sm text-gray-900">{farm.farmName}</td>
                   <td className="px-6 py-4 text-sm text-gray-700">
-                    <div className="font-medium">{farm.ownerFullName}</div>
-                    <div className="text-xs text-gray-500">ID: {farm.ownerUserId}</div>
+                    <div className="font-medium">{farm.ownerName}</div>
+                    <div className="text-xs text-gray-500">ID: {farm.ownerId}</div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-700">{farm.province}</td>
                   <td className="px-6 py-4 text-sm">
@@ -145,8 +145,8 @@ export function AdminFarmsPage() {
                         Approve
                       </Button>
                     )}
-                    {farm.approvalStatus !== 'REJECT' && (
-                      <Button onClick={() => handleChangeApprovalStatus(farm.farmId, 'REJECT')} variant="danger">
+                    {farm.approvalStatus !== 'REJECTED' && (
+                      <Button onClick={() => handleChangeApprovalStatus(farm.farmId, 'REJECTED')} variant="danger">
                         Reject
                       </Button>
                     )}

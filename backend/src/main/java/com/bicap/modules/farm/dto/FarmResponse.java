@@ -1,7 +1,4 @@
 package com.bicap.modules.farm.dto;
-
-import java.time.LocalDateTime;
-
 public class FarmResponse {
     private Long farmId;
     private String farmCode;
@@ -14,10 +11,16 @@ public class FarmResponse {
     private String phone;
     private String email;
     private String businessLicenseNo;
+    private String businessLicenseFileUrl;
     private String certificationStatus;
     private String approvalStatus;
     private Long ownerId;
     private String ownerName;
+    private Long reviewedByUserId;
+    private String reviewedByFullName;
+    private String reviewComment;
+    private java.time.LocalDateTime reviewedAt;
+    private String description;
 
     // Getters and Setters
     public Long getFarmId() { return farmId; }
@@ -42,6 +45,8 @@ public class FarmResponse {
     public void setEmail(String s) { this.email = s; }
     public String getBusinessLicenseNo() { return businessLicenseNo; }
     public void setBusinessLicenseNo(String s) { this.businessLicenseNo = s; }
+    public String getBusinessLicenseFileUrl() { return businessLicenseFileUrl; }
+    public void setBusinessLicenseFileUrl(String s) { this.businessLicenseFileUrl = s; }
     public String getCertificationStatus() { return certificationStatus; }
     public void setCertificationStatus(String s) { this.certificationStatus = s; }
     public String getApprovalStatus() { return approvalStatus; }
@@ -50,6 +55,16 @@ public class FarmResponse {
     public void setOwnerId(Long id) { this.ownerId = id; }
     public String getOwnerName() { return ownerName; }
     public void setOwnerName(String s) { this.ownerName = s; }
+    public Long getReviewedByUserId() { return reviewedByUserId; }
+    public void setReviewedByUserId(Long id) { this.reviewedByUserId = id; }
+    public String getReviewedByFullName() { return reviewedByFullName; }
+    public void setReviewedByFullName(String s) { this.reviewedByFullName = s; }
+    public String getReviewComment() { return reviewComment; }
+    public void setReviewComment(String s) { this.reviewComment = s; }
+    public java.time.LocalDateTime getReviewedAt() { return reviewedAt; }
+    public void setReviewedAt(java.time.LocalDateTime t) { this.reviewedAt = t; }
+    public String getDescription() { return description; }
+    public void setDescription(String s) { this.description = s; }
 
     public static Builder builder() { return new Builder(); }
     public static class Builder {
@@ -65,10 +80,16 @@ public class FarmResponse {
         public Builder phone(String s) { r.setPhone(s); return this; }
         public Builder email(String s) { r.setEmail(s); return this; }
         public Builder businessLicenseNo(String s) { r.setBusinessLicenseNo(s); return this; }
+        public Builder businessLicenseFileUrl(String s) { r.setBusinessLicenseFileUrl(s); return this; }
         public Builder certificationStatus(String s) { r.setCertificationStatus(s); return this; }
         public Builder approvalStatus(String s) { r.setApprovalStatus(s); return this; }
         public Builder ownerId(Long l) { r.setOwnerId(l); return this; }
         public Builder ownerName(String s) { r.setOwnerName(s); return this; }
+        public Builder reviewedByUserId(Long l) { r.setReviewedByUserId(l); return this; }
+        public Builder reviewedByFullName(String s) { r.setReviewedByFullName(s); return this; }
+        public Builder reviewComment(String s) { r.setReviewComment(s); return this; }
+        public Builder reviewedAt(java.time.LocalDateTime t) { r.setReviewedAt(t); return this; }
+        public Builder description(String s) { r.setDescription(s); return this; }
         public FarmResponse build() { return r; }
     }
 }

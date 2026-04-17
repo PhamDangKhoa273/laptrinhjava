@@ -1,72 +1,85 @@
 package com.bicap.modules.season.controller;
 
 import com.bicap.core.dto.ApiResponse;
-
 import com.bicap.modules.season.dto.CreateProcessStepRequest;
-import com.bicap.modules.season.dto.ReorderProcessRequest;
-import com.bicap.modules.season.dto.UpdateProcessStepRequest;
-import com.bicap.core.dto.ApiResponse;
 import com.bicap.modules.season.dto.ProcessStepResponse;
 import com.bicap.modules.season.dto.ProcessTimelineResponse;
+import com.bicap.modules.season.dto.ReorderProcessRequest;
+import com.bicap.modules.season.dto.UpdateProcessStepRequest;
 import com.bicap.modules.season.service.FarmingProcessService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1")
+@CrossOrigin(origins = "http://localhost:3000")
+@RequestMapping("/api/v1/processes")
 @RequiredArgsConstructor
 public class FarmingProcessController {
 
     private final FarmingProcessService farmingProcessService;
 
-    @PostMapping("/seasons/{seasonId}/processes")
-    public ApiResponse<ProcessStepResponse> createProcessStep(
-            @PathVariable Long seasonId,
-            @Valid @RequestBody CreateProcessStepRequest request) {
+    @PostMapping("/season/{seasonId}")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
+    public ApiResponse<ProcessStepResponse> createStep(@PathVariable Long seasonId, 
+                                                       @Valid @RequestBody CreateProcessStepRequest request) {
         ProcessStepResponse response = farmingProcessService.createProcessStep(seasonId, request);
-        return ApiResponse.success("Thêm bước quy trình thành công", response);
+        return ApiResponse.success("Ghi nhận bước quy trình thành công", response);
     }
 
-    @GetMapping("/seasons/{seasonId}/processes")
-    public ApiResponse<ProcessTimelineResponse> getProcessesBySeason(@PathVariable Long seasonId) {
+    @PostMapping("/seasons/{seasonId}")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
+    public ApiResponse<ProcessStepResponse> createStepAlias(@PathVariable Long seasonId,
+                                                            @Valid @RequestBody CreateProcessStepRequest request) {
+        ProcessStepResponse response = farmingProcessService.createProcessStep(seasonId, request);
+        return ApiResponse.success("Ghi nhận bước quy trình thành công", response);
+    }
+
+    @GetMapping("/season/{seasonId}")
+    public ApiResponse<ProcessTimelineResponse> getBySeason(@PathVariable Long seasonId) {
         ProcessTimelineResponse response = farmingProcessService.getProcessesBySeason(seasonId);
-        return ApiResponse.success("Lấy danh sách quy trình thành công", response);
+        return ApiResponse.success(response);
     }
 
-    @GetMapping("/processes/{id}")
-    public ApiResponse<ProcessStepResponse> getProcessDetail(@PathVariable Long id) {
+    @GetMapping("/seasons/{seasonId}")
+    public ApiResponse<ProcessTimelineResponse> getBySeasonAlias(@PathVariable Long seasonId) {
+        ProcessTimelineResponse response = farmingProcessService.getProcessesBySeason(seasonId);
+        return ApiResponse.success(response);
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<ProcessStepResponse> getDetail(@PathVariable Long id) {
         ProcessStepResponse response = farmingProcessService.getProcessDetail(id);
-        return ApiResponse.success("Lấy chi tiết bước quy trình thành công", response);
+        return ApiResponse.success(response);
     }
 
-    @PutMapping("/processes/{id}")
-    public ApiResponse<ProcessStepResponse> updateProcessStep(
-            @PathVariable Long id,
-            @Valid @RequestBody UpdateProcessStepRequest request) {
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
+    public ApiResponse<ProcessStepResponse> updateStep(@PathVariable Long id, 
+                                                       @Valid @RequestBody UpdateProcessStepRequest request) {
         ProcessStepResponse response = farmingProcessService.updateProcessStep(id, request);
         return ApiResponse.success("Cập nhật bước quy trình thành công", response);
     }
 
-    @DeleteMapping("/processes/{id}")
-    public ApiResponse<Void> deleteProcessStep(@PathVariable Long id) {
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
+    public ApiResponse<Void> deleteStep(@PathVariable Long id) {
         farmingProcessService.deleteProcessStep(id);
         return ApiResponse.success("Xóa bước quy trình thành công", null);
     }
 
-    @PatchMapping("/processes/{id}/reorder")
-    public ApiResponse<ProcessStepResponse> reorderProcessStep(
-            @PathVariable Long id,
-            @RequestParam("stepNo") Integer stepNo) {
+    @PatchMapping("/{id}/reorder")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
+    public ApiResponse<ProcessStepResponse> reorderStep(@PathVariable Long id, @RequestParam Integer stepNo) {
         ProcessStepResponse response = farmingProcessService.reorderProcessStep(id, stepNo);
-        return ApiResponse.success("Cập nhật thứ tự bước thành công", response);
+        return ApiResponse.success("Thay đổi thứ tự thành công", response);
     }
 
-    @PatchMapping("/seasons/{seasonId}/processes/reorder")
-    public ApiResponse<Void> reorderProcesses(
-            @PathVariable Long seasonId,
-            @Valid @RequestBody ReorderProcessRequest request) {
+    @PostMapping("/season/{seasonId}/reorder")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
+    public ApiResponse<Void> reorderAll(@PathVariable Long seasonId, @RequestBody ReorderProcessRequest request) {
         farmingProcessService.reorderProcesses(seasonId, request);
-        return ApiResponse.success("Cập nhật thứ tự thành công", null);
+        return ApiResponse.success("Sắp xếp lại toàn bộ quy trình thành công", null);
     }
 }

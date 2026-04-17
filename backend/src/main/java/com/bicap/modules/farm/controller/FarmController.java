@@ -12,11 +12,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/farms")
+@CrossOrigin(origins = "http://localhost:3000")
+@RequestMapping("/api/v1/farms")
 @RequiredArgsConstructor
 public class FarmController {
 
@@ -33,14 +35,14 @@ public class FarmController {
         return ApiResponse.success(farmService.getFarmById(id));
     }
 
-    @GetMapping("/my-farm")
-    @PreAuthorize("hasRole('FARMER')")
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('FARM')")
     public ApiResponse<FarmResponse> getMyFarm(@AuthenticationPrincipal CustomUserPrincipal currentUser) {
         return ApiResponse.success(farmService.getMyFarm(currentUser.getUserId()));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('FARMER')")
+    @PreAuthorize("hasRole('FARM')")
     public ApiResponse<FarmResponse> createFarm(
             @Valid @RequestBody CreateFarmRequest request,
             @AuthenticationPrincipal CustomUserPrincipal currentUser) {
@@ -48,7 +50,7 @@ public class FarmController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('FARMER')")
+    @PreAuthorize("hasRole('FARM')")
     public ApiResponse<FarmResponse> updateFarm(
             @PathVariable Long id,
             @Valid @RequestBody UpdateFarmRequest request,
@@ -62,7 +64,16 @@ public class FarmController {
             @PathVariable Long id,
             @Valid @RequestBody FarmReviewRequest request,
             @AuthenticationPrincipal CustomUserPrincipal currentUser) {
-        return ApiResponse.success(farmService.changeApprovalStatus(id, request.getApprovalStatus(), currentUser.getUserId()));
+        return ApiResponse.success(farmService.changeApprovalStatus(id, request.getApprovalStatus(), request.getReviewComment(), currentUser.getUserId()));
+    }
+
+    @PutMapping("/{id}/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<FarmResponse> adminUpdateFarm(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateFarmRequest request,
+            @AuthenticationPrincipal CustomUserPrincipal currentUser) {
+        return ApiResponse.success(farmService.adminUpdateFarm(id, request, currentUser.getUserId()));
     }
 
     @DeleteMapping("/{id}")
@@ -72,5 +83,15 @@ public class FarmController {
             @AuthenticationPrincipal CustomUserPrincipal currentUser) {
         farmService.deactivateFarm(id, currentUser.getUserId());
         return ApiResponse.success(null);
+    }
+
+    @PostMapping(value = "/{id}/business-license", consumes = "multipart/form-data")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
+    public ApiResponse<FarmResponse> uploadBusinessLicense(
+            @PathVariable Long id,
+            @RequestPart("file") MultipartFile file,
+            @AuthenticationPrincipal CustomUserPrincipal currentUser) {
+        return ApiResponse.success("Tải giấy phép kinh doanh thành công",
+                farmService.uploadBusinessLicense(id, file, currentUser.getUserId()));
     }
 }

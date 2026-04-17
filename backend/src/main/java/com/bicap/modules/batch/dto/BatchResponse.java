@@ -18,17 +18,29 @@ public class BatchResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    public Long getBatchId() { return batchId; }
     public void setBatchId(Long id) { this.batchId = id; }
+    public Long getSeasonId() { return seasonId; }
     public void setSeasonId(Long id) { this.seasonId = id; }
+    public Long getProductId() { return productId; }
     public void setProductId(Long id) { this.productId = id; }
+    public String getBatchCode() { return batchCode; }
     public void setBatchCode(String s) { this.batchCode = s; }
+    public LocalDate getHarvestDate() { return harvestDate; }
     public void setHarvestDate(LocalDate d) { this.harvestDate = d; }
+    public BigDecimal getQuantity() { return quantity; }
     public void setQuantity(BigDecimal d) { this.quantity = d; }
+    public BigDecimal getAvailableQuantity() { return availableQuantity; }
     public void setAvailableQuantity(BigDecimal d) { this.availableQuantity = d; }
+    public String getQualityGrade() { return qualityGrade; }
     public void setQualityGrade(String s) { this.qualityGrade = s; }
+    public LocalDate getExpiryDate() { return expiryDate; }
     public void setExpiryDate(LocalDate d) { this.expiryDate = d; }
+    public String getBatchStatus() { return batchStatus; }
     public void setBatchStatus(String s) { this.batchStatus = s; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime t) { this.createdAt = t; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime t) { this.updatedAt = t; }
 
     public static Builder builder() { return new Builder(); }

@@ -1,12 +1,7 @@
 package com.bicap.modules.user.entity;
-import com.bicap.modules.user.entity.User;
-import com.bicap.modules.user.entity.Role;
-
-import com.bicap.modules.user.entity.User;
 
 import com.bicap.core.enums.UserStatus;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -109,28 +104,15 @@ public class User {
         }
     }
     public static UserBuilder builder() { return new UserBuilder(); }
+
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
-    public com.bicap.core.enums.UserStatus getStatus() { return status; }
-    public void setStatus(com.bicap.core.enums.UserStatus status) { this.status = status; }
+    public UserStatus getStatus() { return status; }
+    public void setStatus(UserStatus status) { this.status = status; }
     public java.time.LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }
     public java.time.LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(java.time.LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

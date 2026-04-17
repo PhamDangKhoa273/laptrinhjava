@@ -1,11 +1,9 @@
 package com.bicap.modules.subscription.controller;
 
 import com.bicap.core.dto.ApiResponse;
-
 import com.bicap.modules.subscription.dto.CreateServicePackageRequest;
 import com.bicap.modules.subscription.dto.ServicePackageResponse;
 import com.bicap.modules.subscription.dto.UpdateServicePackageRequest;
-import com.bicap.core.dto.ApiResponse;
 import com.bicap.modules.subscription.service.ServicePackageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/v1/packages")
 @RequiredArgsConstructor
 public class ServicePackageController {

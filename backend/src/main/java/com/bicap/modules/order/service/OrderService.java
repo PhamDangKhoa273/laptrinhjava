@@ -1,0 +1,609 @@
+package com.bicap.modules.order.service;
+
+import com.bicap.core.exception.BusinessException;
+import com.bicap.core.security.SecurityUtils;
+import com.bicap.modules.batch.dto.BlockchainResult;
+import com.bicap.modules.batch.service.BlockchainService;
+import com.bicap.modules.common.notification.dto.CreateNotificationRequest;
+import com.bicap.modules.common.notification.service.NotificationService;
+import com.bicap.modules.farm.entity.Farm;
+import com.bicap.modules.farm.repository.FarmRepository;
+import com.bicap.modules.listing.entity.ProductListing;
+import com.bicap.modules.listing.repository.ProductListingRepository;
+import com.bicap.modules.media.dto.MediaFileResponse;
+import com.bicap.modules.media.service.MediaStorageService;
+import com.bicap.modules.order.dto.*;
+import com.bicap.modules.order.entity.Order;
+import com.bicap.modules.order.entity.OrderItem;
+import com.bicap.modules.order.entity.OrderStatusHistory;
+import com.bicap.modules.order.repository.OrderRepository;
+import com.bicap.modules.order.repository.OrderStatusHistoryRepository;
+import com.bicap.modules.retailer.entity.Retailer;
+import com.bicap.modules.retailer.repository.RetailerRepository;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+    private final RetailerRepository retailerRepository;
+    private final FarmRepository farmRepository;
+    private final ProductListingRepository listingRepository;
+    private final OrderStatusHistoryRepository statusHistoryRepository;
+    private final BlockchainService blockchainService;
+    private final NotificationService notificationService;
+    private final MediaStorageService mediaStorageService;
+
+    private static final Set<String> VALID_STATUSES = Set.of(
+            "PENDING", "CONFIRMED", "SHIPPING", "DELIVERED", "COMPLETED", "CANCELLED"
+    );
+
+    private static final Map<String, Set<String>> STATUS_TRANSITIONS = Map.of(
+            "PENDING", Set.of("CONFIRMED", "CANCELLED"),
+            "CONFIRMED", Set.of("SHIPPING", "CANCELLED"),
+            "SHIPPING", Set.of("DELIVERED", "CANCELLED"),
+            "DELIVERED", Set.of("COMPLETED"),
+            "COMPLETED", Set.of(),
+            "CANCELLED", Set.of()
+    );
+
+    private static final Set<String> BLOCKCHAIN_RECORD_STATUSES = Set.of("CONFIRMED", "COMPLETED");
+    private static final String PAYMENT_STATUS_UNPAID = "UNPAID";
+    private static final String PAYMENT_STATUS_DEPOSIT_PAID = "DEPOSIT_PAID";
+
+    public OrderService(OrderRepository orderRepository,
+                        RetailerRepository retailerRepository,
+                        FarmRepository farmRepository,
+                        ProductListingRepository listingRepository,
+                        OrderStatusHistoryRepository statusHistoryRepository,
+                        BlockchainService blockchainService,
+                        NotificationService notificationService,
+                        MediaStorageService mediaStorageService) {
+        this.orderRepository = orderRepository;
+        this.retailerRepository = retailerRepository;
+        this.farmRepository = farmRepository;
+        this.listingRepository = listingRepository;
+        this.statusHistoryRepository = statusHistoryRepository;
+        this.blockchainService = blockchainService;
+        this.notificationService = notificationService;
+        this.mediaStorageService = mediaStorageService;
+    }
+
+    @Transactional
+    public OrderResponse createOrder(CreateOrderRequest request) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Retailer retailer = retailerRepository.findByUserUserId(currentUserId)
+                .orElseThrow(() -> new BusinessException("Retailer chưa được đăng ký"));
+
+        List<OrderItemRequest> items = request.getItems();
+        if (items == null || items.isEmpty()) {
+            throw new BusinessException("Danh sách sản phẩm đặt hàng là bắt buộc");
+        }
+
+        Order order = new Order();
+        order.setRetailerId(retailer.getRetailerId());
+        order.setStatus("PENDING");
+        order.setPaymentStatus(PAYMENT_STATUS_UNPAID);
+
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        Long farmId = null;
+
+        Map<Long, BigDecimal> quantityByListing = items.stream()
+                .collect(Collectors.toMap(OrderItemRequest::getListingId,
+                        OrderItemRequest::getQuantity,
+                        BigDecimal::add));
+
+        for (Map.Entry<Long, BigDecimal> entry : quantityByListing.entrySet()) {
+            Long listingId = entry.getKey();
+            BigDecimal orderQuantity = entry.getValue();
+
+            ProductListing listing = listingRepository.findById(listingId)
+                    .orElseThrow(() -> new BusinessException("Listing không tồn tại: " + listingId));
+            if (!"ACTIVE".equalsIgnoreCase(listing.getStatus())) {
+                throw new BusinessException("Listing " + listingId + " không khả dụng");
+            }
+            if (!"APPROVED".equalsIgnoreCase(listing.getApprovalStatus())) {
+                throw new BusinessException("Listing " + listingId + " chưa được phê duyệt để giao dịch");
+            }
+            if (listing.getQuantityAvailable() == null || listing.getQuantityAvailable().compareTo(orderQuantity) < 0) {
+                throw new BusinessException("Số lượng đặt hàng không được lớn hơn quantity_available của listing " + listingId);
+            }
+
+            if (listing.getBatch() == null || listing.getBatch().getSeason() == null || listing.getBatch().getSeason().getFarm() == null) {
+                throw new BusinessException("Listing " + listingId + " không liên kết farm hợp lệ");
+            }
+
+            Long listingFarmId = listing.getBatch().getSeason().getFarm().getFarmId();
+            if (farmId == null) {
+                farmId = listingFarmId;
+            } else if (!farmId.equals(listingFarmId)) {
+                throw new BusinessException("Một đơn hàng chỉ được tạo từ cùng một farm");
+            }
+
+            listing.setQuantityAvailable(listing.getQuantityAvailable().subtract(orderQuantity));
+            if (listing.getQuantityAvailable().compareTo(BigDecimal.ZERO) <= 0) {
+                listing.setStatus("SOLD_OUT");
+            }
+            listingRepository.save(listing);
+
+            OrderItem orderItem = new OrderItem();
+            orderItem.setListing(listing);
+            orderItem.setQuantity(orderQuantity);
+            orderItem.setPrice(listing.getPrice());
+            order.addOrderItem(orderItem);
+
+            totalAmount = totalAmount.add(listing.getPrice().multiply(orderQuantity));
+        }
+
+        if (farmId == null) {
+            throw new BusinessException("Không xác định được farm của đơn hàng");
+        }
+
+        order.setFarmId(farmId);
+        order.setTotalAmount(totalAmount);
+
+        Order savedOrder = orderRepository.save(order);
+        return toResponse(savedOrder);
+    }
+
+    public List<OrderResponse> getOrders() {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Retailer retailer = retailerRepository.findByUserUserId(currentUserId).orElse(null);
+        Farm farm = farmRepository.findByOwnerUserUserId(currentUserId).orElse(null);
+
+        List<Order> orders;
+        if (retailer != null) {
+            orders = orderRepository.findByRetailerId(retailer.getRetailerId());
+        } else if (farm != null) {
+            orders = orderRepository.findByFarmId(farm.getFarmId());
+        } else if (hasAnyRole("SHIPPING_MANAGER", "DRIVER", "ADMIN")) {
+            orders = orderRepository.findAll();
+        } else {
+            throw new BusinessException("Bạn không có quyền xem danh sách đơn hàng");
+        }
+
+        return orders.stream().map(this::toResponse).toList();
+    }
+
+    public OrderResponse getOrderById(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy đơn hàng với ID: " + id));
+        assertCanViewOrder(order, SecurityUtils.getCurrentUserId());
+        return toResponse(order);
+    }
+
+    private OrderResponse toResponse(Order order) {
+        List<OrderItemResponse> items = order.getOrderItems().stream()
+                .map(this::toItemResponse)
+                .toList();
+        return OrderResponse.builder()
+                .orderId(order.getOrderId())
+                .retailerId(order.getRetailerId())
+                .farmId(order.getFarmId())
+                .totalAmount(order.getTotalAmount())
+                .status(order.getStatus())
+                .paymentStatus(order.getPaymentStatus())
+                .depositAmount(order.getDepositAmount())
+                .depositPaidAt(order.getDepositPaidAt())
+                .cancellationReason(order.getCancellationReason())
+                .cancelledAt(order.getCancelledAt())
+                .deliveryConfirmedAt(order.getDeliveryConfirmedAt())
+                .deliveryConfirmedByUserId(order.getDeliveryConfirmedByUserId())
+                .deliveryProofImageUrl(order.getDeliveryProofImageUrl())
+                .shippingProofImageUrl(order.getShippingProofImageUrl())
+                .createdAt(order.getCreatedAt())
+                .updatedAt(order.getUpdatedAt())
+                .items(items)
+                .build();
+    }
+
+    @Transactional
+    public OrderResponse payDeposit(Long orderId, OrderDepositRequest request) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Retailer retailer = retailerRepository.findByUserUserId(currentUserId)
+                .orElseThrow(() -> new BusinessException("Retailer chưa được đăng ký"));
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy đơn hàng với ID: " + orderId));
+
+        if (!order.getRetailerId().equals(retailer.getRetailerId())) {
+            throw new BusinessException("Bạn không có quyền thanh toán đơn hàng này");
+        }
+
+        if (!"PENDING".equals(order.getStatus())) {
+            throw new BusinessException("Chỉ đơn hàng ở trạng thái PENDING mới được thanh toán đặt cọc");
+        }
+
+        if (order.getTotalAmount() == null || order.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Đơn hàng không hợp lệ để thanh toán đặt cọc");
+        }
+
+        if (PAYMENT_STATUS_DEPOSIT_PAID.equals(order.getPaymentStatus())) {
+            throw new BusinessException("Đơn hàng này đã được thanh toán đặt cọc");
+        }
+
+        BigDecimal minimumDeposit = order.getTotalAmount().multiply(BigDecimal.valueOf(0.3));
+        if (request.getAmount().compareTo(minimumDeposit) < 0) {
+            throw new BusinessException("Số tiền đặt cọc phải đạt tối thiểu 30% tổng giá trị đơn hàng");
+        }
+        if (request.getAmount().compareTo(order.getTotalAmount()) > 0) {
+            throw new BusinessException("Số tiền đặt cọc không được vượt quá tổng giá trị đơn hàng");
+        }
+
+        order.setDepositAmount(request.getAmount());
+        order.setDepositPaidAt(LocalDateTime.now());
+        order.setPaymentStatus(PAYMENT_STATUS_DEPOSIT_PAID);
+
+        OrderStatusHistory history = new OrderStatusHistory();
+        history.setOrderId(orderId);
+        history.setPreviousStatus(order.getStatus());
+        history.setNewStatus(order.getStatus());
+        history.setReason("Deposit paid via " + request.getMethod().trim().toUpperCase() + " - ref: " + request.getTransactionRef().trim());
+        statusHistoryRepository.save(history);
+
+        return toResponse(orderRepository.save(order));
+    }
+
+    private OrderItemResponse toItemResponse(OrderItem item) {
+        return OrderItemResponse.builder()
+                .listingId(item.getListing().getListingId())
+                .title(item.getListing().getTitle())
+                .batchCode(item.getListing().getBatch().getBatchCode())
+                .quantity(item.getQuantity())
+                .price(item.getPrice())
+                .subTotal(item.getPrice().multiply(item.getQuantity()))
+                .build();
+    }
+
+    @Transactional
+    public OrderResponse updateOrderStatus(Long orderId, UpdateOrderStatusRequest request) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        // Validate new status
+        String newStatus = request.getStatus();
+        if (!VALID_STATUSES.contains(newStatus)) {
+            throw new BusinessException("Trạng thái không hợp lệ: " + newStatus);
+        }
+
+        // Get order
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy đơn hàng với ID: " + orderId));
+
+        assertCanChangeStatus(order, currentUserId, newStatus);
+
+        String currentStatus = order.getStatus();
+
+        if (currentStatus.equals(newStatus)) {
+            throw new BusinessException("Đơn hàng đã ở trạng thái " + newStatus);
+        }
+
+        if ("CONFIRMED".equals(newStatus) && !PAYMENT_STATUS_DEPOSIT_PAID.equals(order.getPaymentStatus())) {
+            throw new BusinessException("Đơn hàng phải được thanh toán đặt cọc trước khi xác nhận");
+        }
+
+        if ("SHIPPING".equals(newStatus) && !PAYMENT_STATUS_DEPOSIT_PAID.equals(order.getPaymentStatus())) {
+            throw new BusinessException("Đơn hàng phải có trạng thái DEPOSIT_PAID trước khi chuyển sang SHIPPING");
+        }
+
+        if ("DELIVERED".equals(newStatus) && (order.getShippingProofImageUrl() == null || order.getShippingProofImageUrl().isBlank())) {
+            throw new BusinessException("Phải có proof vận chuyển trước khi chuyển sang DELIVERED");
+        }
+
+        // Validate status transition
+        Set<String> allowedTransitions = STATUS_TRANSITIONS.getOrDefault(currentStatus, new HashSet<>());
+        if (!allowedTransitions.contains(newStatus)) {
+            throw new BusinessException(
+                    String.format("Không thể chuyển từ trạng thái '%s' sang '%s'", currentStatus, newStatus)
+            );
+        }
+
+        // Record status change in history
+        OrderStatusHistory history = new OrderStatusHistory();
+        history.setOrderId(orderId);
+        history.setPreviousStatus(currentStatus);
+        history.setNewStatus(newStatus);
+        history.setReason(request.getReason());
+
+        // Record to blockchain (only for CONFIRMED and COMPLETED statuses)
+        if (BLOCKCHAIN_RECORD_STATUSES.contains(newStatus)) {
+            try {
+                OrderStatusBlockchainPayload payload = new OrderStatusBlockchainPayload(
+                        orderId,
+                        order.getRetailerId(),
+                        order.getFarmId(),
+                        currentStatus,
+                        newStatus,
+                        request.getReason(),
+                        LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+                );
+
+                BlockchainResult blockchainResult = blockchainService.saveTransaction(
+                        "ORDER",
+                        orderId,
+                        "STATUS_UPDATE",
+                        com.bicap.modules.batch.util.HashUtils.toCanonicalJson(payload.toMap())
+                );
+
+                history.setBlockchainTxHash(blockchainResult.getTxHash());
+            } catch (Exception e) {
+                // Log but don't fail - blockchain recording is non-blocking
+                // In production, you might want to log this to a separate error tracking system
+            }
+        }
+
+        statusHistoryRepository.save(history);
+
+        // Update order status
+        order.setStatus(newStatus);
+        Order updatedOrder = orderRepository.save(order);
+
+        if (Set.of("CONFIRMED", "SHIPPING", "DELIVERED", "COMPLETED", "CANCELLED").contains(newStatus)) {
+            notifyOrderStatusChange(updatedOrder, newStatus, request.getReason());
+        }
+
+        return toResponse(updatedOrder);
+    }
+
+    @Transactional
+    public OrderResponse uploadShippingProof(Long orderId, DeliveryProofRequest request) {
+        assertCanUploadShippingProof(SecurityUtils.getCurrentUserId());
+        Order order = getOrderForInternalFlow(orderId);
+        if (!"SHIPPING".equals(order.getStatus()) && !"DELIVERED".equals(order.getStatus())) {
+            throw new BusinessException("Chỉ đơn hàng đang giao mới được cập nhật proof vận chuyển");
+        }
+
+        String imageUrl = request.getImageUrl().trim();
+        if (imageUrl.isBlank()) {
+            throw new BusinessException("imageUrl là bắt buộc");
+        }
+
+        order.setShippingProofImageUrl(imageUrl);
+        appendHistory(orderId, order.getStatus(), order.getStatus(), request.getNote() != null ? request.getNote().trim() : "Shipping proof uploaded");
+        return toResponse(orderRepository.save(order));
+    }
+
+    @Transactional
+    public OrderResponse confirmDelivery(Long orderId, ConfirmDeliveryRequest request) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Retailer retailer = retailerRepository.findByUserUserId(currentUserId)
+                .orElseThrow(() -> new BusinessException("Retailer chưa được đăng ký"));
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy đơn hàng với ID: " + orderId));
+
+        if (!order.getRetailerId().equals(retailer.getRetailerId())) {
+            throw new BusinessException("Bạn không có quyền xác nhận giao hàng cho đơn này");
+        }
+        if (!"DELIVERED".equals(order.getStatus())) {
+            throw new BusinessException("Đơn hàng chưa ở trạng thái có thể xác nhận giao hàng");
+        }
+        if (order.getShippingProofImageUrl() == null || order.getShippingProofImageUrl().isBlank()) {
+            throw new BusinessException("Đơn hàng phải có bằng chứng vận chuyển trước khi xác nhận giao hàng");
+        }
+
+        String proofImageUrl = request.getProofImageUrl().trim();
+        if (proofImageUrl.isBlank()) {
+            throw new BusinessException("proofImageUrl là bắt buộc");
+        }
+
+        order.setStatus("COMPLETED");
+        order.setDeliveryProofImageUrl(proofImageUrl);
+        order.setDeliveryConfirmedAt(LocalDateTime.now());
+        order.setDeliveryConfirmedByUserId(currentUserId);
+        appendHistory(orderId, "DELIVERED", "COMPLETED", request.getNote() != null ? request.getNote().trim() : "Retailer confirmed delivery");
+
+        Order saved = orderRepository.save(order);
+        notifyOrderStatusChange(saved, "COMPLETED", request.getNote());
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public OrderResponse cancelOrder(Long orderId, CancelOrderRequest request) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Retailer retailer = retailerRepository.findByUserUserId(currentUserId)
+                .orElseThrow(() -> new BusinessException("Retailer chưa được đăng ký"));
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy đơn hàng với ID: " + orderId));
+
+        if (!order.getRetailerId().equals(retailer.getRetailerId())) {
+            throw new BusinessException("Bạn không có quyền hủy đơn hàng này");
+        }
+
+        if (!Set.of("PENDING", "CONFIRMED").contains(order.getStatus())) {
+            throw new BusinessException("Đơn hàng ở trạng thái hiện tại không thể hủy");
+        }
+
+        String previousStatus = order.getStatus();
+        restoreListingQuantities(order);
+        order.setStatus("CANCELLED");
+        order.setCancellationReason(request.getReason().trim());
+        order.setCancelledAt(LocalDateTime.now());
+        appendHistory(orderId, previousStatus, "CANCELLED", request.getReason().trim());
+
+        Order saved = orderRepository.save(order);
+        notifyOrderStatusChange(saved, "CANCELLED", request.getReason());
+        return toResponse(saved);
+    }
+
+    private void restoreListingQuantities(Order order) {
+        for (OrderItem item : order.getOrderItems()) {
+            ProductListing listing = item.getListing();
+            listing.setQuantityAvailable(listing.getQuantityAvailable().add(item.getQuantity()));
+            if ("SOLD_OUT".equalsIgnoreCase(listing.getStatus()) && listing.getQuantityAvailable().compareTo(BigDecimal.ZERO) > 0) {
+                listing.setStatus("ACTIVE");
+            }
+            listingRepository.save(listing);
+        }
+    }
+
+    private void appendHistory(Long orderId, String previousStatus, String newStatus, String reason) {
+        OrderStatusHistory history = new OrderStatusHistory();
+        history.setOrderId(orderId);
+        history.setPreviousStatus(previousStatus);
+        history.setNewStatus(newStatus);
+        history.setReason(reason);
+        statusHistoryRepository.save(history);
+    }
+
+    private Order getOrderForInternalFlow(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy đơn hàng với ID: " + orderId));
+    }
+
+    private void notifyOrderStatusChange(Order order, String status, String reason) {
+        CreateNotificationRequest notification = new CreateNotificationRequest();
+        notification.setRecipientRole("ADMIN");
+        notification.setTitle("Cập nhật đơn hàng #" + order.getOrderId());
+        notification.setMessage("Đơn hàng chuyển sang trạng thái " + status + (reason != null && !reason.isBlank() ? ": " + reason : ""));
+        notification.setNotificationType("ORDER_STATUS");
+        notification.setTargetType("ORDER");
+        notification.setTargetId(order.getOrderId());
+        notificationService.create(notification);
+    }
+
+    @Transactional
+    public MediaFileResponse uploadShippingProofFile(Long orderId, MultipartFile file) {
+        assertCanUploadShippingProof(SecurityUtils.getCurrentUserId());
+        Order order = getOrderForInternalFlow(orderId);
+        if (!"SHIPPING".equals(order.getStatus()) && !"DELIVERED".equals(order.getStatus())) {
+            throw new BusinessException("Chỉ đơn hàng đang giao mới được upload bằng chứng vận chuyển");
+        }
+        MediaFileResponse media = mediaStorageService.storeProof(file, "ORDER_SHIPPING_PROOF", orderId);
+        order.setShippingProofImageUrl(media.getFileUrl());
+        orderRepository.save(order);
+        appendHistory(orderId, order.getStatus(), order.getStatus(), "Shipping proof file uploaded");
+        return media;
+    }
+
+    @Transactional
+    public MediaFileResponse uploadDeliveryProofFile(Long orderId, MultipartFile file) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Retailer retailer = retailerRepository.findByUserUserId(currentUserId)
+                .orElseThrow(() -> new BusinessException("Retailer chưa được đăng ký"));
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy đơn hàng với ID: " + orderId));
+
+        if (!order.getRetailerId().equals(retailer.getRetailerId())) {
+            throw new BusinessException("Bạn không có quyền upload bằng chứng giao hàng cho đơn này");
+        }
+
+        if (!"DELIVERED".equals(order.getStatus())) {
+            throw new BusinessException("Chỉ đơn hàng đã DELIVERED mới được upload bằng chứng giao hàng");
+        }
+        if (order.getShippingProofImageUrl() == null || order.getShippingProofImageUrl().isBlank()) {
+            throw new BusinessException("Đơn hàng phải có bằng chứng vận chuyển trước khi upload bằng chứng giao hàng");
+        }
+
+        MediaFileResponse media = mediaStorageService.storeProof(file, "ORDER_DELIVERY_PROOF", orderId);
+        order.setDeliveryProofImageUrl(media.getFileUrl());
+        orderRepository.save(order);
+        appendHistory(orderId, order.getStatus(), order.getStatus(), "Delivery proof file uploaded");
+        return media;
+    }
+
+    private void assertCanChangeStatus(Order order, Long currentUserId, String newStatus) {
+        Retailer retailer = retailerRepository.findByUserUserId(currentUserId).orElse(null);
+        Farm farm = farmRepository.findByOwnerUserUserId(currentUserId).orElse(null);
+
+        if ("CONFIRMED".equals(newStatus)) {
+            if (farm == null || !farm.getFarmId().equals(order.getFarmId())) {
+                throw new BusinessException("Chỉ farm sở hữu đơn hàng mới được xác nhận đơn");
+            }
+            return;
+        }
+
+        if ("SHIPPING".equals(newStatus) || "DELIVERED".equals(newStatus)) {
+            if (!hasAnyRole("SHIPPING_MANAGER", "DRIVER")) {
+                throw new BusinessException("Chỉ logistics mới được cập nhật trạng thái vận chuyển");
+            }
+            if ("DELIVERED".equals(newStatus) && (order.getShippingProofImageUrl() == null || order.getShippingProofImageUrl().isBlank())) {
+                throw new BusinessException("Phải có proof vận chuyển trước khi chuyển sang DELIVERED");
+            }
+            return;
+        }
+
+        if ("CANCELLED".equals(newStatus)) {
+            if (retailer == null || !retailer.getRetailerId().equals(order.getRetailerId())) {
+                throw new BusinessException("Chỉ retailer sở hữu đơn hàng mới được hủy đơn");
+            }
+            return;
+        }
+
+        if ("COMPLETED".equals(newStatus)) {
+            if (retailer == null || !retailer.getRetailerId().equals(order.getRetailerId())) {
+                throw new BusinessException("Chỉ retailer sở hữu đơn hàng mới được hoàn tất đơn");
+            }
+            if (order.getDeliveryProofImageUrl() == null || order.getDeliveryProofImageUrl().isBlank()) {
+                throw new BusinessException("Phải có proof giao hàng trước khi hoàn tất đơn");
+            }
+        }
+    }
+
+    private void assertCanUploadShippingProof(Long currentUserId) {
+        if (!hasAnyRole("SHIPPING_MANAGER", "DRIVER")) {
+            throw new BusinessException("Chỉ logistics mới được upload proof vận chuyển");
+        }
+    }
+
+    private void assertCanViewOrder(Order order, Long currentUserId) {
+        Retailer retailer = retailerRepository.findByUserUserId(currentUserId).orElse(null);
+        if (retailer != null && order.getRetailerId().equals(retailer.getRetailerId())) {
+            return;
+        }
+
+        Farm farm = farmRepository.findByOwnerUserUserId(currentUserId).orElse(null);
+        if (farm != null && order.getFarmId().equals(farm.getFarmId())) {
+            return;
+        }
+
+        if (hasAnyRole("SHIPPING_MANAGER", "DRIVER", "ADMIN")) {
+            return;
+        }
+
+        throw new BusinessException("Bạn không có quyền xem đơn hàng này");
+    }
+
+    private boolean hasAnyRole(String... roles) {
+        return SecurityUtils.getCurrentUser().getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .anyMatch(authority -> {
+                    for (String role : roles) {
+                        if (("ROLE_" + role).equals(authority)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+    }
+
+    public List<OrderStatusHistoryResponse> getOrderStatusHistory(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy đơn hàng với ID: " + orderId));
+        assertCanViewOrder(order, SecurityUtils.getCurrentUserId());
+
+        return statusHistoryRepository.findByOrderIdOrderByChangedAtDesc(orderId).stream()
+                .map(this::toHistoryResponse)
+                .toList();
+    }
+
+    private OrderStatusHistoryResponse toHistoryResponse(OrderStatusHistory history) {
+        return OrderStatusHistoryResponse.builder()
+                .historyId(history.getHistoryId())
+                .orderId(history.getOrderId())
+                .previousStatus(history.getPreviousStatus())
+                .newStatus(history.getNewStatus())
+                .reason(history.getReason())
+                .blockchainTxHash(history.getBlockchainTxHash())
+                .changedAt(history.getChangedAt())
+                .build();
+    }
+}

@@ -1,7 +1,4 @@
 package com.bicap.core;
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.modules.user.entity.User;
 
 import jakarta.persistence.*;
 
@@ -43,10 +40,4 @@ public class AuditLog {
     public void setEntityId(Long entityId) { this.entityId = entityId; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-
-
-
-
-
 }

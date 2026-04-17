@@ -1,59 +1,68 @@
 package com.bicap.modules.batch.controller;
 
 import com.bicap.core.dto.ApiResponse;
-
-import com.bicap.modules.batch.dto.BatchResponse;
-import com.bicap.modules.batch.dto.CreateBatchRequest;
-import com.bicap.modules.batch.dto.QrCodeResponse;
-import com.bicap.modules.batch.dto.TraceBatchResponse;
-import com.bicap.modules.batch.dto.UpdateBatchRequest;
-import com.bicap.core.dto.ApiResponse;
+import com.bicap.modules.batch.dto.*;
 import com.bicap.modules.batch.service.ProductBatchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class BatchController {
 
     private final ProductBatchService productBatchService;
 
-    @PostMapping("/api/batches")
+    @PostMapping("/api/v1/batches")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
     public ApiResponse<BatchResponse> createBatch(@Valid @RequestBody CreateBatchRequest request) {
         return ApiResponse.success("Tạo lô hàng thành công", productBatchService.createBatch(request));
     }
 
-    @GetMapping("/api/batches")
+    @GetMapping("/api/v1/batches")
     public ApiResponse<List<BatchResponse>> getAllBatches() {
         return ApiResponse.success(productBatchService.getAllBatches());
     }
 
-    @GetMapping("/api/batches/{id}")
+    @GetMapping("/api/v1/batches/{id}")
     public ApiResponse<BatchResponse> getBatchById(@PathVariable Long id) {
         return ApiResponse.success(productBatchService.getBatchById(id));
     }
 
-    @PutMapping("/api/batches/{id}")
+    @PutMapping("/api/v1/batches/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
     public ApiResponse<BatchResponse> updateBatch(@PathVariable Long id,
                                                   @Valid @RequestBody UpdateBatchRequest request) {
         return ApiResponse.success("Cập nhật lô hàng thành công", productBatchService.updateBatch(id, request));
     }
 
-    @PostMapping("/api/batches/{id}/qr")
+    @PostMapping("/api/v1/batches/{id}/qr")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
     public ApiResponse<QrCodeResponse> generateQr(@PathVariable Long id) {
         return ApiResponse.success("Tạo mã QR thành công", productBatchService.generateQrCode(id));
     }
 
-    @GetMapping("/api/batches/{id}/qr")
+    @GetMapping("/api/v1/batches/{id}/qr")
     public ApiResponse<QrCodeResponse> getQr(@PathVariable Long id) {
         return ApiResponse.success(productBatchService.getQrCode(id));
     }
 
-    @GetMapping("/api/trace/batches/{id}")
+    @GetMapping("/api/v1/trace/batches/{id}")
     public ApiResponse<TraceBatchResponse> traceBatch(@PathVariable Long id) {
         return ApiResponse.success(productBatchService.traceBatch(id));
+    }
+
+    @GetMapping("/api/v1/public/trace/batches/{id}")
+    public ApiResponse<TraceBatchResponse> publicTraceBatch(@PathVariable Long id) {
+        return ApiResponse.success(productBatchService.traceBatch(id));
+    }
+
+    @GetMapping("/api/v1/batches/{id}/verify")
+    public ApiResponse<VerifyTraceResponse> verifyBatch(@PathVariable Long id) {
+        return ApiResponse.success(productBatchService.verifyBatch(id));
     }
 }

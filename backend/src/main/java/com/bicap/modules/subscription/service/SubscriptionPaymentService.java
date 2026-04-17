@@ -1,26 +1,23 @@
 package com.bicap.modules.subscription.service;
+
 import com.bicap.core.AuditLogService;
-import com.bicap.modules.user.entity.User;
-import com.bicap.modules.user.service.UserService;
-import com.bicap.modules.user.repository.UserRepository;
-
-import com.bicap.modules.user.entity.User;
-
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.exception.BusinessException;
 import com.bicap.modules.subscription.dto.CreateSubscriptionPaymentRequest;
 import com.bicap.modules.subscription.dto.SubscriptionPaymentResponse;
 import com.bicap.modules.subscription.entity.FarmSubscription;
 import com.bicap.modules.subscription.entity.SubscriptionPayment;
-import com.bicap.modules.user.entity.User;
-import com.bicap.core.enums.RoleName;
-import com.bicap.core.exception.BusinessException;
 import com.bicap.modules.subscription.repository.FarmSubscriptionRepository;
 import com.bicap.modules.subscription.repository.SubscriptionPaymentRepository;
+import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.repository.UserRepository;
+import com.bicap.modules.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -91,6 +88,13 @@ public class SubscriptionPaymentService {
         return toResponse(payment);
     }
 
+    public List<SubscriptionPaymentResponse> getMyPayments(Long currentUserId) {
+        return subscriptionPaymentRepository.findByFarmSubscriptionFarmOwnerUserUserIdOrderByPaidAtDesc(currentUserId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public SubscriptionPayment getEntityById(Long paymentId) {
         return subscriptionPaymentRepository.findById(paymentId)
                 .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y subscription payment"));
@@ -100,6 +104,9 @@ public class SubscriptionPaymentService {
         return SubscriptionPaymentResponse.builder()
                 .subscriptionPaymentId(payment.getSubscriptionPaymentId())
                 .subscriptionId(payment.getFarmSubscription() != null ? payment.getFarmSubscription().getSubscriptionId() : null)
+                .farmName(payment.getFarmSubscription() != null && payment.getFarmSubscription().getFarm() != null
+                        ? payment.getFarmSubscription().getFarm().getFarmName()
+                        : null)
                 .payerUserId(payment.getPayerUser() != null ? payment.getPayerUser().getUserId() : null)
                 .payerFullName(payment.getPayerUser() != null ? payment.getPayerUser().getFullName() : null)
                 .amount(payment.getAmount())

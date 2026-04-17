@@ -1,16 +1,7 @@
 package com.bicap.modules.auth.controller;
-import com.bicap.modules.user.entity.User;
 
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.core.dto.ApiResponse;
-
+import com.bicap.modules.auth.dto.*;
 import com.bicap.modules.user.dto.UserResponse;
-import com.bicap.modules.auth.dto.LoginRequest;
-import com.bicap.modules.auth.dto.LoginResponse;
-import com.bicap.modules.auth.dto.RefreshTokenRequest;
-import com.bicap.modules.auth.dto.RegisterRequest;
-import com.bicap.modules.auth.dto.TokenRefreshResponse;
 import com.bicap.core.dto.ApiResponse;
 import com.bicap.modules.auth.service.AuthService;
 import jakarta.validation.Valid;
@@ -19,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
@@ -52,5 +44,15 @@ public class AuthController {
     @PostMapping("/logout")
     public ApiResponse<Map<String, String>> logout() {
         return ApiResponse.success("Đăng xuất thành công", authService.logout());
+    }
+
+    @PostMapping("/forgot-password")
+    public ApiResponse<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return ApiResponse.success(authService.forgotPassword(request));
+    }
+
+    @PostMapping("/reset-password")
+    public ApiResponse<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return ApiResponse.success(authService.resetPassword(request));
     }
 }

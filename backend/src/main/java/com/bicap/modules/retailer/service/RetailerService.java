@@ -1,19 +1,15 @@
 package com.bicap.modules.retailer.service;
-import com.bicap.modules.user.entity.User;
-import com.bicap.modules.user.service.UserService;
-import com.bicap.modules.user.repository.UserRepository;
 
-import com.bicap.modules.user.entity.User;
-
+import com.bicap.core.enums.RoleName;
+import com.bicap.core.exception.BusinessException;
 import com.bicap.modules.retailer.dto.CreateRetailerRequest;
 import com.bicap.modules.retailer.dto.RetailerResponse;
 import com.bicap.modules.retailer.dto.UpdateRetailerRequest;
 import com.bicap.modules.retailer.entity.Retailer;
-import com.bicap.modules.user.entity.User;
-import com.bicap.core.enums.RoleName;
-import com.bicap.core.exception.BusinessException;
 import com.bicap.modules.retailer.repository.RetailerRepository;
+import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.repository.UserRepository;
+import com.bicap.modules.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

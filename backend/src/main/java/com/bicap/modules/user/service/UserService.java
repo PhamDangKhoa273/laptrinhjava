@@ -1,11 +1,4 @@
 package com.bicap.modules.user.service;
-import com.bicap.modules.user.entity.User;
-import com.bicap.modules.user.entity.UserRole;
-import com.bicap.modules.user.service.UserService;
-import com.bicap.modules.user.entity.Role;
-import com.bicap.modules.user.repository.UserRepository;
-
-import com.bicap.modules.user.entity.User;
 
 import com.bicap.modules.user.dto.UpdateUserStatusRequest;
 import com.bicap.modules.user.dto.UserResponse;
@@ -26,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -49,7 +43,8 @@ public class UserService {
 
     @Transactional
     public UserResponse createUserByAdmin(CreateUserRequest request) {
-        return createUserInternal(request, RoleName.GUEST, UserStatus.ACTIVE);
+        RoleName defaultRole = request.getInitialRole() != null ? request.getInitialRole() : RoleName.GUEST;
+        return createUserInternal(request, defaultRole, UserStatus.ACTIVE);
     }
 
     @Transactional
@@ -162,8 +157,38 @@ public class UserService {
     @Transactional
     public UserResponse changeStatus(Long userId, UpdateUserStatusRequest request) {
         User user = getUserEntityById(userId);
+        validateStatusTransition(user.getStatus(), request.getStatus());
         user.setStatus(request.getStatus());
         return toResponse(userRepository.save(user));
+    }
+
+    @Transactional
+    public UserResponse removeRole(Long userId, RoleName roleName) {
+        User user = getUserEntityById(userId);
+
+        Role role = roleRepository.findByRoleName(roleName.name())
+                .orElseThrow(() -> new BusinessException("Role không tồn tại"));
+
+        List<UserRole> allRoles = userRoleRepository.findByUser(user);
+        UserRole userRole = allRoles.stream()
+                .filter(ur -> ur.getRole().getRoleName().equalsIgnoreCase(roleName.name()))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException("User chưa có role này"));
+
+        if (allRoles.size() <= 1) {
+            throw new BusinessException("Không thể xóa role cuối cùng của người dùng");
+        }
+        if (RoleName.ADMIN == roleName) {
+            long adminRoles = allRoles.stream()
+                    .filter(ur -> RoleName.ADMIN.name().equalsIgnoreCase(ur.getRole().getRoleName()))
+                    .count();
+            if (adminRoles <= 1 && allRoles.size() == 1) {
+                throw new BusinessException("Không thể gỡ quyền admin cuối cùng của người dùng");
+            }
+        }
+
+        userRoleRepository.delete(userRole);
+        return toResponse(user);
     }
 
     @Transactional
@@ -219,6 +244,22 @@ public class UserService {
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
+    }
+
+    private void validateStatusTransition(UserStatus currentStatus, UserStatus nextStatus) {
+        if (currentStatus == nextStatus) {
+            throw new BusinessException("Người dùng đã ở trạng thái " + nextStatus.name());
+        }
+
+        List<UserStatus> allowedStatuses = switch (currentStatus) {
+            case ACTIVE -> Arrays.asList(UserStatus.INACTIVE, UserStatus.BLOCKED);
+            case INACTIVE -> Arrays.asList(UserStatus.ACTIVE, UserStatus.BLOCKED);
+            case BLOCKED -> List.of(UserStatus.INACTIVE, UserStatus.ACTIVE);
+        };
+
+        if (!allowedStatuses.contains(nextStatus)) {
+            throw new BusinessException("Không thể chuyển trạng thái từ " + currentStatus.name() + " sang " + nextStatus.name());
+        }
     }
 
     private String normalizeEmail(String email) {

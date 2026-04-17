@@ -14,14 +14,23 @@ public class FarmSubscriptionResponse {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
+    public Long getSubscriptionId() { return subscriptionId; }
     public void setSubscriptionId(Long id) { this.subscriptionId = id; }
+    public Long getFarmId() { return farmId; }
     public void setFarmId(Long id) { this.farmId = id; }
+    public String getFarmName() { return farmName; }
     public void setFarmName(String s) { this.farmName = s; }
+    public Long getPackageId() { return packageId; }
     public void setPackageId(Long id) { this.packageId = id; }
+    public String getPackageCode() { return packageCode; }
     public void setPackageCode(String s) { this.packageCode = s; }
+    public String getPackageName() { return packageName; }
     public void setPackageName(String s) { this.packageName = s; }
+    public String getStatus() { return status; }
     public void setStatus(String s) { this.status = s; }
+    public LocalDateTime getStartDate() { return startDate; }
     public void setStartDate(LocalDateTime t) { this.startDate = t; }
+    public LocalDateTime getEndDate() { return endDate; }
     public void setEndDate(LocalDateTime t) { this.endDate = t; }
 
     public static Builder builder() { return new Builder(); }

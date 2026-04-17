@@ -9,7 +9,10 @@ public class ListingResponse {
     private Long batchId;
     private String batchCode;
     private String productName;
+    private String productCode;
     private String farmName;
+    private String farmCode;
+    private String province;
     private String title;
     private String description;
     private BigDecimal price;
@@ -17,6 +20,7 @@ public class ListingResponse {
     private String unit;
     private String imageUrl;
     private String status;
+    private String approvalStatus;
     private String qualityGrade;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -30,7 +34,10 @@ public class ListingResponse {
         public Builder batchId(Long v) { r.batchId = v; return this; }
         public Builder batchCode(String v) { r.batchCode = v; return this; }
         public Builder productName(String v) { r.productName = v; return this; }
+        public Builder productCode(String v) { r.productCode = v; return this; }
         public Builder farmName(String v) { r.farmName = v; return this; }
+        public Builder farmCode(String v) { r.farmCode = v; return this; }
+        public Builder province(String v) { r.province = v; return this; }
         public Builder title(String v) { r.title = v; return this; }
         public Builder description(String v) { r.description = v; return this; }
         public Builder price(BigDecimal v) { r.price = v; return this; }
@@ -38,6 +45,7 @@ public class ListingResponse {
         public Builder unit(String v) { r.unit = v; return this; }
         public Builder imageUrl(String v) { r.imageUrl = v; return this; }
         public Builder status(String v) { r.status = v; return this; }
+        public Builder approvalStatus(String v) { r.approvalStatus = v; return this; }
         public Builder qualityGrade(String v) { r.qualityGrade = v; return this; }
         public Builder createdAt(LocalDateTime v) { r.createdAt = v; return this; }
         public Builder updatedAt(LocalDateTime v) { r.updatedAt = v; return this; }
@@ -49,7 +57,10 @@ public class ListingResponse {
     public Long getBatchId() { return batchId; }
     public String getBatchCode() { return batchCode; }
     public String getProductName() { return productName; }
+    public String getProductCode() { return productCode; }
     public String getFarmName() { return farmName; }
+    public String getFarmCode() { return farmCode; }
+    public String getProvince() { return province; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
     public BigDecimal getPrice() { return price; }
@@ -57,6 +68,7 @@ public class ListingResponse {
     public String getUnit() { return unit; }
     public String getImageUrl() { return imageUrl; }
     public String getStatus() { return status; }
+    public String getApprovalStatus() { return approvalStatus; }
     public String getQualityGrade() { return qualityGrade; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

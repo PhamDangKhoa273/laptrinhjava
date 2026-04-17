@@ -1,5 +1,4 @@
 package com.bicap.modules.season.dto;
-import com.bicap.modules.user.entity.User;
 
 import com.bicap.modules.user.dto.UserResponse;
 

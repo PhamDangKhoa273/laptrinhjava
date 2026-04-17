@@ -1,7 +1,4 @@
 package com.bicap.modules.retailer.repository;
-import com.bicap.modules.user.entity.User;
-
-import com.bicap.modules.user.entity.User;
 
 import com.bicap.modules.retailer.entity.Retailer;
 import org.springframework.data.jpa.repository.JpaRepository;

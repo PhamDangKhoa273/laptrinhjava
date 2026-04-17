@@ -1,5 +1,4 @@
 package com.bicap.modules.user.dto;
-import com.bicap.modules.user.entity.User;
 
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;

@@ -8,7 +8,12 @@ export function validateRegisterForm(form) {
   if (!form.fullName?.trim()) errors.fullName = 'Full name is required.'
   if (!form.email?.trim()) errors.email = 'Email is required.'
   if (form.email && !form.email.includes('@')) errors.email = 'Email format is invalid.'
-  if (!form.password || form.password.length < 6) errors.password = 'Password must be at least 6 characters.'
+  const passwordRegex = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$/
+  if (!form.password || form.password.length < 8) {
+    errors.password = 'Password must be at least 8 characters.'
+  } else if (!passwordRegex.test(form.password)) {
+    errors.password = 'Password must include uppercase, lowercase, and numeric characters.'
+  }
   if (form.password !== form.confirmPassword) errors.confirmPassword = 'Passwords do not match.'
   if (form.phoneNumber && !phoneRegex.test(form.phoneNumber.trim())) errors.phoneNumber = 'Vietnamese phone number is invalid.'
 

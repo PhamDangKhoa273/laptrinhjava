@@ -16,12 +16,22 @@ export async function updateFarm(id, payload) {
   return unwrap(await api.put(`/farms/${id}`, payload))
 }
 
+export async function uploadFarmBusinessLicense(id, file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return unwrap(await api.post(`/farms/${id}/business-license`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }))
+}
+
 export async function getAllFarms() {
   return unwrap(await api.get('/farms'))
 }
 
 export async function updateFarmApprovalStatus(id, approvalStatus) {
-  return unwrap(await api.put(`/farms/${id}/approval-status`, { approvalStatus }))
+  return unwrap(await api.post(`/farms/${id}/review`, { approvalStatus }))
 }
 
 export async function getMyRetailer() {
@@ -46,6 +56,14 @@ export async function getMySubscriptions() {
 
 export async function createSubscription(payload) {
   return unwrap(await api.post('/farm-subscriptions', payload))
+}
+
+export async function getMySubscriptionPayments() {
+  return unwrap(await api.get('/subscription-payments/me'))
+}
+
+export async function createSubscriptionPayment(payload) {
+  return unwrap(await api.post('/subscription-payments', payload))
 }
 
 export async function getDrivers() {

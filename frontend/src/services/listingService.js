@@ -4,8 +4,25 @@ function unwrap(response) {
   return response.data?.data || response.data
 }
 
-export async function getPublicListings() {
-  return unwrap(await api.get('/listings'))
+function shouldKeepValue(value) {
+  if (value === undefined || value === null) return false
+  if (typeof value === 'string') return value.trim() !== ''
+  return true
+}
+
+export async function getPublicListings(params = {}) {
+  const cleanParams = Object.fromEntries(
+    Object.entries(params).filter(([, value]) => shouldKeepValue(value)),
+  )
+  const payload = unwrap(await api.get('/listings', { params: cleanParams }))
+  return {
+    items: payload.items || [],
+    page: payload.page || 0,
+    size: payload.size || cleanParams.size || 9,
+    totalItems: payload.totalItems || 0,
+    totalPages: payload.totalPages || 0,
+    sort: payload.sort || cleanParams.sort || 'createdAt,desc',
+  }
 }
 
 export async function getListingById(id) {
