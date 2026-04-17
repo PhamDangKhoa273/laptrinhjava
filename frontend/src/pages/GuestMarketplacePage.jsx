@@ -57,6 +57,11 @@ function ProductCard({ item, onOpen }) {
           <span className="mp-card__unit">/ {item.unit || 'kg'}</span>
         </div>
 
+        <div className="mp-card__meta">
+          <span className="mp-card__batch">Chứng chỉ: {item.certificationStatus || 'Đang cập nhật'}</span>
+          <span className="mp-card__batch">Trạng thái: {item.status || 'N/A'}</span>
+        </div>
+
         <div className="mp-card__actions" style={{ display: 'flex', gap: 12, marginTop: 14, flexWrap: 'wrap' }}>
           <Link className="mp-retry-btn" to={traceHref}>
             Xem nguồn gốc lô hàng này
@@ -122,6 +127,7 @@ export function GuestMarketplacePage() {
   const initialProvince = searchParams.get('province') || ''
   const initialMinPrice = searchParams.get('minPrice') || ''
   const initialMaxPrice = searchParams.get('maxPrice') || ''
+  const initialCertification = searchParams.get('certification') || ''
   const initialSort = searchParams.get('sort') || 'createdAt,desc'
   const initialPage = parsePositiveInt(searchParams.get('page'), 0)
   const initialSize = parsePositiveInt(searchParams.get('size'), 9) || 9
@@ -137,13 +143,14 @@ export function GuestMarketplacePage() {
   const [province, setProvince] = useState(initialProvince)
   const [minPrice, setMinPrice] = useState(initialMinPrice)
   const [maxPrice, setMaxPrice] = useState(initialMaxPrice)
+  const [certification, setCertification] = useState(initialCertification)
   const [sort, setSort] = useState(initialSort)
   const [page, setPage] = useState(initialPage)
   const [size] = useState(initialSize)
   const [meta, setMeta] = useState({ page: initialPage, size: initialSize, totalItems: 0, totalPages: 0, sort: initialSort })
   const debounceRef = useRef(null)
 
-  const hasActiveFilters = Boolean(search || province || minPrice || maxPrice || sort !== 'createdAt,desc')
+  const hasActiveFilters = Boolean(search || province || minPrice || maxPrice || certification || sort !== 'createdAt,desc')
 
   useEffect(() => {
     const nextParams = new URLSearchParams()
@@ -151,11 +158,12 @@ export function GuestMarketplacePage() {
     if (province) nextParams.set('province', province)
     if (minPrice) nextParams.set('minPrice', minPrice)
     if (maxPrice) nextParams.set('maxPrice', maxPrice)
+    if (certification) nextParams.set('certification', certification)
     if (sort !== 'createdAt,desc') nextParams.set('sort', sort)
     if (page > 0) nextParams.set('page', String(page))
     if (size !== 9) nextParams.set('size', String(size))
     setSearchParams(nextParams, { replace: true })
-  }, [search, province, minPrice, maxPrice, sort, page, size, setSearchParams])
+  }, [search, province, minPrice, maxPrice, certification, sort, page, size, setSearchParams])
 
   useEffect(() => {
     if (debounceRef.current) {
@@ -175,7 +183,7 @@ export function GuestMarketplacePage() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [search, province, minPrice, maxPrice, sort, page])
+  }, [search, province, minPrice, maxPrice, certification, sort, page])
 
   useEffect(() => {
     async function loadContent() {
@@ -220,6 +228,7 @@ export function GuestMarketplacePage() {
         province,
         minPrice,
         maxPrice,
+        certification,
         page: targetPage,
         size,
         sort,
@@ -241,6 +250,7 @@ export function GuestMarketplacePage() {
     setProvince('')
     setMinPrice('')
     setMaxPrice('')
+    setCertification('')
     setSort('createdAt,desc')
     setPage(0)
   }
@@ -297,6 +307,13 @@ export function GuestMarketplacePage() {
               onChange={(event) => { setMaxPrice(event.target.value); setPage(0) }}
               className="mp-hero__search-input"
             />
+            <select value={certification} onChange={(event) => { setCertification(event.target.value); setPage(0) }} className="mp-hero__search-input">
+              <option value="">Chứng chỉ bất kỳ</option>
+              <option value="VIETGAP">VietGAP</option>
+              <option value="GLOBALGAP">GlobalGAP</option>
+              <option value="ORGANIC">Organic</option>
+              <option value="PENDING">Đang cập nhật</option>
+            </select>
             <select value={sort} onChange={(event) => { setSort(event.target.value); setPage(0) }} className="mp-hero__search-input">
               <option value="createdAt,desc">Mới nhất</option>
               <option value="price,asc">Giá tăng dần</option>

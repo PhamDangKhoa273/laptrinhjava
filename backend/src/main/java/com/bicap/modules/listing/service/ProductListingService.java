@@ -1,5 +1,7 @@
 package com.bicap.modules.listing.service;
 
+import com.bicap.core.enums.ApprovalStatus;
+import com.bicap.core.enums.ListingStatus;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.SecurityUtils;
 import com.bicap.modules.common.notification.dto.CreateNotificationRequest;
@@ -80,8 +82,8 @@ public class ProductListingService {
         listing.setQuantityAvailable(request.getQuantityAvailable());
         listing.setUnit(trimToDefault(request.getUnit(), "kg"));
         listing.setImageUrl(trimToNull(request.getImageUrl()));
-        listing.setStatus("DRAFT");
-        listing.setApprovalStatus("DRAFT");
+        listing.setStatus(ListingStatus.DRAFT);
+        listing.setApprovalStatus(ApprovalStatus.DRAFT);
 
         ProductListing saved = listingRepository.save(listing);
         return toResponse(saved);
@@ -93,7 +95,7 @@ public class ProductListingService {
 
     public Page<ListingResponse> getPublicListings(int page, int size, String sort) {
         Pageable pageable = PageRequest.of(page, size, resolvePublicSort(sort));
-        return listingRepository.findByStatusAndApprovalStatus("ACTIVE", "APPROVED", pageable).map(this::toResponse);
+        return listingRepository.findByStatusAndApprovalStatus(ListingStatus.ACTIVE.name(), ApprovalStatus.APPROVED.name(), pageable).map(this::toResponse);
     }
 
     public List<ListingResponse> getAllListings() {
@@ -157,10 +159,11 @@ public class ProductListingService {
         }
         if (request.getStatus() != null) {
             String normalizedStatus = request.getStatus().trim().toUpperCase();
-            if (!Set.of("DRAFT", "ACTIVE", "INACTIVE", "HIDDEN", "SOLD_OUT").contains(normalizedStatus)) {
+            try {
+                listing.setStatus(ListingStatus.valueOf(normalizedStatus));
+            } catch (IllegalArgumentException ex) {
                 throw new BusinessException("Trạng thái listing không hợp lệ.");
             }
-            listing.setStatus(normalizedStatus);
         }
 
         ProductListing saved = listingRepository.save(listing);
@@ -231,10 +234,10 @@ public class ProductListingService {
         ListingRegistrationRequest registrationRequest = new ListingRegistrationRequest();
         registrationRequest.setListing(listing);
         registrationRequest.setRequestedByUser(requester);
-        registrationRequest.setStatus("PENDING");
+        registrationRequest.setStatus(ApprovalStatus.PENDING.name());
         registrationRequest.setNote(request.getNote().trim());
-        listing.setApprovalStatus("PENDING");
-        listing.setStatus("INACTIVE");
+        listing.setApprovalStatus(ApprovalStatus.PENDING);
+        listing.setStatus(ListingStatus.INACTIVE);
 
         ListingRegistrationRequest saved = listingRegistrationRequestRepository.save(registrationRequest);
         listingRepository.save(listing);
@@ -257,7 +260,7 @@ public class ProductListingService {
                 .orElseThrow(() -> new BusinessException("Không tìm thấy yêu cầu đăng ký listing"));
 
         String status = request.getStatus().trim().toUpperCase();
-        if (!Set.of("APPROVED", "REJECTED").contains(status)) {
+        if (!Set.of(ApprovalStatus.APPROVED.name(), ApprovalStatus.REJECTED.name()).contains(status)) {
             throw new BusinessException("Trạng thái duyệt không hợp lệ");
         }
 
@@ -270,14 +273,14 @@ public class ProductListingService {
         registrationRequest.setReviewedAt(java.time.LocalDateTime.now());
 
         ProductListing listing = registrationRequest.getListing();
-        listing.setApprovalStatus(status);
-        listing.setStatus("APPROVED".equals(status) ? "ACTIVE" : "INACTIVE");
+        listing.setApprovalStatus(ApprovalStatus.valueOf(status));
+        listing.setStatus(ApprovalStatus.APPROVED.name().equals(status) ? ListingStatus.ACTIVE : ListingStatus.INACTIVE);
         listingRepository.save(listing);
 
         CreateNotificationRequest notification = new CreateNotificationRequest();
         notification.setRecipientUserId(registrationRequest.getRequestedByUser().getUserId());
         notification.setTitle("Kết quả duyệt listing");
-        notification.setMessage("Listing '" + listing.getTitle() + "' đã được " + ("APPROVED".equals(status) ? "phê duyệt" : "từ chối"));
+        notification.setMessage("Listing '" + listing.getTitle() + "' đã được " + (ApprovalStatus.APPROVED.name().equals(status) ? "phê duyệt" : "từ chối"));
         notification.setNotificationType("LISTING_REVIEW");
         notification.setTargetType("LISTING");
         notification.setTargetId(listing.getListingId());
@@ -295,7 +298,7 @@ public class ProductListingService {
     }
 
     public List<ListingRegistrationResponse> getPendingRegistrationRequests() {
-        return listingRegistrationRequestRepository.findByStatusOrderByCreatedAtDesc("PENDING")
+        return listingRegistrationRequestRepository.findByStatusOrderByCreatedAtDesc(ApprovalStatus.PENDING.name())
                 .stream()
                 .map(this::toRegistrationResponse)
                 .toList();

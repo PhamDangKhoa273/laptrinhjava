@@ -74,6 +74,14 @@ export function ListingDetailPage() {
               <span className="mp-card__price">{formatPrice(listing.price)}</span>
               <span className="mp-card__unit">/ {listing.unit || 'kg'}</span>
             </div>
+            <div className="mp-card__meta" style={{ marginTop: 16 }}>
+              <span className="mp-card__batch">Chứng chỉ: {listing.certificationStatus || 'Đang cập nhật'}</span>
+              <span className="mp-card__batch">Chất lượng: {listing.qualityGrade || 'N/A'}</span>
+            </div>
+            <div className="mp-card__meta">
+              <span className="mp-card__qty">Sẵn sàng truy xuất</span>
+              <span className="mp-card__batch">{listing.batchCode ? 'Có batch trace' : 'Chưa có batch trace'}</span>
+            </div>
           </div>
         </article>
 
@@ -86,7 +94,9 @@ export function ListingDetailPage() {
             <div className="mp-card__meta"><span className="mp-card__qty">Mã farm</span><span className="mp-card__batch">{listing.farmCode || 'N/A'}</span></div>
             <div className="mp-card__meta"><span className="mp-card__qty">Số lượng còn bán</span><span className="mp-card__batch">{listing.quantityAvailable} {listing.unit || 'kg'}</span></div>
             <div className="mp-card__meta"><span className="mp-card__qty">Chất lượng</span><span className="mp-card__batch">{listing.qualityGrade || 'N/A'}</span></div>
+            <div className="mp-card__meta"><span className="mp-card__qty">Chứng chỉ</span><span className="mp-card__batch">{listing.certificationStatus || 'Đang cập nhật'}</span></div>
             <div className="mp-card__meta"><span className="mp-card__qty">Trạng thái</span><span className="mp-card__batch">{listing.status || 'N/A'}</span></div>
+            <div className="mp-card__meta"><span className="mp-card__qty">Retailer readiness</span><span className="mp-card__batch">{listing.batchId ? 'Có thể trace trước khi mua' : 'Cần bổ sung trace batch'}</span></div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
               <Link className="mp-retry-btn" to={`/public/trace?batchId=${listing.batchId}`}>Xem nguồn gốc lô hàng</Link>
               <Link className="mp-retry-btn" to="/dashboard/guest">Quay lại marketplace</Link>

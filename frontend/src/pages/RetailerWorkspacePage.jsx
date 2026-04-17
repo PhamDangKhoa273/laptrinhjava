@@ -80,6 +80,7 @@ export function RetailerWorkspacePage() {
   const [selectedOrderDetail, setSelectedOrderDetail] = useState(null)
   const [search, setSearch] = useState('')
   const [province, setProvince] = useState('')
+  const [certification, setCertification] = useState('')
   const [sort, setSort] = useState('createdAt,desc')
   const [selectedOrderId, setSelectedOrderId] = useState('')
   const [loading, setLoading] = useState(true)
@@ -120,7 +121,7 @@ export function RetailerWorkspacePage() {
     try {
       const [retailerResult, listingResult, orderResult, notificationResult] = await Promise.allSettled([
         getMyRetailer(),
-        getPublicListings({ page: 0, size: 12, sort, keyword: search, province }),
+        getPublicListings({ page: 0, size: 12, sort, keyword: search, province, certification }),
         getOrdersV2(),
         getMyNotifications(),
       ])
@@ -523,6 +524,7 @@ export function RetailerWorkspacePage() {
                       <p>Shipping proof: {selectedOrderDetail.shippingProofImageUrl || 'Chưa có'}</p>
                       <p>Delivery proof: {selectedOrderDetail.deliveryProofImageUrl || 'Chưa có'}</p>
                       <p>Delivery confirmed at: {formatDateTime(selectedOrderDetail.deliveryConfirmedAt)}</p>
+                      <p>Escrow-style readiness: {selectedOrderDetail.depositPaidAt ? 'Deposit đã được giữ trong hệ thống' : 'Chưa hoàn tất deposit'}</p>
                     </div>
                   </div>
                   {selectedOrderDetail.items?.map((item, index) => (
@@ -556,6 +558,16 @@ export function RetailerWorkspacePage() {
             <TextInput label="Keyword" name="search" value={search} onChange={(event) => setSearch(event.target.value)} />
             <TextInput label="Province" name="province" value={province} onChange={(event) => setProvince(event.target.value)} />
             <label className="field-group">
+              <span className="field-label">Certification</span>
+              <select className="field-input" value={certification} onChange={(event) => setCertification(event.target.value)}>
+                <option value="">Any certification</option>
+                <option value="VIETGAP">VietGAP</option>
+                <option value="GLOBALGAP">GlobalGAP</option>
+                <option value="ORGANIC">Organic</option>
+                <option value="PENDING">Đang cập nhật</option>
+              </select>
+            </label>
+            <label className="field-group">
               <span className="field-label">Sort</span>
               <select className="field-input" value={sort} onChange={(event) => setSort(event.target.value)}>
                 <option value="createdAt,desc">Mới nhất</option>
@@ -578,6 +590,7 @@ export function RetailerWorkspacePage() {
                   <p>{formatCurrency(item.price)} / {item.unit || 'kg'}</p>
                   <p>Available: {item.quantityAvailable} {item.unit || 'kg'} • Quality: {item.qualityGrade || 'N/A'}</p>
                   <p>Batch: {item.batchCode || 'N/A'} • Farm code: {item.farmCode || 'N/A'}</p>
+                  <p>Certification: {item.certificationStatus || 'Đang cập nhật'}</p>
                 </div>
                 <div className="inline-actions">
                   <Button variant="secondary" onClick={() => setOrderForm((prev) => ({ ...prev, listingId: String(item.listingId) }))}>Chọn để đặt</Button>

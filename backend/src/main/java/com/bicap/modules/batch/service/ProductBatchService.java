@@ -152,7 +152,7 @@ public class ProductBatchService {
         qrCode.setQrValue(qrValue);
         qrCode.setQrUrl(qrUrl);
         qrCode.setGeneratedAt(LocalDateTime.now());
-        qrCode.setStatus("ACTIVE");
+        qrCode.setStatus(com.bicap.core.enums.QrCodeStatus.ACTIVE);
 
         QrCode saved = qrCodeRepository.save(qrCode);
         return QrCodeResponse.builder()

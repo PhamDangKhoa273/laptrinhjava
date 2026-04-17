@@ -1,5 +1,6 @@
 package com.bicap.modules.listing.entity;
 
+import com.bicap.core.enums.ApprovalStatus;
 import com.bicap.modules.user.entity.User;
 import jakarta.persistence.*;
 
@@ -47,7 +48,7 @@ public class ListingRegistrationRequest {
         this.createdAt = now;
         this.updatedAt = now;
         if (this.status == null || this.status.isBlank()) {
-            this.status = "PENDING";
+            this.status = ApprovalStatus.PENDING.name();
         }
     }
 

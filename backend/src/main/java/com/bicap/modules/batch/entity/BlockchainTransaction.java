@@ -1,5 +1,6 @@
 package com.bicap.modules.batch.entity;
 
+import com.bicap.core.enums.BlockchainGovernanceStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -16,12 +17,32 @@ public class BlockchainTransaction {
     private String actionType;
     private String txHash;
     private String txStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "governance_status", length = 30)
+    private BlockchainGovernanceStatus governanceStatus;
+
+    @Column(name = "governance_note", length = 500)
+    private String governanceNote;
+
+    @Column(name = "retry_count")
+    private Integer retryCount;
+
+    @Column(name = "last_retry_at")
+    private LocalDateTime lastRetryAt;
+
     private LocalDateTime createdAt;
 
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
+        }
+        if (retryCount == null) {
+            retryCount = 0;
+        }
+        if (governanceStatus == null) {
+            governanceStatus = BlockchainGovernanceStatus.PENDING;
         }
     }
 
@@ -40,6 +61,14 @@ public class BlockchainTransaction {
     public void setTxHash(String s) { this.txHash = s; }
     public String getTxStatus() { return txStatus; }
     public void setTxStatus(String s) { this.txStatus = s; }
+    public BlockchainGovernanceStatus getGovernanceStatus() { return governanceStatus; }
+    public void setGovernanceStatus(BlockchainGovernanceStatus governanceStatus) { this.governanceStatus = governanceStatus; }
+    public String getGovernanceNote() { return governanceNote; }
+    public void setGovernanceNote(String governanceNote) { this.governanceNote = governanceNote; }
+    public Integer getRetryCount() { return retryCount; }
+    public void setRetryCount(Integer retryCount) { this.retryCount = retryCount; }
+    public LocalDateTime getLastRetryAt() { return lastRetryAt; }
+    public void setLastRetryAt(LocalDateTime lastRetryAt) { this.lastRetryAt = lastRetryAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime t) { this.createdAt = t; }
 }
