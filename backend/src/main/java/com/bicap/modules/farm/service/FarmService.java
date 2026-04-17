@@ -8,11 +8,16 @@ import com.bicap.modules.farm.dto.FarmResponse;
 import com.bicap.modules.farm.dto.UpdateFarmRequest;
 import com.bicap.modules.farm.entity.Farm;
 import com.bicap.modules.farm.repository.FarmRepository;
+import com.bicap.modules.media.dto.MediaFileResponse;
+import com.bicap.modules.media.entity.MediaFile;
+import com.bicap.modules.media.repository.MediaFileRepository;
+import com.bicap.modules.media.service.MediaStorageService;
 import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.repository.UserRepository;
 import com.bicap.modules.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,15 +30,21 @@ public class FarmService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final AuditLogService auditLogService;
+    private final MediaStorageService mediaStorageService;
+    private final MediaFileRepository mediaFileRepository;
 
     public FarmService(FarmRepository farmRepository,
                        UserRepository userRepository,
                        UserService userService,
-                       AuditLogService auditLogService) {
+                       AuditLogService auditLogService,
+                       MediaStorageService mediaStorageService,
+                       MediaFileRepository mediaFileRepository) {
         this.farmRepository = farmRepository;
         this.userRepository = userRepository;
         this.userService = userService;
         this.auditLogService = auditLogService;
+        this.mediaStorageService = mediaStorageService;
+        this.mediaFileRepository = mediaFileRepository;
     }
 
     public List<FarmResponse> getAllFarms() {
@@ -173,6 +184,27 @@ public class FarmService {
         auditLogService.log(adminId, "DEACTIVATE_FARM", "FARM", farmId);
     }
 
+    @Transactional
+    public FarmResponse uploadBusinessLicense(Long farmId, MultipartFile file, Long currentUserId) {
+        Farm farm = farmRepository.findById(farmId)
+                .orElseThrow(() -> new BusinessException("Farm không tồn tại"));
+
+        boolean isOwner = farm.getOwnerUser() != null && farm.getOwnerUser().getUserId().equals(currentUserId);
+        if (!isOwner) {
+            User actingUser = userRepository.findById(currentUserId)
+                    .orElseThrow(() -> new BusinessException("User không tồn tại"));
+            if (!userService.hasRole(actingUser, RoleName.ADMIN)) {
+                throw new BusinessException("Bạn không có quyền upload giấy phép cho nông trại này.");
+            }
+        }
+
+        MediaFileResponse media = mediaStorageService.storeProof(file, "FARM_LICENSE", farmId);
+        farm.setBusinessLicenseFileUrl(media.getFileUrl());
+        Farm saved = farmRepository.save(farm);
+        auditLogService.log(currentUserId, "UPLOAD_BUSINESS_LICENSE", "FARM", saved.getFarmId());
+        return mapToResponse(saved);
+    }
+
     private FarmResponse mapToResponse(Farm farm) {
         return FarmResponse.builder()
                 .farmId(farm.getFarmId())
@@ -186,6 +218,7 @@ public class FarmService {
                 .phone(farm.getPhone())
                 .email(farm.getEmail())
                 .businessLicenseNo(farm.getBusinessLicenseNo())
+                .businessLicenseFileUrl(resolveBusinessLicenseFileUrl(farm))
                 .certificationStatus(farm.getCertificationStatus())
                 .approvalStatus(farm.getApprovalStatus())
                 .ownerId(farm.getOwnerUser() != null ? farm.getOwnerUser().getUserId() : null)
@@ -196,5 +229,31 @@ public class FarmService {
                 .reviewedAt(farm.getReviewedAt())
                 .description(farm.getDescription())
                 .build();
+    }
+
+    private String resolveBusinessLicenseFileUrl(Farm farm) {
+        if (farm.getBusinessLicenseFileUrl() != null && !farm.getBusinessLicenseFileUrl().isBlank()) {
+            return farm.getBusinessLicenseFileUrl();
+        }
+        return mediaFileRepository.findTopByEntityTypeAndEntityIdOrderByCreatedAtDesc("FARM_LICENSE", farm.getFarmId())
+                .map(this::toFileUrl)
+                .orElse(null);
+    }
+
+    private String toFileUrl(MediaFile mediaFile) {
+        String storagePath = mediaFile.getStoragePath();
+        if (storagePath == null || storagePath.isBlank()) {
+            return null;
+        }
+        String normalized = storagePath.replace('\\', '/');
+        int marker = normalized.indexOf("/uploads/");
+        if (marker >= 0) {
+            return normalized.substring(marker);
+        }
+        int uploadsIndex = normalized.indexOf("uploads/");
+        if (uploadsIndex >= 0) {
+            return "/" + normalized.substring(uploadsIndex);
+        }
+        return normalized;
     }
 }

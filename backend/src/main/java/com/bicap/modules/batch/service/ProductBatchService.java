@@ -15,6 +15,7 @@ import com.bicap.modules.season.entity.FarmingSeason;
 import com.bicap.modules.season.repository.FarmingProcessRepository;
 import com.bicap.modules.season.service.SeasonService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ProductBatchService {
+
+    @Value("${app.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
 
     private final ProductBatchRepository productBatchRepository;
     private final ProductRepository productRepository;
@@ -138,8 +142,8 @@ public class ProductBatchService {
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng với ID: " + batchId));
         seasonService.findSeasonAndCheckPermission(batch.getSeason().getSeasonId(), currentUserId);
 
-        String qrUrl = "/trace/batches/" + batch.getBatchId();
-        String qrValue = "batchId=" + batch.getBatchId() + "|batchCode=" + batch.getBatchCode() + "|seasonId=" + batch.getSeason().getSeasonId() + "|traceUrl=" + qrUrl;
+        String qrUrl = buildPublicTraceUrl(batch.getBatchId());
+        String qrValue = qrUrl;
         String base64Qr = qrCodeService.generateBase64Png(qrValue);
 
         QrCode qrCode = qrCodeRepository.findByBatch_BatchId(batchId).orElse(new QrCode());
@@ -235,6 +239,14 @@ public class ProductBatchService {
                         .build()).collect(Collectors.toList()))
                 .note("Dữ liệu truy xuất nguồn gốc được xác thực bởi BICAP Platform.")
                 .build();
+    }
+
+    private String buildPublicTraceUrl(Long batchId) {
+        String base = frontendUrl == null ? "http://localhost:5173" : frontendUrl.trim();
+        if (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        return base + "/public-trace?batchId=" + batchId;
     }
 
     public VerifyTraceResponse verifyBatch(Long batchId) {

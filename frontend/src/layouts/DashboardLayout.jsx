@@ -44,7 +44,7 @@ const roleLinks = {
   ],
   [ROLES.GUEST]: [
     { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
-    { to: '/dashboard/guest', label: 'Guest dashboard', description: 'Tổng quan tài khoản khách' },
+    { to: '/dashboard/guest', label: 'Sàn giao dịch', description: 'Chợ nông sản sạch' },
     { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
   ],
 }

@@ -11,6 +11,7 @@ public class FarmResponse {
     private String phone;
     private String email;
     private String businessLicenseNo;
+    private String businessLicenseFileUrl;
     private String certificationStatus;
     private String approvalStatus;
     private Long ownerId;
@@ -44,6 +45,8 @@ public class FarmResponse {
     public void setEmail(String s) { this.email = s; }
     public String getBusinessLicenseNo() { return businessLicenseNo; }
     public void setBusinessLicenseNo(String s) { this.businessLicenseNo = s; }
+    public String getBusinessLicenseFileUrl() { return businessLicenseFileUrl; }
+    public void setBusinessLicenseFileUrl(String s) { this.businessLicenseFileUrl = s; }
     public String getCertificationStatus() { return certificationStatus; }
     public void setCertificationStatus(String s) { this.certificationStatus = s; }
     public String getApprovalStatus() { return approvalStatus; }
@@ -77,6 +80,7 @@ public class FarmResponse {
         public Builder phone(String s) { r.setPhone(s); return this; }
         public Builder email(String s) { r.setEmail(s); return this; }
         public Builder businessLicenseNo(String s) { r.setBusinessLicenseNo(s); return this; }
+        public Builder businessLicenseFileUrl(String s) { r.setBusinessLicenseFileUrl(s); return this; }
         public Builder certificationStatus(String s) { r.setCertificationStatus(s); return this; }
         public Builder approvalStatus(String s) { r.setApprovalStatus(s); return this; }
         public Builder ownerId(Long l) { r.setOwnerId(l); return this; }

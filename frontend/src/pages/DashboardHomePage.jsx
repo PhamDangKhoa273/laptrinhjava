@@ -14,11 +14,7 @@ export function DashboardHomePage() {
     <section className="page-section">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Dashboard overview</p>
           <h2>Frontend Phase 2 integration status</h2>
-          <p>
-            This screen summarizes authentication state, token storage, role-based routing, and the current connection-ready frontend scope for Member 3.
-          </p>
         </div>
         <div className="section-actions">
           <Link to={rolePath}>

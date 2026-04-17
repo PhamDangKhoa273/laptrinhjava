@@ -259,22 +259,21 @@ export function GuestMarketplacePage() {
     <section className="marketplace">
       <div className="mp-hero">
         <div className="mp-hero__content">
-          <p className="mp-hero__eyebrow">SÀN NÔNG SẢN BICAP</p>
-          <h1 className="mp-hero__title">Marketplace công khai + content hub cho guest</h1>
-          <p className="mp-hero__subtitle">
-            Không chỉ tìm nông sản, giờ guest còn xem được nội dung giáo dục, bài viết, video và kiến thức nền tảng ngay trên public UI.
-          </p>
+          <p className="mp-hero__eyebrow">SÀN GIAO DỊCH</p>
+          <p className="mp-hero__subtitle">Chợ nông sản sạch</p>
         </div>
 
-        <form className="mp-hero__search" onSubmit={(event) => event.preventDefault()} style={{ display: 'grid', gap: 10 }}>
-          <input
-            type="text"
-            placeholder="Tìm theo tên sản phẩm hoặc mã lô"
-            value={search}
-            onChange={(event) => { setSearch(event.target.value); setPage(0) }}
-            className="mp-hero__search-input"
-          />
-          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
+        <form className="mp-hero__search" onSubmit={(event) => event.preventDefault()}>
+          <div className="mp-hero__search-main">
+            <input
+              type="text"
+              placeholder="Tìm theo tên sản phẩm hoặc mã lô"
+              value={search}
+              onChange={(event) => { setSearch(event.target.value); setPage(0) }}
+              className="mp-hero__search-input"
+            />
+          </div>
+          <div className="mp-hero__filters-grid">
             <input
               type="text"
               placeholder="Tỉnh thành"
@@ -305,7 +304,7 @@ export function GuestMarketplacePage() {
               <option value="title,asc">Tên A-Z</option>
             </select>
           </div>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="mp-hero__actions">
             <button className="mp-retry-btn" type="button" onClick={handleReset}>Xóa bộ lọc</button>
             {isDebouncing ? <span className="mp-hint">Đang cập nhật kết quả...</span> : null}
           </div>

@@ -16,6 +16,16 @@ export async function updateFarm(id, payload) {
   return unwrap(await api.put(`/farms/${id}`, payload))
 }
 
+export async function uploadFarmBusinessLicense(id, file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return unwrap(await api.post(`/farms/${id}/business-license`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }))
+}
+
 export async function getAllFarms() {
   return unwrap(await api.get('/farms'))
 }

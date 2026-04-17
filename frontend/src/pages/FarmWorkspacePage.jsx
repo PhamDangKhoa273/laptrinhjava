@@ -12,6 +12,7 @@ import {
   getMySubscriptions,
   getPackages,
   updateFarm,
+  uploadFarmBusinessLicense,
 } from '../services/businessService'
 import { createListing, getMyListings, updateListing } from '../services/listingService.js'
 import {
@@ -173,6 +174,7 @@ export function FarmWorkspacePage() {
   const [batchForm, setBatchForm] = useState(initialBatchForm)
   const [loading, setLoading] = useState(true)
   const [savingProfile, setSavingProfile] = useState(false)
+  const [uploadingLicense, setUploadingLicense] = useState(false)
   const [submittingPackageId, setSubmittingPackageId] = useState(null)
   const [savingListing, setSavingListing] = useState(false)
   const [savingPayment, setSavingPayment] = useState(false)
@@ -356,6 +358,32 @@ export function FarmWorkspacePage() {
   function handleProfileChange(event) {
     const { name, value } = event.target
     setProfileForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  async function handleBusinessLicenseUpload(event) {
+    const file = event.target.files?.[0]
+    if (!file) return
+    if (!farm?.farmId && !farmContext?.farmId) {
+      setError('Hãy tạo farm profile trước khi tải ảnh giấy phép.')
+      event.target.value = ''
+      return
+    }
+
+    setUploadingLicense(true)
+    setError('')
+    setSuccess('')
+    try {
+      const farmId = farm?.farmId || farmContext?.farmId
+      const result = await uploadFarmBusinessLicense(farmId, file)
+      setFarm(result)
+      setFarmContext(result)
+      setSuccess('Đã tải ảnh giấy phép kinh doanh.')
+    } catch (err) {
+      setError(getErrorMessage(err, 'Không thể tải ảnh giấy phép kinh doanh.'))
+    } finally {
+      setUploadingLicense(false)
+      event.target.value = ''
+    }
   }
 
   function handleListingChange(event) {
@@ -900,6 +928,23 @@ export function FarmWorkspacePage() {
             <div className="grid-two">
               <TextInput label="Business license" name="businessLicenseNo" value={profileForm.businessLicenseNo} onChange={handleProfileChange} required />
               <TextInput label="Province" name="province" value={profileForm.province} onChange={handleProfileChange} />
+            </div>
+            <div className="grid-two">
+              <div>
+                <span className="field-label">Business license image</span>
+                <input className="field-input" type="file" accept="image/png,image/jpeg,image/webp" onChange={handleBusinessLicenseUpload} disabled={uploadingLicense || !(farm || farmContext)} />
+                <small>{uploadingLicense ? 'Đang tải file...' : 'Chấp nhận PNG, JPG, WEBP.'}</small>
+              </div>
+              <div>
+                <span className="field-label">Current license file</span>
+                {farm?.businessLicenseFileUrl || farmContext?.businessLicenseFileUrl ? (
+                  <a href={farm?.businessLicenseFileUrl || farmContext?.businessLicenseFileUrl} target="_blank" rel="noreferrer">
+                    Xem file giấy phép đã tải lên
+                  </a>
+                ) : (
+                  <p>Chưa có file giấy phép.</p>
+                )}
+              </div>
             </div>
             <TextInput label="Address" name="address" value={profileForm.address} onChange={handleProfileChange} />
             <TextAreaField label="Description" name="description" value={profileForm.description} onChange={handleProfileChange} />
