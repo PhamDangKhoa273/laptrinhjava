@@ -15,6 +15,8 @@ public class BatchResponse {
     private String qualityGrade;
     private LocalDate expiryDate;
     private String batchStatus;
+    private String traceCode;
+    private String publicTraceUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -38,6 +40,10 @@ public class BatchResponse {
     public void setExpiryDate(LocalDate d) { this.expiryDate = d; }
     public String getBatchStatus() { return batchStatus; }
     public void setBatchStatus(String s) { this.batchStatus = s; }
+    public String getTraceCode() { return traceCode; }
+    public void setTraceCode(String s) { this.traceCode = s; }
+    public String getPublicTraceUrl() { return publicTraceUrl; }
+    public void setPublicTraceUrl(String s) { this.publicTraceUrl = s; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime t) { this.createdAt = t; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
@@ -56,6 +62,8 @@ public class BatchResponse {
         public Builder qualityGrade(String s) { r.setQualityGrade(s); return this; }
         public Builder expiryDate(LocalDate d) { r.setExpiryDate(d); return this; }
         public Builder batchStatus(String s) { r.setBatchStatus(s); return this; }
+        public Builder traceCode(String s) { r.setTraceCode(s); return this; }
+        public Builder publicTraceUrl(String s) { r.setPublicTraceUrl(s); return this; }
         public Builder createdAt(LocalDateTime t) { r.setCreatedAt(t); return this; }
         public Builder updatedAt(LocalDateTime t) { r.setUpdatedAt(t); return this; }
         public BatchResponse build() { return r; }

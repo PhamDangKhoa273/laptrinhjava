@@ -38,6 +38,9 @@ import { getErrorMessage } from '../utils/helpers'
 const initialProfileForm = {
   farmCode: '',
   farmName: '',
+  farmType: '',
+  totalArea: '',
+  contactPerson: '',
   businessLicenseNo: '',
   address: '',
   province: '',
@@ -99,6 +102,7 @@ const listingStatuses = ['DRAFT', 'ACTIVE', 'INACTIVE']
 const paymentMethods = ['BANK_TRANSFER', 'MOMO', 'CASH']
 const paymentStatuses = ['PENDING', 'PAID', 'FAILED']
 const seasonStatuses = ['PLANNED', 'IN_PROGRESS', 'HARVESTED', 'COMPLETED']
+const seasonEditableStatuses = new Set(['PLANNED', 'IN_PROGRESS', 'HARVESTED'])
 const batchStatuses = ['CREATED', 'READY', 'STORED', 'SOLD_OUT']
 const qualityGrades = ['A', 'B', 'C']
 
@@ -175,12 +179,15 @@ export function FarmWorkspacePage() {
   const [loading, setLoading] = useState(true)
   const [savingProfile, setSavingProfile] = useState(false)
   const [uploadingLicense, setUploadingLicense] = useState(false)
+  const [profileErrors, setProfileErrors] = useState({})
   const [submittingPackageId, setSubmittingPackageId] = useState(null)
   const [savingListing, setSavingListing] = useState(false)
   const [savingPayment, setSavingPayment] = useState(false)
   const [savingSeason, setSavingSeason] = useState(false)
   const [savingProcess, setSavingProcess] = useState(false)
   const [savingBatch, setSavingBatch] = useState(false)
+  const [seasonErrors, setSeasonErrors] = useState({})
+  const [processErrors, setProcessErrors] = useState({})
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -198,6 +205,10 @@ export function FarmWorkspacePage() {
     () => batches.find((item) => String(item.batchId) === String(selectedBatchId)) || null,
     [batches, selectedBatchId],
   )
+
+  const selectedSeasonStatus = String(selectedSeason?.seasonStatus || '').toUpperCase()
+  const canMutateSelectedSeason = selectedSeason ? seasonEditableStatuses.has(selectedSeasonStatus) : false
+  const canManageProcesses = selectedSeason ? selectedSeasonStatus === 'IN_PROGRESS' || selectedSeasonStatus === 'HARVESTED' : false
 
   const summary = useMemo(() => ({
     totalPackages: packages.length,
@@ -268,6 +279,9 @@ export function FarmWorkspacePage() {
       setProfileForm({
         farmCode: farmData?.farmCode || '',
         farmName: farmData?.farmName || '',
+        farmType: farmData?.farmType || '',
+        totalArea: farmData?.totalArea ? String(farmData.totalArea) : '',
+        contactPerson: farmData?.contactPerson || '',
         businessLicenseNo: farmData?.businessLicenseNo || '',
         address: farmData?.address || '',
         province: farmData?.province || '',
@@ -358,6 +372,20 @@ export function FarmWorkspacePage() {
   function handleProfileChange(event) {
     const { name, value } = event.target
     setProfileForm((prev) => ({ ...prev, [name]: value }))
+    setProfileErrors((prev) => ({ ...prev, [name]: '' }))
+  }
+
+  function validateProfileFormState() {
+    const nextErrors = {}
+    if (!profileForm.farmCode.trim() && !farm) nextErrors.farmCode = 'Farm code là bắt buộc.'
+    if (!profileForm.farmName.trim()) nextErrors.farmName = 'Farm name là bắt buộc.'
+    if (!profileForm.businessLicenseNo.trim()) nextErrors.businessLicenseNo = 'Business license là bắt buộc.'
+    if (!profileForm.address.trim()) nextErrors.address = 'Address là bắt buộc.'
+    if (!profileForm.province.trim()) nextErrors.province = 'Province là bắt buộc.'
+    if (profileForm.totalArea && (!Number.isFinite(Number(profileForm.totalArea)) || Number(profileForm.totalArea) <= 0)) {
+      nextErrors.totalArea = 'Diện tích phải lớn hơn 0.'
+    }
+    return nextErrors
   }
 
   async function handleBusinessLicenseUpload(event) {
@@ -399,11 +427,44 @@ export function FarmWorkspacePage() {
   function handleSeasonChange(event) {
     const { name, value } = event.target
     setSeasonForm((prev) => ({ ...prev, [name]: value }))
+    setSeasonErrors((prev) => ({ ...prev, [name]: '' }))
   }
 
   function handleProcessChange(event) {
     const { name, value } = event.target
     setProcessForm((prev) => ({ ...prev, [name]: value }))
+    setProcessErrors((prev) => ({ ...prev, [name]: '' }))
+  }
+
+  function validateSeasonFormState() {
+    const nextErrors = {}
+    const farmId = toPositiveNumber(seasonForm.farmId)
+    const productId = toPositiveNumber(seasonForm.productId)
+    if (!farmId) nextErrors.farmId = 'Farm ID không hợp lệ.'
+    if (!productId) nextErrors.productId = 'Vui lòng chọn sản phẩm.'
+    if (!seasonForm.seasonCode.trim()) nextErrors.seasonCode = 'Season code là bắt buộc.'
+    if (!seasonForm.farmingMethod.trim()) nextErrors.farmingMethod = 'Farming method là bắt buộc.'
+    if (!seasonForm.startDate) nextErrors.startDate = 'Start date là bắt buộc.'
+    if (!seasonForm.expectedHarvestDate) nextErrors.expectedHarvestDate = 'Expected harvest date là bắt buộc.'
+    if (seasonForm.startDate && seasonForm.expectedHarvestDate && seasonForm.expectedHarvestDate < seasonForm.startDate) {
+      nextErrors.expectedHarvestDate = 'Expected harvest date phải sau hoặc bằng start date.'
+    }
+    if (seasonForm.actualHarvestDate && seasonForm.startDate && seasonForm.actualHarvestDate < seasonForm.startDate) {
+      nextErrors.actualHarvestDate = 'Actual harvest date không được trước start date.'
+    }
+    if (seasonForm.seasonStatus === 'COMPLETED' && !seasonForm.actualHarvestDate) {
+      nextErrors.actualHarvestDate = 'Completed season phải có actual harvest date.'
+    }
+    return nextErrors
+  }
+
+  function validateProcessFormState() {
+    const nextErrors = {}
+    const stepNo = toPositiveNumber(processForm.stepNo)
+    if (!stepNo) nextErrors.stepNo = 'Step number phải lớn hơn 0.'
+    if (!processForm.stepName.trim()) nextErrors.stepName = 'Step name là bắt buộc.'
+    if (!processForm.performedAt) nextErrors.performedAt = 'Performed at là bắt buộc.'
+    return nextErrors
   }
 
   function handleBatchChange(event) {
@@ -502,6 +563,12 @@ export function FarmWorkspacePage() {
   async function handleProfileSubmit(event) {
     event.preventDefault()
     if (savingProfile) return
+    const nextErrors = validateProfileFormState()
+    setProfileErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) {
+      return
+    }
+
     setSavingProfile(true)
     setError('')
     setSuccess('')
@@ -510,6 +577,9 @@ export function FarmWorkspacePage() {
       const payload = {
         farmCode: profileForm.farmCode.trim(),
         farmName: profileForm.farmName.trim(),
+        farmType: profileForm.farmType.trim(),
+        totalArea: profileForm.totalArea ? Number(profileForm.totalArea) : null,
+        contactPerson: profileForm.contactPerson.trim(),
         businessLicenseNo: profileForm.businessLicenseNo.trim(),
         address: profileForm.address.trim(),
         province: profileForm.province.trim(),
@@ -519,6 +589,9 @@ export function FarmWorkspacePage() {
       const result = farm
         ? await updateFarm(farm.farmId, {
           farmName: payload.farmName,
+          farmType: payload.farmType,
+          totalArea: payload.totalArea,
+          contactPerson: payload.contactPerson,
           businessLicenseNo: payload.businessLicenseNo,
           address: payload.address,
           province: payload.province,
@@ -531,6 +604,9 @@ export function FarmWorkspacePage() {
       setProfileForm({
         farmCode: result.farmCode || payload.farmCode,
         farmName: result.farmName || '',
+        farmType: result.farmType || '',
+        totalArea: result.totalArea ? String(result.totalArea) : '',
+        contactPerson: result.contactPerson || '',
         businessLicenseNo: result.businessLicenseNo || '',
         address: result.address || '',
         province: result.province || '',
@@ -641,12 +717,14 @@ export function FarmWorkspacePage() {
     event.preventDefault()
     if (savingSeason) return
 
-    const farmId = toPositiveNumber(seasonForm.farmId)
-    const productId = toPositiveNumber(seasonForm.productId)
-    if (!farmId || !productId) {
-      setError('Farm ID và Product ID phải hợp lệ.')
+    const nextErrors = validateSeasonFormState()
+    setSeasonErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) {
       return
     }
+
+    const farmId = toPositiveNumber(seasonForm.farmId)
+    const productId = toPositiveNumber(seasonForm.productId)
 
     setSavingSeason(true)
     setError('')
@@ -684,12 +762,18 @@ export function FarmWorkspacePage() {
       setError('Hãy chọn mùa vụ trước khi thêm quy trình.')
       return
     }
-
-    const stepNo = toPositiveNumber(processForm.stepNo)
-    if (!stepNo) {
-      setError('Step no phải hợp lệ.')
+    if (!canManageProcesses) {
+      setError('Chỉ mùa vụ IN_PROGRESS hoặc HARVESTED mới được cập nhật quy trình.')
       return
     }
+
+    const nextErrors = validateProcessFormState()
+    setProcessErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) {
+      return
+    }
+
+    const stepNo = toPositiveNumber(processForm.stepNo)
 
     setSavingProcess(true)
     setError('')
@@ -789,6 +873,10 @@ export function FarmWorkspacePage() {
   }
 
   async function handleDeleteProcess(processId) {
+    if (!canManageProcesses) {
+      setError('Mùa vụ hiện tại không cho phép xóa quy trình.')
+      return
+    }
     setError('')
     setSuccess('')
     try {
@@ -807,6 +895,10 @@ export function FarmWorkspacePage() {
 
   async function handleReorderProcess(processId, nextStepNo) {
     if (!toPositiveNumber(nextStepNo)) return
+    if (!canManageProcesses) {
+      setError('Mùa vụ hiện tại không cho phép đổi thứ tự quy trình.')
+      return
+    }
     setError('')
     setSuccess('')
     try {
@@ -909,6 +1001,7 @@ export function FarmWorkspacePage() {
                 <strong>Approval</strong>
                 <p>{farm?.approvalStatus || 'Chưa tạo hồ sơ'}</p>
                 <p>Reviewer note: {farm?.reviewComment || 'Chưa có'}</p>
+                <p>Reviewed at: {farm?.reviewedAt ? formatDateTime(farm.reviewedAt) : 'Chưa được review'}</p>
               </div>
             </div>
             <div className="business-card farm-info-card">
@@ -916,18 +1009,19 @@ export function FarmWorkspacePage() {
                 <strong>Certification</strong>
                 <p>{farm?.certificationStatus || 'N/A'}</p>
                 <p>Owner: {farm?.ownerName || 'Current FARM account'}</p>
+                <p>Reviewer: {farm?.reviewedByFullName || 'Chưa có'}</p>
               </div>
             </div>
           </div>
 
           <form className="form-grid top-gap" onSubmit={handleProfileSubmit}>
             <div className="grid-two">
-              <TextInput label="Farm code" name="farmCode" value={profileForm.farmCode} onChange={handleProfileChange} required disabled={Boolean(farm)} />
-              <TextInput label="Farm name" name="farmName" value={profileForm.farmName} onChange={handleProfileChange} required />
+              <TextInput label="Farm code" name="farmCode" value={profileForm.farmCode} onChange={handleProfileChange} error={profileErrors.farmCode} required disabled={Boolean(farm)} />
+              <TextInput label="Farm name" name="farmName" value={profileForm.farmName} onChange={handleProfileChange} error={profileErrors.farmName} required />
             </div>
             <div className="grid-two">
-              <TextInput label="Business license" name="businessLicenseNo" value={profileForm.businessLicenseNo} onChange={handleProfileChange} required />
-              <TextInput label="Province" name="province" value={profileForm.province} onChange={handleProfileChange} />
+              <TextInput label="Business license" name="businessLicenseNo" value={profileForm.businessLicenseNo} onChange={handleProfileChange} error={profileErrors.businessLicenseNo} required />
+              <TextInput label="Province" name="province" value={profileForm.province} onChange={handleProfileChange} error={profileErrors.province} required />
             </div>
             <div className="grid-two">
               <div>
@@ -938,15 +1032,32 @@ export function FarmWorkspacePage() {
               <div>
                 <span className="field-label">Current license file</span>
                 {farm?.businessLicenseFileUrl || farmContext?.businessLicenseFileUrl ? (
-                  <a href={farm?.businessLicenseFileUrl || farmContext?.businessLicenseFileUrl} target="_blank" rel="noreferrer">
-                    Xem file giấy phép đã tải lên
-                  </a>
+                  <div>
+                    <a href={farm?.businessLicenseFileUrl || farmContext?.businessLicenseFileUrl} target="_blank" rel="noreferrer">
+                      Xem file giấy phép đã tải lên
+                    </a>
+                    <p>{farm?.businessLicenseFileSize || farmContext?.businessLicenseFileSize ? `Dung lượng: ${Math.round((farm?.businessLicenseFileSize || farmContext?.businessLicenseFileSize) / 1024)} KB` : ''}</p>
+                  </div>
                 ) : (
                   <p>Chưa có file giấy phép.</p>
                 )}
               </div>
             </div>
-            <TextInput label="Address" name="address" value={profileForm.address} onChange={handleProfileChange} />
+            <div className="grid-two">
+              <TextInput label="Farm type" name="farmType" value={profileForm.farmType} onChange={handleProfileChange} />
+              <TextInput label="Contact person" name="contactPerson" value={profileForm.contactPerson} onChange={handleProfileChange} />
+            </div>
+            <div className="grid-two">
+              <TextInput label="Total area (ha)" name="totalArea" type="number" min="0.01" step="0.01" value={profileForm.totalArea} onChange={handleProfileChange} error={profileErrors.totalArea} />
+              <div className="business-card farm-info-card">
+                <div>
+                  <strong>License upload status</strong>
+                  <p>{farm?.businessLicenseFileName || farmContext?.businessLicenseFileName || 'Chưa có file giấy phép'}</p>
+                  <p>{farm?.businessLicenseUploadedAt || farmContext?.businessLicenseUploadedAt ? `Uploaded: ${formatDateTime(farm?.businessLicenseUploadedAt || farmContext?.businessLicenseUploadedAt)}` : 'Hãy tải giấy phép để hoàn thiện hồ sơ'}</p>
+                </div>
+              </div>
+            </div>
+            <TextInput label="Address" name="address" value={profileForm.address} onChange={handleProfileChange} error={profileErrors.address} required />
             <TextAreaField label="Description" name="description" value={profileForm.description} onChange={handleProfileChange} />
             <Button type="submit" disabled={savingProfile}>{savingProfile ? 'Đang lưu...' : farm ? 'Cập nhật farm profile' : 'Tạo farm profile'}</Button>
           </form>
@@ -1051,10 +1162,10 @@ export function FarmWorkspacePage() {
               <h4>{editingSeasonId ? 'Cập nhật mùa vụ' : 'Tạo mùa vụ'}</h4>
               <form className="form-grid" onSubmit={handleSeasonSubmit}>
                 <div className="grid-two">
-                  <TextInput label="Farm ID" name="farmId" value={seasonForm.farmId} onChange={handleSeasonChange} required disabled={Boolean(farmContext?.farmId)} />
+                  <TextInput label="Farm ID" name="farmId" value={seasonForm.farmId} onChange={handleSeasonChange} error={seasonErrors.farmId} required disabled={Boolean(farmContext?.farmId)} />
                   <label className="field-group">
                     <span className="field-label">Product</span>
-                    <select className="field-input" name="productId" value={seasonForm.productId} onChange={handleSeasonChange}>
+                    <select className={`field-input ${seasonErrors.productId ? 'is-error' : ''}`} name="productId" value={seasonForm.productId} onChange={handleSeasonChange}>
                       <option value="">Chọn sản phẩm</option>
                       {products.map((product) => (
                         <option key={product.productId} value={product.productId}>
@@ -1065,15 +1176,15 @@ export function FarmWorkspacePage() {
                   </label>
                 </div>
                 <div className="grid-two">
-                  <TextInput label="Season code" name="seasonCode" value={seasonForm.seasonCode} onChange={handleSeasonChange} required />
-                  <TextInput label="Farming method" name="farmingMethod" value={seasonForm.farmingMethod} onChange={handleSeasonChange} required />
+                  <TextInput label="Season code" name="seasonCode" value={seasonForm.seasonCode} onChange={handleSeasonChange} error={seasonErrors.seasonCode} required />
+                  <TextInput label="Farming method" name="farmingMethod" value={seasonForm.farmingMethod} onChange={handleSeasonChange} error={seasonErrors.farmingMethod} required />
                 </div>
                 <div className="grid-two">
-                  <TextInput label="Start date" name="startDate" type="date" value={seasonForm.startDate} onChange={handleSeasonChange} required />
-                  <TextInput label="Expected harvest date" name="expectedHarvestDate" type="date" value={seasonForm.expectedHarvestDate} onChange={handleSeasonChange} required />
+                  <TextInput label="Start date" name="startDate" type="date" value={seasonForm.startDate} onChange={handleSeasonChange} error={seasonErrors.startDate} required />
+                  <TextInput label="Expected harvest date" name="expectedHarvestDate" type="date" value={seasonForm.expectedHarvestDate} onChange={handleSeasonChange} error={seasonErrors.expectedHarvestDate} required />
                 </div>
                 <div className="grid-two">
-                  <TextInput label="Actual harvest date" name="actualHarvestDate" type="date" value={seasonForm.actualHarvestDate} onChange={handleSeasonChange} />
+                  <TextInput label="Actual harvest date" name="actualHarvestDate" type="date" value={seasonForm.actualHarvestDate} onChange={handleSeasonChange} error={seasonErrors.actualHarvestDate} />
                   <label className="field-group">
                     <span className="field-label">Season status</span>
                     <select className="field-input" name="seasonStatus" value={seasonForm.seasonStatus} onChange={handleSeasonChange}>
@@ -1099,12 +1210,14 @@ export function FarmWorkspacePage() {
                       <p>Farm: {season.farmName} • Product: {season.productName || season.productId}</p>
                       <p>Method: {season.farmingMethod || 'N/A'}</p>
                       <p>Status: {season.seasonStatus}</p>
+                      <p>Process steps: {season.processCount ?? 0} • Latest log: {season.latestProcessAt ? formatDateTime(season.latestProcessAt) : 'Chưa có'}</p>
+                      <p>Timeline: {formatDate(season.startDate)} → {formatDate(season.expectedHarvestDate)}{season.actualHarvestDate ? ` • Actual: ${formatDate(season.actualHarvestDate)}` : ''}</p>
                     </div>
                     <div className="inline-actions">
                       <Button variant={isActive ? 'primary' : 'secondary'} onClick={() => handleSelectSeason(season.id)}>
                         {isActive ? 'Đang xem timeline' : 'Xem timeline'}
                       </Button>
-                      <Button variant="secondary" onClick={() => fillSeason(season)}>Sửa</Button>
+                      <Button variant="secondary" onClick={() => fillSeason(season)} disabled={!seasonEditableStatuses.has(String(season.seasonStatus || '').toUpperCase())}>Sửa</Button>
                     </div>
                   </div>
                 )
@@ -1116,16 +1229,27 @@ export function FarmWorkspacePage() {
             <div className="form-grid">
               <h4>{editingProcessId ? 'Cập nhật bước quy trình' : 'Thêm bước quy trình'}</h4>
               <p>Mùa vụ đang chọn: <strong>{selectedSeason?.seasonCode || 'Chưa chọn'}</strong></p>
+              {selectedSeason ? (
+                <div className="business-card farm-info-card">
+                  <div>
+                    <strong>Season detail</strong>
+                    <p>Status: {selectedSeason.seasonStatus}</p>
+                    <p>Method: {selectedSeason.farmingMethod || 'N/A'}</p>
+                    <p>Trace readiness: {selectedSeason.processCount > 0 ? 'Có log quy trình' : 'Chưa có log quy trình'}</p>
+                    <p>Editable: {canMutateSelectedSeason ? 'Có' : 'Không'}</p>
+                  </div>
+                </div>
+              ) : null}
               <form className="form-grid" onSubmit={handleProcessSubmit}>
                 <div className="grid-two">
-                  <TextInput label="Step no" name="stepNo" type="number" min="1" value={processForm.stepNo} onChange={handleProcessChange} required />
-                  <TextInput label="Step name" name="stepName" value={processForm.stepName} onChange={handleProcessChange} required />
+                  <TextInput label="Step no" name="stepNo" type="number" min="1" value={processForm.stepNo} onChange={handleProcessChange} error={processErrors.stepNo} required />
+                  <TextInput label="Step name" name="stepName" value={processForm.stepName} onChange={handleProcessChange} error={processErrors.stepName} required />
                 </div>
-                <TextInput label="Performed at" name="performedAt" type="datetime-local" value={processForm.performedAt} onChange={handleProcessChange} required />
+                <TextInput label="Performed at" name="performedAt" type="datetime-local" value={processForm.performedAt} onChange={handleProcessChange} error={processErrors.performedAt} required />
                 <TextAreaField label="Description" name="description" value={processForm.description} onChange={handleProcessChange} />
                 <TextInput label="Image URL" name="imageUrl" value={processForm.imageUrl} onChange={handleProcessChange} />
                 <div className="section-actions">
-                  <Button type="submit" disabled={savingProcess}>{savingProcess ? 'Đang lưu...' : editingProcessId ? 'Lưu bước quy trình' : 'Thêm bước quy trình'}</Button>
+                  <Button type="submit" disabled={savingProcess || !canManageProcesses}>{savingProcess ? 'Đang lưu...' : editingProcessId ? 'Lưu bước quy trình' : 'Thêm bước quy trình'}</Button>
                   <Button type="button" variant="secondary" onClick={resetProcessForm}>Làm mới form</Button>
                 </div>
               </form>
@@ -1133,6 +1257,17 @@ export function FarmWorkspacePage() {
 
             <div className="form-grid">
               <h4>Timeline quy trình</h4>
+              {seasonTimeline?.seasonInfo ? (
+                <div className="business-card farm-info-card">
+                  <div>
+                    <strong>{seasonTimeline.seasonInfo.seasonName}</strong>
+                    <p>Status: {seasonTimeline.seasonInfo.seasonStatus}</p>
+                    <p>Method: {seasonTimeline.seasonInfo.farmingMethod || 'N/A'}</p>
+                    <p>Window: {formatDate(seasonTimeline.seasonInfo.startDate)} → {formatDate(seasonTimeline.seasonInfo.expectedHarvestDate)}{seasonTimeline.seasonInfo.actualHarvestDate ? ` • Actual: ${formatDate(seasonTimeline.seasonInfo.actualHarvestDate)}` : ''}</p>
+                    <p>Total steps: {seasonTimeline.seasonInfo.totalSteps ?? seasonTimeline.steps?.length ?? 0}</p>
+                  </div>
+                </div>
+              ) : null}
               {seasonTimeline?.steps?.length ? seasonTimeline.steps.map((process) => (
                 <div key={process.id} className="business-card">
                   <div>
@@ -1142,10 +1277,10 @@ export function FarmWorkspacePage() {
                     <p>{process.description || 'Không có mô tả.'}</p>
                   </div>
                   <div className="inline-actions">
-                    <Button variant="secondary" onClick={() => fillProcess(process)}>Sửa</Button>
-                    <Button variant="secondary" onClick={() => handleReorderProcess(process.id, Math.max(1, (process.stepNo || 1) - 1))}>↑</Button>
-                    <Button variant="secondary" onClick={() => handleReorderProcess(process.id, (process.stepNo || 1) + 1)}>↓</Button>
-                    <Button variant="danger" onClick={() => handleDeleteProcess(process.id)}>Xóa</Button>
+                    <Button variant="secondary" onClick={() => fillProcess(process)} disabled={!canManageProcesses}>Sửa</Button>
+                    <Button variant="secondary" onClick={() => handleReorderProcess(process.id, Math.max(1, (process.stepNo || 1) - 1))} disabled={!canManageProcesses}>↑</Button>
+                    <Button variant="secondary" onClick={() => handleReorderProcess(process.id, (process.stepNo || 1) + 1)} disabled={!canManageProcesses}>↓</Button>
+                    <Button variant="danger" onClick={() => handleDeleteProcess(process.id)} disabled={!canManageProcesses}>Xóa</Button>
                   </div>
                 </div>
               )) : <p>Chưa có quy trình cho mùa vụ này.</p>}
@@ -1341,6 +1476,7 @@ export function FarmWorkspacePage() {
                     <p>Quantity: {batch.availableQuantity}/{batch.quantity}</p>
                     <p>Status: {batch.batchStatus}</p>
                     <p>Harvest: {formatDate(batch.harvestDate)} • Expiry: {formatDate(batch.expiryDate)}</p>
+                    <p>Trace: {batch.traceCode || 'Chưa tạo QR'} </p>
                   </div>
                   <div className="inline-actions">
                     <Button variant="secondary" onClick={() => fillBatch(batch)}>Sửa</Button>
@@ -1368,7 +1504,8 @@ export function FarmWorkspacePage() {
                 <div>
                   <strong>QR info</strong>
                   <p>Serial: {traceResult.qrInfo?.serialNo || 'Chưa tạo'}</p>
-                  <p>URL: {traceResult.qrInfo?.qrUrl || 'Chưa tạo'}</p>
+                  <p>Trace code: {traceResult.qrInfo?.traceCode || traceResult.batch?.traceCode || 'Chưa tạo'}</p>
+                  <p>URL: {traceResult.qrInfo?.qrUrl || traceResult.batch?.publicTraceUrl || 'Chưa tạo'}</p>
                   <div className="section-actions">
                     <Button type="button" variant="secondary" onClick={handleCopyQrUrl} disabled={!traceResult.qrInfo?.qrUrl}>Copy URL</Button>
                   </div>

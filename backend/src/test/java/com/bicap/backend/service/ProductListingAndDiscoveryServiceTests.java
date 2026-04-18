@@ -3,17 +3,21 @@ package com.bicap.backend.service;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.modules.batch.entity.ProductBatch;
 import com.bicap.modules.batch.repository.ProductBatchRepository;
+import com.bicap.modules.batch.repository.QrCodeRepository;
+import com.bicap.modules.common.notification.service.NotificationService;
 import com.bicap.modules.discovery.service.DiscoveryService;
 import com.bicap.modules.farm.entity.Farm;
 import com.bicap.modules.listing.dto.CreateListingRequest;
 import com.bicap.modules.listing.dto.ListingResponse;
 import com.bicap.modules.listing.dto.UpdateListingRequest;
 import com.bicap.modules.listing.entity.ProductListing;
+import com.bicap.modules.listing.repository.ListingRegistrationRequestRepository;
 import com.bicap.modules.listing.repository.ProductListingRepository;
 import com.bicap.modules.listing.service.ProductListingService;
 import com.bicap.modules.product.entity.Product;
 import com.bicap.modules.season.entity.FarmingSeason;
 import com.bicap.modules.user.entity.User;
+import com.bicap.modules.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +40,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,10 +55,21 @@ class ProductListingAndDiscoveryServiceTests {
     @Mock
     private ProductBatchRepository batchRepository;
 
+    @Mock
+    private ListingRegistrationRequestRepository listingRegistrationRequestRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private NotificationService notificationService;
+
+    @Mock
+    private QrCodeRepository qrCodeRepository;
+
     @InjectMocks
     private ProductListingService productListingService;
 
-    @InjectMocks
     private DiscoveryService discoveryService;
 
     private ProductBatch batch;
@@ -70,6 +87,7 @@ class ProductListingAndDiscoveryServiceTests {
         farm.setFarmCode("GF-01");
         farm.setProvince("Lam Dong");
         farm.setOwnerUser(owner);
+        farm.setApprovalStatus("APPROVED");
 
         Product product = new Product();
         product.setProductId(22L);
@@ -80,6 +98,7 @@ class ProductListingAndDiscoveryServiceTests {
         season.setSeasonId(33L);
         season.setFarm(farm);
         season.setProduct(product);
+        season.setSeasonStatus("HARVESTED");
 
         batch = new ProductBatch();
         batch.setBatchId(44L);
@@ -102,6 +121,9 @@ class ProductListingAndDiscoveryServiceTests {
         listing.setQuantityAvailable(BigDecimal.valueOf(80));
         listing.setUnit("kg");
         listing.setStatus("ACTIVE");
+
+        lenient().when(qrCodeRepository.existsByBatchBatchIdAndStatus(any(), eq("ACTIVE"))).thenReturn(true);
+        discoveryService = new DiscoveryService(listingRepository, productListingService);
     }
 
     @Test
@@ -193,7 +215,7 @@ class ProductListingAndDiscoveryServiceTests {
         when(listingRepository.findAll(any(Specification.class), any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(listing), PageRequest.of(0, 9, Sort.by(Sort.Direction.ASC, "price")), 1));
 
-        discoveryService.search("rau", null, null, null, 0, 9, "price,asc");
+        discoveryService.search("rau", null, null, null, null, null, 0, 9, "price,asc");
 
         ArgumentCaptor<PageRequest> pageableCaptor = ArgumentCaptor.forClass(PageRequest.class);
         verify(listingRepository).findAll(any(Specification.class), pageableCaptor.capture());
@@ -203,6 +225,6 @@ class ProductListingAndDiscoveryServiceTests {
     @Test
     void discoverySearch_shouldRejectUnsupportedSortField() {
         assertThrows(IllegalArgumentException.class,
-                () -> discoveryService.search("rau", null, null, null, 0, 9, "province,asc"));
+                () -> discoveryService.search("rau", null, null, null, null, null, 0, 9, "province,asc"));
     }
 }
