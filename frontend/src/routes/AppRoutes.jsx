@@ -5,7 +5,6 @@ import { AdminFarmsPage } from '../pages/AdminFarmsPage.jsx'
 import { AdminUsersPage } from '../pages/AdminUsersPage.jsx'
 import { AdminDashboardPage } from '../pages/AdminDashboardPage.jsx'
 import { DashboardHomePage } from '../pages/DashboardHomePage.jsx'
-import { FarmPackagesPage } from '../pages/FarmPackagesPage.jsx'
 import { FarmPhase3Page } from '../pages/FarmPhase3Page.jsx'
 import { FarmWorkspacePage } from '../pages/FarmWorkspacePage.jsx'
 import { LoginPage } from '../pages/LoginPage.jsx'
@@ -22,6 +21,11 @@ import { ForgotPasswordPage } from '../pages/ForgotPasswordPage.jsx'
 import { ResetPasswordPage } from '../pages/ResetPasswordPage.jsx'
 import { BatchDetailPage } from '../pages/BatchDetailPage.jsx'
 import { ListingDetailPage } from '../pages/ListingDetailPage.jsx'
+import { AdminOperationsPage } from '../pages/AdminOperationsPage.jsx'
+import { AdminControlCenterPage } from '../pages/AdminControlCenterPage.jsx'
+import { FarmWorkflowPage } from '../pages/FarmWorkflowPage.jsx'
+import { RetailerOrderWorkflowPage } from '../pages/RetailerOrderWorkflowPage.jsx'
+import { ShippingProofPage } from '../pages/ShippingProofPage.jsx'
 import { ROLES } from '../utils/constants'
 import { ProtectedRoute } from './ProtectedRoute.jsx'
 import { PublicOnlyRoute } from './PublicOnlyRoute.jsx'
@@ -139,7 +143,7 @@ export function AppRoutes() {
           <Route path="/profile" element={<ProfilePage />} />
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
-            <Route path="/dashboard/admin" element={<RoleDashboardPage {...dashboardConfigs.admin} />} />
+            <Route path="/dashboard/admin" element={<AdminControlCenterPage />} />
             <Route path="/dashboard/admin/accounts" element={<AdminDashboardPage defaultTab="users" />} />
             <Route path="/dashboard/admin/operations" element={<AdminDashboardPage defaultTab="farms" />} />
             <Route path="/dashboard/admin/products" element={<AdminDashboardPage defaultTab="products" />} />
@@ -147,28 +151,33 @@ export function AppRoutes() {
             <Route path="/dashboard/appearance" element={<WebsiteAppearancePage />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/farms" element={<AdminFarmsPage />} />
+            <Route path="/admin/operations-plus" element={<AdminOperationsPage />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.FARM]} />}>
             <Route path="/dashboard/farm" element={<RoleDashboardPage {...dashboardConfigs.farm} />} />
             <Route path="/farm/workspace" element={<FarmWorkspacePage />} />
-            <Route path="/farm/packages" element={<FarmPackagesPage />} />
+            <Route path="/farm/workflow" element={<FarmWorkflowPage />} />
+            <Route path="/farm/packages" element={<Navigate to="/farm/workspace" replace />} />
             <Route path="/farm/phase3" element={<FarmPhase3Page />} />
             <Route path="/batches/:id" element={<BatchDetailPage />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.RETAILER]} />}>
-            <Route path="/dashboard/retailer" element={<RoleDashboardPage {...dashboardConfigs.retailer} />} />
+            <Route path="/dashboard/retailer" element={<RetailerWorkspacePage />} />
             <Route path="/retailer/workspace" element={<RetailerWorkspacePage />} />
+            <Route path="/retailer/orders" element={<Navigate to="/retailer/workspace" replace />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.SHIPPING_MANAGER]} />}>
-            <Route path="/dashboard/shipping-manager" element={<RoleDashboardPage {...dashboardConfigs['shipping-manager']} />} />
+            <Route path="/dashboard/shipping-manager" element={<ShippingWorkspacePage />} />
             <Route path="/shipping/workspace" element={<ShippingWorkspacePage />} />
+            <Route path="/shipping/proof" element={<Navigate to="/shipping/workspace" replace />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.DRIVER]} />}>
             <Route path="/dashboard/driver" element={<RoleDashboardPage {...dashboardConfigs.driver} />} />
+            <Route path="/driver/proof" element={<ShippingProofPage />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.GUEST]} />}>

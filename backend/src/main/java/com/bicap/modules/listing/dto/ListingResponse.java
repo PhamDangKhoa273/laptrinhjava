@@ -20,6 +20,7 @@ public class ListingResponse {
     private String unit;
     private String imageUrl;
     private String status;
+    private String approvalStatus;
     private String qualityGrade;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -44,6 +45,7 @@ public class ListingResponse {
         public Builder unit(String v) { r.unit = v; return this; }
         public Builder imageUrl(String v) { r.imageUrl = v; return this; }
         public Builder status(String v) { r.status = v; return this; }
+        public Builder approvalStatus(String v) { r.approvalStatus = v; return this; }
         public Builder qualityGrade(String v) { r.qualityGrade = v; return this; }
         public Builder createdAt(LocalDateTime v) { r.createdAt = v; return this; }
         public Builder updatedAt(LocalDateTime v) { r.updatedAt = v; return this; }
@@ -66,6 +68,7 @@ public class ListingResponse {
     public String getUnit() { return unit; }
     public String getImageUrl() { return imageUrl; }
     public String getStatus() { return status; }
+    public String getApprovalStatus() { return approvalStatus; }
     public String getQualityGrade() { return qualityGrade; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

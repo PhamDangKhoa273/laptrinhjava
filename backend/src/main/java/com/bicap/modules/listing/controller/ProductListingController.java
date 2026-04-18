@@ -3,6 +3,9 @@ package com.bicap.modules.listing.controller;
 import com.bicap.core.dto.ApiResponse;
 import com.bicap.modules.listing.dto.CreateListingRequest;
 import com.bicap.modules.listing.dto.ListingResponse;
+import com.bicap.modules.listing.dto.ListingRegistrationRequestDto;
+import com.bicap.modules.listing.dto.ListingRegistrationResponse;
+import com.bicap.modules.listing.dto.ReviewListingRegistrationRequest;
 import com.bicap.modules.listing.dto.UpdateListingRequest;
 import com.bicap.modules.listing.service.ProductListingService;
 import jakarta.validation.Valid;
@@ -16,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/v1/listings")
 public class ProductListingController {
 
@@ -79,6 +83,34 @@ public class ProductListingController {
     public ResponseEntity<ApiResponse<List<ListingResponse>>> getMyListings() {
         List<ListingResponse> listings = listingService.getMyListings();
         return ResponseEntity.ok(ApiResponse.success("Lấy danh sách listing của tôi thành công", listings));
+    }
+
+    @PostMapping("/{id}/submit")
+    @PreAuthorize("hasRole('FARM')")
+    public ResponseEntity<ApiResponse<ListingRegistrationResponse>> submitListingRegistration(
+            @PathVariable Long id,
+            @Valid @RequestBody ListingRegistrationRequestDto request) {
+        return ResponseEntity.ok(ApiResponse.success("Gửi yêu cầu duyệt listing thành công", listingService.submitRegistration(id, request)));
+    }
+
+    @GetMapping("/registrations/my")
+    @PreAuthorize("hasRole('FARM')")
+    public ResponseEntity<ApiResponse<List<ListingRegistrationResponse>>> getMyRegistrationRequests() {
+        return ResponseEntity.ok(ApiResponse.success(listingService.getMyRegistrationRequests()));
+    }
+
+    @GetMapping("/registrations/pending")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<ListingRegistrationResponse>>> getPendingRegistrationRequests() {
+        return ResponseEntity.ok(ApiResponse.success(listingService.getPendingRegistrationRequests()));
+    }
+
+    @PatchMapping("/registrations/{registrationId}/review")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ListingRegistrationResponse>> reviewRegistration(
+            @PathVariable Long registrationId,
+            @Valid @RequestBody ReviewListingRegistrationRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Duyệt listing thành công", listingService.reviewRegistration(registrationId, request)));
     }
 
     /**

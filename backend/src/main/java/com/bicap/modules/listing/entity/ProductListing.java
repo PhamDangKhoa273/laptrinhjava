@@ -40,6 +40,9 @@ public class ProductListing {
     @Column(length = 20, nullable = false)
     private String status;
 
+    @Column(name = "approval_status", nullable = false, length = 30)
+    private String approvalStatus;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -51,7 +54,8 @@ public class ProductListing {
         LocalDateTime now = LocalDateTime.now();
         if (this.createdAt == null) this.createdAt = now;
         this.updatedAt = now;
-        if (this.status == null || this.status.isBlank()) this.status = "ACTIVE";
+        if (this.status == null || this.status.isBlank()) this.status = "DRAFT";
+        if (this.approvalStatus == null || this.approvalStatus.isBlank()) this.approvalStatus = "DRAFT";
         if (this.unit == null || this.unit.isBlank()) this.unit = "kg";
     }
 
@@ -79,6 +83,8 @@ public class ProductListing {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public String getApprovalStatus() { return approvalStatus; }
+    public void setApprovalStatus(String approvalStatus) { this.approvalStatus = approvalStatus; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

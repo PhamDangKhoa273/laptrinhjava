@@ -264,12 +264,7 @@ public class ProductBatchService {
             matched = false;
         }
 
-        return VerifyTraceResponse.builder()
-                .batchId(batchId)
-                .localHash(localHash)
-                .onChainHash(onChainHash)
-                .matched(matched)
-                .build();
+        return new VerifyTraceResponse(batchId, localHash, onChainHash, matched);
     }
 
     private boolean canAccessBatch(ProductBatch batch, Long currentUserId) {
