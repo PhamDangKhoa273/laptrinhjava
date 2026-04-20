@@ -1,5 +1,7 @@
 package com.bicap.modules.listing.entity;
 
+import com.bicap.core.enums.ApprovalStatus;
+import com.bicap.core.enums.ListingStatus;
 import com.bicap.modules.batch.entity.ProductBatch;
 import jakarta.persistence.*;
 
@@ -54,8 +56,8 @@ public class ProductListing {
         LocalDateTime now = LocalDateTime.now();
         if (this.createdAt == null) this.createdAt = now;
         this.updatedAt = now;
-        if (this.status == null || this.status.isBlank()) this.status = "DRAFT";
-        if (this.approvalStatus == null || this.approvalStatus.isBlank()) this.approvalStatus = "DRAFT";
+        if (this.status == null || this.status.isBlank()) this.status = ListingStatus.DRAFT.name();
+        if (this.approvalStatus == null || this.approvalStatus.isBlank()) this.approvalStatus = ApprovalStatus.DRAFT.name();
         if (this.unit == null || this.unit.isBlank()) this.unit = "kg";
     }
 
@@ -89,4 +91,8 @@ public class ProductListing {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public ListingStatus getStatusEnum() { return status == null ? null : ListingStatus.valueOf(status); }
+    public void setStatus(ListingStatus status) { this.status = status != null ? status.name() : null; }
+    public ApprovalStatus getApprovalStatusEnum() { return approvalStatus == null ? null : ApprovalStatus.valueOf(approvalStatus); }
+    public void setApprovalStatus(ApprovalStatus approvalStatus) { this.approvalStatus = approvalStatus != null ? approvalStatus.name() : null; }
 }

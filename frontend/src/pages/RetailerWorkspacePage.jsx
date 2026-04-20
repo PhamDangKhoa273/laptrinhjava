@@ -60,9 +60,18 @@ function formatDateTime(value) {
   return new Date(value).toLocaleString('vi-VN')
 }
 
+function formatDate(value) {
+  if (!value) return 'N/A'
+  return new Date(value).toLocaleDateString('vi-VN')
+}
+
 function toPositiveNumber(value) {
   const numeric = Number(value)
   return Number.isFinite(numeric) && numeric > 0 ? numeric : null
+}
+
+function StatusBadge({ value }) {
+  return <span className={`status-pill status-${String(value || '').toLowerCase()}`}>{value || 'N/A'}</span>
 }
 
 export function RetailerWorkspacePage() {
@@ -80,6 +89,8 @@ export function RetailerWorkspacePage() {
   const [selectedOrderDetail, setSelectedOrderDetail] = useState(null)
   const [search, setSearch] = useState('')
   const [province, setProvince] = useState('')
+  const [certification, setCertification] = useState('')
+  const [type, setType] = useState('')
   const [sort, setSort] = useState('createdAt,desc')
   const [selectedOrderId, setSelectedOrderId] = useState('')
   const [loading, setLoading] = useState(true)
@@ -98,7 +109,10 @@ export function RetailerWorkspacePage() {
     totalListings: listings.length,
     totalOrders: orders.length,
     pendingOrders: orders.filter((item) => item.status === 'PENDING').length,
+    depositPaidOrders: orders.filter((item) => item.paymentStatus === 'DEPOSIT_PAID').length,
+    cancelledOrders: orders.filter((item) => item.status === 'CANCELLED').length,
     unreadNotifications: notifications.filter((item) => !item.read).length,
+    traceableListings: listings.filter((item) => item.traceable).length,
   }), [listings, orders, notifications])
 
   useEffect(() => {
@@ -120,7 +134,7 @@ export function RetailerWorkspacePage() {
     try {
       const [retailerResult, listingResult, orderResult, notificationResult] = await Promise.allSettled([
         getMyRetailer(),
-        getPublicListings({ page: 0, size: 12, sort, keyword: search, province }),
+        getPublicListings({ page: 0, size: 12, sort, keyword: search, province, certification, productCategory: type }),
         getOrdersV2(),
         getMyNotifications(),
       ])
@@ -141,7 +155,10 @@ export function RetailerWorkspacePage() {
 
       const orderData = orderResult.status === 'fulfilled' && Array.isArray(orderResult.value) ? orderResult.value : []
       setOrders(orderData)
-      setSelectedOrderId((prev) => prev || String(orderData[0]?.orderId || ''))
+      setSelectedOrderId((prev) => {
+        if (prev && orderData.some((item) => String(item.orderId) === String(prev))) return prev
+        return String(orderData[0]?.orderId || '')
+      })
 
       setNotifications(notificationResult.status === 'fulfilled' && Array.isArray(notificationResult.value) ? notificationResult.value : [])
       setError('')
@@ -165,6 +182,10 @@ export function RetailerWorkspacePage() {
     try {
       const data = await getOrderById(orderId)
       setSelectedOrderDetail(data)
+      setDepositForm((prev) => ({
+        ...prev,
+        amount: prev.amount || String(data?.minimumDepositAmount || ''),
+      }))
     } catch {
       setSelectedOrderDetail(null)
     }
@@ -251,10 +272,11 @@ export function RetailerWorkspacePage() {
     setError('')
     setSuccess('')
     try {
-      await createOrder({ items: [{ listingId, quantity }] })
-      setSuccess('Đã tạo order mới.')
+      const created = await createOrder({ items: [{ listingId, quantity }] })
+      setSuccess(`Đã tạo order #${created.orderId}.`)
       setOrderForm({ ...initialOrderForm, listingId: String(listings[0]?.listingId || '') })
       await loadWorkspace()
+      setSelectedOrderId(String(created.orderId))
     } catch (err) {
       setError(getErrorMessage(err, 'Không thể tạo order.'))
     } finally {
@@ -264,7 +286,7 @@ export function RetailerWorkspacePage() {
 
   async function handlePayDeposit(event) {
     event.preventDefault()
-    if (!selectedOrder || savingWorkflow) return
+    if (!selectedOrderDetail || savingWorkflow || !selectedOrderDetail.canPayDeposit) return
 
     const amount = toPositiveNumber(depositForm.amount)
     if (!amount) {
@@ -276,7 +298,7 @@ export function RetailerWorkspacePage() {
     setError('')
     setSuccess('')
     try {
-      await payOrderDeposit(selectedOrder.orderId, {
+      await payOrderDeposit(selectedOrderDetail.orderId, {
         amount,
         method: depositForm.method.trim(),
         transactionRef: depositForm.transactionRef.trim(),
@@ -284,6 +306,8 @@ export function RetailerWorkspacePage() {
       setSuccess('Đã thanh toán đặt cọc.')
       setDepositForm(initialDepositForm)
       await loadWorkspace()
+      await loadOrderDetail(selectedOrderDetail.orderId)
+      await loadHistory(selectedOrderDetail.orderId)
     } catch (err) {
       setError(getErrorMessage(err, 'Không thanh toán được đặt cọc.'))
     } finally {
@@ -293,16 +317,18 @@ export function RetailerWorkspacePage() {
 
   async function handleCancelOrder(event) {
     event.preventDefault()
-    if (!selectedOrder || savingWorkflow) return
+    if (!selectedOrderDetail || savingWorkflow || !selectedOrderDetail.canCancel) return
 
     setSavingWorkflow(true)
     setError('')
     setSuccess('')
     try {
-      await cancelOrder(selectedOrder.orderId, { reason: cancelForm.reason.trim() })
+      await cancelOrder(selectedOrderDetail.orderId, { reason: cancelForm.reason.trim() })
       setSuccess('Đã hủy đơn hàng.')
       setCancelForm(initialCancelForm)
       await loadWorkspace()
+      await loadOrderDetail(selectedOrderDetail.orderId)
+      await loadHistory(selectedOrderDetail.orderId)
     } catch (err) {
       setError(getErrorMessage(err, 'Không hủy được đơn hàng.'))
     } finally {
@@ -312,7 +338,7 @@ export function RetailerWorkspacePage() {
 
   async function handleConfirmDelivery(event) {
     event.preventDefault()
-    if (!selectedOrder || savingWorkflow) return
+    if (!selectedOrderDetail || savingWorkflow || !selectedOrderDetail.canConfirmDelivery) return
 
     setSavingWorkflow(true)
     setError('')
@@ -320,10 +346,10 @@ export function RetailerWorkspacePage() {
     try {
       let proofUrl = deliveryForm.proofImageUrl.trim()
       if (deliveryFile) {
-        const uploaded = await uploadDeliveryProofFile(selectedOrder.orderId, deliveryFile)
+        const uploaded = await uploadDeliveryProofFile(selectedOrderDetail.orderId, deliveryFile)
         proofUrl = uploaded.fileUrl
       }
-      await confirmOrderDelivery(selectedOrder.orderId, {
+      await confirmOrderDelivery(selectedOrderDetail.orderId, {
         proofImageUrl: proofUrl,
         note: deliveryForm.note.trim(),
       })
@@ -331,6 +357,8 @@ export function RetailerWorkspacePage() {
       setDeliveryForm(initialDeliveryForm)
       setDeliveryFile(null)
       await loadWorkspace()
+      await loadOrderDetail(selectedOrderDetail.orderId)
+      await loadHistory(selectedOrderDetail.orderId)
     } catch (err) {
       setError(getErrorMessage(err, 'Không xác nhận được giao hàng.'))
     } finally {
@@ -356,7 +384,7 @@ export function RetailerWorkspacePage() {
         subject: 'Retailer phản hồi workflow đơn hàng',
         content: 'Retailer cần hỗ trợ về trạng thái đơn hàng, proof hoặc thanh toán đặt cọc.',
         relatedEntityType: 'ORDER',
-        relatedEntityId: selectedOrder ? selectedOrder.orderId : null,
+        relatedEntityId: selectedOrderDetail ? selectedOrderDetail.orderId : null,
       })
       setSuccess('Đã gửi report cho admin.')
     } catch (err) {
@@ -374,7 +402,7 @@ export function RetailerWorkspacePage() {
         </div>
         <div className="section-actions">
           <Button variant="secondary" onClick={loadWorkspace} disabled={loading}>Làm mới</Button>
-          <Button onClick={handleCreateReport} disabled={!selectedOrder}>Gửi report</Button>
+          <Button onClick={handleCreateReport} disabled={!selectedOrderDetail}>Gửi report</Button>
         </div>
       </div>
 
@@ -387,73 +415,23 @@ export function RetailerWorkspacePage() {
         <article className="status-card tone-primary">
           <span className="summary-label">Marketplace</span>
           <strong>{summary.totalListings}</strong>
-          <p>Listing đang mở để mua</p>
+          <p>{summary.traceableListings} listing có trace</p>
         </article>
         <article className="status-card tone-warning">
-          <span className="summary-label">Orders</span>
-          <strong>{summary.totalOrders}</strong>
-          <p>{summary.pendingOrders} đơn đang PENDING</p>
+          <span className="summary-label">Pending orders</span>
+          <strong>{summary.pendingOrders}</strong>
+          <p>{summary.depositPaidOrders} đơn đã deposit</p>
         </article>
         <article className="status-card">
-          <span className="summary-label">Notifications</span>
-          <strong>{summary.unreadNotifications}</strong>
-          <p>Thông báo chưa đọc</p>
+          <span className="summary-label">Cancelled / notifications</span>
+          <strong>{summary.cancelledOrders}</strong>
+          <p>{summary.unreadNotifications} thông báo chưa đọc</p>
         </article>
       </div>
 
       {loading ? <div className="glass-card">Đang tải Retailer Workspace...</div> : null}
       {error ? <div className="alert alert-error">{error}</div> : null}
       {success ? <div className="alert alert-success">{success}</div> : null}
-
-      <div className="glass-card top-gap retailer-panel">
-        <div className="retailer-panel-header">
-          <div>
-            <p className="eyebrow">Transaction hardening</p>
-            <h3>Cross-actor order consistency</h3>
-            <p>Làm rõ payment, logistics proof và traceability để retailer thấy chuỗi giao dịch khép kín hơn.</p>
-          </div>
-        </div>
-        <div className="transaction-kpi-grid">
-          <div className="transaction-kpi-card">
-            <strong>{orders.filter((item) => item.paymentStatus === 'DEPOSIT_PAID').length}</strong>
-            <p>Đơn đã deposit</p>
-          </div>
-          <div className="transaction-kpi-card">
-            <strong>{orders.filter((item) => item.status === 'DELIVERED').length}</strong>
-            <p>Đơn đã tới bước nhận hàng</p>
-          </div>
-          <div className="transaction-kpi-card">
-            <strong>{orders.filter((item) => item.shippingProofImageUrl).length}</strong>
-            <p>Đơn đã có shipping proof</p>
-          </div>
-          <div className="transaction-kpi-card">
-            <strong>{orders.filter((item) => item.deliveryProofImageUrl).length}</strong>
-            <p>Đơn đã có delivery proof</p>
-          </div>
-        </div>
-        <div className="transaction-audit-grid top-gap">
-          <div className="transaction-issue-list">
-            <div className="transaction-issue-card">
-              <strong>Deposit but still pending</strong>
-              <p>{orders.filter((item) => item.paymentStatus === 'DEPOSIT_PAID' && item.status === 'PENDING').length} đơn đã deposit nhưng vẫn đứng ở PENDING.</p>
-            </div>
-            <div className="transaction-issue-card">
-              <strong>Shipping proof gap</strong>
-              <p>{orders.filter((item) => item.status === 'SHIPPING' && !item.shippingProofImageUrl).length} đơn đang SHIPPING nhưng chưa có proof logistics.</p>
-            </div>
-          </div>
-          <div className="transaction-issue-list">
-            <div className="transaction-issue-card">
-              <strong>Delivery confirmation gap</strong>
-              <p>{orders.filter((item) => item.status === 'DELIVERED' && !item.deliveryProofImageUrl).length} đơn DELIVERED nhưng retailer chưa đính proof nhận hàng.</p>
-            </div>
-            <div className="transaction-issue-card">
-              <strong>Traceability gap</strong>
-              <p>{orders.filter((item) => item.items?.some((orderItem) => !orderItem.batchCode)).length} order có item chưa hiện batchCode để trace.</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className="retailer-workspace-grid top-gap">
         <article className="glass-card retailer-panel retailer-panel-wide">
@@ -481,22 +459,40 @@ export function RetailerWorkspacePage() {
         <article className="glass-card retailer-panel">
           <div className="retailer-panel-header">
             <div>
-              <p className="eyebrow">Order handling</p>
-              <h3>Đơn hàng đang chọn</h3>
+              <p className="eyebrow">Selected order</p>
+              <h3>Detail + history + action guard</h3>
             </div>
           </div>
 
-          {selectedOrder ? (
+          {selectedOrderDetail ? (
             <div className="form-grid">
               <div className="business-card retailer-order-card is-selected">
                 <div>
-                  <strong>Order #{selectedOrder.orderId}</strong>
-                  <p>Status: {selectedOrder.status}</p>
-                  <p>Payment: {selectedOrder.paymentStatus}</p>
-                  <p>Total: {formatCurrency(selectedOrder.totalAmount)}</p>
-                  <p>Deposit: {formatCurrency(selectedOrder.depositAmount)}</p>
-                  <p>Created: {formatDateTime(selectedOrder.createdAt)}</p>
+                  <strong>Order #{selectedOrderDetail.orderId}</strong>
+                  <p><StatusBadge value={selectedOrderDetail.status} /> <StatusBadge value={selectedOrderDetail.paymentStatus} /></p>
+                  <p>Retailer: {selectedOrderDetail.retailerName || selectedOrderDetail.retailerId}</p>
+                  <p>Farm: {selectedOrderDetail.farmName || selectedOrderDetail.farmId}</p>
+                  <p>Total: {formatCurrency(selectedOrderDetail.totalAmount)}</p>
+                  <p>Minimum deposit: {formatCurrency(selectedOrderDetail.minimumDepositAmount)}</p>
+                  <p>Deposit actual: {formatCurrency(selectedOrderDetail.depositAmount)}</p>
+                  <p>Allowed actions: {selectedOrderDetail.allowedActions?.join(', ') || 'Không có'}</p>
+                  <p>Created: {formatDateTime(selectedOrderDetail.createdAt)}</p>
                 </div>
+              </div>
+
+              <div className="form-grid">
+                <h4>Order items</h4>
+                {selectedOrderDetail.items?.map((item, index) => (
+                  <div key={`${item.listingId}-${index}`} className="business-card">
+                    <div>
+                      <strong>{item.title}</strong>
+                      <p>Batch: {item.batchCode || 'N/A'}</p>
+                      <p>Quantity: {item.quantity}</p>
+                      <p>Price: {formatCurrency(item.price)}</p>
+                      <p>Subtotal: {formatCurrency(item.subTotal)}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className="form-grid">
@@ -513,32 +509,23 @@ export function RetailerWorkspacePage() {
                 ))}
               </div>
 
-              {selectedOrderDetail ? (
-                <div className="form-grid">
-                  <h4>Cross-actor visibility</h4>
-                  <div className="business-card">
-                    <div>
-                      <strong>Payment + proof snapshot</strong>
-                      <p>Deposit paid at: {formatDateTime(selectedOrderDetail.depositPaidAt)}</p>
-                      <p>Shipping proof: {selectedOrderDetail.shippingProofImageUrl || 'Chưa có'}</p>
-                      <p>Delivery proof: {selectedOrderDetail.deliveryProofImageUrl || 'Chưa có'}</p>
-                      <p>Delivery confirmed at: {formatDateTime(selectedOrderDetail.deliveryConfirmedAt)}</p>
-                    </div>
+              <div className="form-grid">
+                <h4>Proof + settlement</h4>
+                <div className="business-card">
+                  <div>
+                    <p>Deposit paid at: {formatDateTime(selectedOrderDetail.depositPaidAt)}</p>
+                    <p>Deposit released at: {formatDateTime(selectedOrderDetail.depositReleasedAt)}</p>
+                    <p>Release note: {selectedOrderDetail.depositReleaseNote || 'Chưa có'}</p>
+                    <p>Shipping proof: {selectedOrderDetail.shippingProofImageUrl || 'Chưa có'}</p>
+                    <p>Delivery proof: {selectedOrderDetail.deliveryProofImageUrl || 'Chưa có'}</p>
+                    <p>Cancellation: {selectedOrderDetail.cancellationReason || 'Không có'}</p>
+                    <p>Cancelled at: {formatDateTime(selectedOrderDetail.cancelledAt)}</p>
+                    <p>Delivery confirmed at: {formatDateTime(selectedOrderDetail.deliveryConfirmedAt)}</p>
                   </div>
-                  {selectedOrderDetail.items?.map((item, index) => (
-                    <div key={`${item.listingId}-${index}`} className="business-card">
-                      <div>
-                        <strong>{item.title}</strong>
-                        <p>Batch: {item.batchCode || 'N/A'}</p>
-                        <p>Quantity: {item.quantity}</p>
-                        <p>Subtotal: {formatCurrency(item.subTotal)}</p>
-                      </div>
-                    </div>
-                  ))}
                 </div>
-              ) : null}
+              </div>
             </div>
-          ) : <p>Chọn một order để xem lifecycle.</p>}
+          ) : <p>Chọn một order để xem detail khép kín.</p>}
         </article>
       </div>
 
@@ -555,12 +542,24 @@ export function RetailerWorkspacePage() {
           <div className="retailer-filter-grid">
             <TextInput label="Keyword" name="search" value={search} onChange={(event) => setSearch(event.target.value)} />
             <TextInput label="Province" name="province" value={province} onChange={(event) => setProvince(event.target.value)} />
+            <TextInput label="Type / category" name="type" value={type} onChange={(event) => setType(event.target.value)} />
+            <label className="field-group">
+              <span className="field-label">Certification</span>
+              <select className="field-input" value={certification} onChange={(event) => setCertification(event.target.value)}>
+                <option value="">Any certification</option>
+                <option value="VIETGAP">VietGAP</option>
+                <option value="GLOBALGAP">GlobalGAP</option>
+                <option value="ORGANIC">Organic</option>
+                <option value="PENDING">Đang cập nhật</option>
+              </select>
+            </label>
             <label className="field-group">
               <span className="field-label">Sort</span>
               <select className="field-input" value={sort} onChange={(event) => setSort(event.target.value)}>
                 <option value="createdAt,desc">Mới nhất</option>
                 <option value="price,asc">Giá tăng dần</option>
                 <option value="price,desc">Giá giảm dần</option>
+                <option value="quantityAvailable,desc">Nhiều hàng nhất</option>
                 <option value="title,asc">Tên A-Z</option>
               </select>
             </label>
@@ -577,11 +576,15 @@ export function RetailerWorkspacePage() {
                   <p>{item.farmName || 'Nông trại BICAP'} {item.province ? `• ${item.province}` : ''}</p>
                   <p>{formatCurrency(item.price)} / {item.unit || 'kg'}</p>
                   <p>Available: {item.quantityAvailable} {item.unit || 'kg'} • Quality: {item.qualityGrade || 'N/A'}</p>
-                  <p>Batch: {item.batchCode || 'N/A'} • Farm code: {item.farmCode || 'N/A'}</p>
+                  <p>Category: {item.productCategory || 'N/A'} • Type: {item.farmType || 'N/A'}</p>
+                  <p>Certification: {item.certificationStatus || 'Đang cập nhật'}</p>
+                  <p>Harvest: {formatDate(item.harvestDate)} • Expiry: {formatDate(item.expiryDate)}</p>
+                  <p>Trace: {item.traceCode || 'N/A'} • Season: {item.seasonCode || 'N/A'}</p>
+                  <p>Retailer readiness: {item.availableForRetailer ? 'Sẵn sàng mua' : 'Cần rà soát thêm'}</p>
                 </div>
                 <div className="inline-actions">
                   <Button variant="secondary" onClick={() => setOrderForm((prev) => ({ ...prev, listingId: String(item.listingId) }))}>Chọn để đặt</Button>
-                  <Button variant="secondary" onClick={() => window.open(`/public/trace?batchId=${item.batchId}`, '_blank')}>Xem trace</Button>
+                  <Button variant="secondary" onClick={() => window.open(item.traceCode ? `/public/trace?traceCode=${encodeURIComponent(item.traceCode)}` : `/public/trace?batchId=${item.batchId}`, '_blank')}>Xem trace</Button>
                 </div>
               </div>
             ))}
@@ -594,7 +597,7 @@ export function RetailerWorkspacePage() {
                 <select className="field-input" name="listingId" value={orderForm.listingId} onChange={handleOrderChange}>
                   <option value="">Chọn listing</option>
                   {listings.map((item) => (
-                    <option key={item.listingId} value={item.listingId}>{item.title} • {formatCurrency(item.price)}</option>
+                    <option key={item.listingId} value={item.listingId}>{item.title} • {formatCurrency(item.price)} • {item.quantityAvailable} {item.unit || 'kg'}</option>
                   ))}
                 </select>
               </label>
@@ -607,7 +610,7 @@ export function RetailerWorkspacePage() {
         <article className="glass-card retailer-panel">
           <div className="retailer-panel-header">
             <div>
-              <p className="eyebrow">Order lifecycle</p>
+              <p className="eyebrow">Valid actions only</p>
               <h3>Deposit, cancel, confirm</h3>
             </div>
           </div>
@@ -620,23 +623,24 @@ export function RetailerWorkspacePage() {
                 className={`retailer-chip ${String(order.orderId) === String(selectedOrderId) ? 'active' : ''}`}
                 onClick={() => setSelectedOrderId(String(order.orderId))}
               >
-                #{order.orderId} • {order.status}
+                #{order.orderId} • {order.status} • {order.paymentStatus}
               </button>
             ))}
           </div>
 
           <form className="form-grid top-gap" onSubmit={handlePayDeposit}>
             <h4>Thanh toán đặt cọc</h4>
+            <p>Mức tối thiểu: {formatCurrency(selectedOrderDetail?.minimumDepositAmount)}</p>
             <TextInput label="Số tiền" name="amount" type="number" min="1" value={depositForm.amount} onChange={handleDepositChange} required />
             <TextInput label="Phương thức" name="method" value={depositForm.method} onChange={handleDepositChange} required />
             <TextInput label="Mã giao dịch" name="transactionRef" value={depositForm.transactionRef} onChange={handleDepositChange} required />
-            <Button type="submit" disabled={savingWorkflow || !selectedOrder}>Thanh toán đặt cọc</Button>
+            <Button type="submit" disabled={savingWorkflow || !selectedOrderDetail?.canPayDeposit}>Thanh toán đặt cọc</Button>
           </form>
 
           <form className="form-grid top-gap" onSubmit={handleCancelOrder}>
             <h4>Hủy đơn</h4>
             <TextAreaField label="Lý do hủy" name="reason" value={cancelForm.reason} onChange={handleCancelChange} />
-            <Button type="submit" variant="secondary" disabled={savingWorkflow || !selectedOrder}>Hủy đơn hàng</Button>
+            <Button type="submit" variant="secondary" disabled={savingWorkflow || !selectedOrderDetail?.canCancel}>Hủy đơn hàng</Button>
           </form>
 
           <form className="form-grid top-gap" onSubmit={handleConfirmDelivery}>
@@ -647,8 +651,8 @@ export function RetailerWorkspacePage() {
               <input className="form-input" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setDeliveryFile(event.target.files?.[0] || null)} />
             </label>
             <TextAreaField label="Ghi chú" name="note" value={deliveryForm.note} onChange={handleDeliveryChange} />
-            {selectedOrder?.shippingProofImageUrl ? <img className="retailer-proof-preview" src={selectedOrder.shippingProofImageUrl} alt="Shipping proof" /> : null}
-            <Button type="submit" disabled={savingWorkflow || !selectedOrder}>Xác nhận đã nhận hàng</Button>
+            {selectedOrderDetail?.shippingProofImageUrl ? <img className="retailer-proof-preview" src={selectedOrderDetail.shippingProofImageUrl} alt="Shipping proof" /> : null}
+            <Button type="submit" disabled={savingWorkflow || !selectedOrderDetail?.canConfirmDelivery}>Xác nhận đã nhận hàng</Button>
           </form>
         </article>
       </div>
@@ -669,6 +673,8 @@ export function RetailerWorkspacePage() {
                   <strong>Order #{order.orderId}</strong>
                   <p>Status: {order.status} • Payment: {order.paymentStatus}</p>
                   <p>Total: {formatCurrency(order.totalAmount)} • Deposit: {formatCurrency(order.depositAmount)}</p>
+                  <p>Minimum deposit: {formatCurrency(order.minimumDepositAmount)}</p>
+                  <p>Allowed: {order.allowedActions?.join(', ') || 'Không có'}</p>
                   <p>Cancellation: {order.cancellationReason || 'Không có'}</p>
                   {order.items?.length ? <p>Items: {order.items.map((item) => `${item.title} (${item.quantity})`).join(', ')}</p> : null}
                 </div>

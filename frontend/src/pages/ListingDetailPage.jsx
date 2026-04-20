@@ -9,6 +9,20 @@ function formatPrice(price) {
   return `${Number(price).toLocaleString('vi-VN')}đ`
 }
 
+function formatDate(value) {
+  if (!value) return 'Đang cập nhật'
+  return new Date(value).toLocaleDateString('vi-VN')
+}
+
+function InfoRow({ label, value }) {
+  return (
+    <div className="mp-card__meta">
+      <span className="mp-card__qty">{label}</span>
+      <span className="mp-card__batch">{value || 'N/A'}</span>
+    </div>
+  )
+}
+
 export function ListingDetailPage() {
   const { id } = useParams()
   const [listing, setListing] = useState(null)
@@ -58,6 +72,8 @@ export function ListingDetailPage() {
 
   if (!listing) return null
 
+  const traceHref = listing.traceCode ? `/public/trace?traceCode=${encodeURIComponent(listing.traceCode)}` : `/public/trace?batchId=${listing.batchId}`
+
   return (
     <section className="marketplace">
       <div className="mp-grid" style={{ gridTemplateColumns: '1.1fr 0.9fr', alignItems: 'start' }}>
@@ -69,26 +85,49 @@ export function ListingDetailPage() {
             <p className="mp-hero__eyebrow" style={{ marginBottom: 8 }}>LISTING DETAIL</p>
             <h1 className="mp-card__title" style={{ fontSize: '1.5rem', whiteSpace: 'normal' }}>{listing.title}</h1>
             <p className="mp-card__farm">🏡 {listing.farmName || 'Nông trại BICAP'} {listing.province ? `, ${listing.province}` : ''}</p>
+            <div className="mp-card__meta" style={{ marginBottom: 12 }}>
+              {listing.productCategory ? <span className="mp-card__category">{listing.productCategory}</span> : null}
+              {listing.farmType ? <span className="mp-card__category">{listing.farmType}</span> : null}
+              {listing.certificationStatus ? <span className="mp-card__category">{listing.certificationStatus}</span> : null}
+            </div>
             {listing.description ? <p className="mp-card__desc" style={{ WebkitLineClamp: 'unset' }}>{listing.description}</p> : null}
             <div className="mp-card__footer">
               <span className="mp-card__price">{formatPrice(listing.price)}</span>
               <span className="mp-card__unit">/ {listing.unit || 'kg'}</span>
+            </div>
+            <div className="mp-card__meta" style={{ marginTop: 16 }}>
+              <span className="mp-card__batch">Chất lượng: {listing.qualityGrade || 'N/A'}</span>
+              <span className="mp-card__batch">Sẵn hàng: {listing.quantityAvailable} {listing.unit || 'kg'}</span>
+            </div>
+            <div className="mp-card__meta">
+              <span className="mp-card__batch">Traceability: {listing.traceable ? 'Có thể truy xuất' : 'Chưa đủ dữ liệu truy xuất'}</span>
+              <span className="mp-card__batch">Retailer readiness: {listing.availableForRetailer ? 'Sẵn sàng mua' : 'Cần rà soát thêm'}</span>
             </div>
           </div>
         </article>
 
         <article className="mp-card">
           <div className="mp-card__body">
-            <h3 className="mp-card__title" style={{ whiteSpace: 'normal' }}>Thông tin listing</h3>
-            <div className="mp-card__meta"><span className="mp-card__qty">Mã listing</span><span className="mp-card__batch">#{listing.listingId}</span></div>
-            <div className="mp-card__meta"><span className="mp-card__qty">Mã batch</span><span className="mp-card__batch">{listing.batchCode || 'N/A'}</span></div>
-            <div className="mp-card__meta"><span className="mp-card__qty">Mã sản phẩm</span><span className="mp-card__batch">{listing.productCode || 'N/A'}</span></div>
-            <div className="mp-card__meta"><span className="mp-card__qty">Mã farm</span><span className="mp-card__batch">{listing.farmCode || 'N/A'}</span></div>
-            <div className="mp-card__meta"><span className="mp-card__qty">Số lượng còn bán</span><span className="mp-card__batch">{listing.quantityAvailable} {listing.unit || 'kg'}</span></div>
-            <div className="mp-card__meta"><span className="mp-card__qty">Chất lượng</span><span className="mp-card__batch">{listing.qualityGrade || 'N/A'}</span></div>
-            <div className="mp-card__meta"><span className="mp-card__qty">Trạng thái</span><span className="mp-card__batch">{listing.status || 'N/A'}</span></div>
+            <h3 className="mp-card__title" style={{ whiteSpace: 'normal' }}>Thông tin để retailer quyết định mua</h3>
+            <InfoRow label="Mã listing" value={`#${listing.listingId}`} />
+            <InfoRow label="Mã batch" value={listing.batchCode} />
+            <InfoRow label="Trace code" value={listing.traceCode} />
+            <InfoRow label="Mã sản phẩm" value={listing.productCode} />
+            <InfoRow label="Danh mục" value={listing.productCategory} />
+            <InfoRow label="Mã farm" value={listing.farmCode} />
+            <InfoRow label="Địa chỉ farm" value={listing.address} />
+            <InfoRow label="Chứng chỉ farm" value={listing.certificationStatus} />
+            <InfoRow label="Farm approval" value={listing.farmApproved ? 'Đã duyệt' : 'Chưa duyệt'} />
+            <InfoRow label="Mùa vụ" value={listing.seasonCode} />
+            <InfoRow label="Trạng thái mùa vụ" value={listing.seasonStatus} />
+            <InfoRow label="Phương thức canh tác" value={listing.farmingMethod} />
+            <InfoRow label="Ngày thu hoạch" value={formatDate(listing.harvestDate)} />
+            <InfoRow label="Hạn sử dụng" value={formatDate(listing.expiryDate)} />
+            <InfoRow label="QR URL" value={listing.qrCodeUrl} />
+            <InfoRow label="Trạng thái listing" value={listing.status} />
+            <InfoRow label="Approval listing" value={listing.approvalStatus} />
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
-              <Link className="mp-retry-btn" to={`/public/trace?batchId=${listing.batchId}`}>Xem nguồn gốc lô hàng</Link>
+              <Link className="mp-retry-btn" to={traceHref}>Xem nguồn gốc lô hàng</Link>
               <Link className="mp-retry-btn" to="/dashboard/guest">Quay lại marketplace</Link>
             </div>
           </div>

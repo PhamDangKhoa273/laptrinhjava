@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -82,5 +83,15 @@ public class FarmController {
             @AuthenticationPrincipal CustomUserPrincipal currentUser) {
         farmService.deactivateFarm(id, currentUser.getUserId());
         return ApiResponse.success(null);
+    }
+
+    @PostMapping(value = "/{id}/business-license", consumes = "multipart/form-data")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
+    public ApiResponse<FarmResponse> uploadBusinessLicense(
+            @PathVariable Long id,
+            @RequestPart("file") MultipartFile file,
+            @AuthenticationPrincipal CustomUserPrincipal currentUser) {
+        return ApiResponse.success("Tải giấy phép kinh doanh thành công",
+                farmService.uploadBusinessLicense(id, file, currentUser.getUserId()));
     }
 }

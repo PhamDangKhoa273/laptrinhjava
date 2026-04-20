@@ -10,6 +10,11 @@ function formatPrice(price) {
   return `${Number(price).toLocaleString('vi-VN')}đ`
 }
 
+function formatDate(value) {
+  if (!value) return 'Đang cập nhật'
+  return new Date(value).toLocaleDateString('vi-VN')
+}
+
 function ProductCard({ item, onOpen }) {
   const placeholderColors = [
     'linear-gradient(135deg, #2d5016 0%, #4a7c2e 100%)',
@@ -19,7 +24,7 @@ function ProductCard({ item, onOpen }) {
     'linear-gradient(135deg, #7c2d12 0%, #c2410c 100%)',
   ]
   const bgColor = placeholderColors[Math.abs((item.listingId || 0) % placeholderColors.length)]
-  const traceHref = item.batchId ? `/public/trace?batchId=${item.batchId}` : '/public/trace'
+  const traceHref = item.traceCode ? `/public/trace?traceCode=${encodeURIComponent(item.traceCode)}` : item.batchId ? `/public/trace?batchId=${item.batchId}` : '/public/trace'
 
   return (
     <div className="mp-card" onClick={onOpen} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter') onOpen?.() }}>
@@ -33,23 +38,32 @@ function ProductCard({ item, onOpen }) {
           </div>
         )}
         {item.qualityGrade ? <span className="mp-card__badge">{item.qualityGrade}</span> : null}
-        {item.batchCode ? <span className="mp-card__badge mp-card__badge--qr">🔗 QR</span> : null}
+        {item.traceable ? <span className="mp-card__badge mp-card__badge--qr">🔗 Trace</span> : null}
       </div>
 
       <div className="mp-card__body">
         <h3 className="mp-card__title">{item.title}</h3>
         <p className="mp-card__farm">🏡 {item.farmName || 'Nông trại BICAP'}</p>
-        {item.province ? <span className="mp-card__category">{item.province}</span> : null}
+        <div className="mp-card__meta">
+          {item.province ? <span className="mp-card__category">{item.province}</span> : null}
+          {item.productCategory ? <span className="mp-card__category">{item.productCategory}</span> : null}
+          {item.farmType ? <span className="mp-card__category">{item.farmType}</span> : null}
+        </div>
         {item.description ? <p className="mp-card__desc">{item.description}</p> : null}
 
         <div className="mp-card__meta">
           <span className="mp-card__qty">📦 {Number(item.quantityAvailable || 0).toLocaleString('vi-VN')} {item.unit || 'kg'}</span>
-          {item.batchCode ? <span className="mp-card__batch">🔗 {item.batchCode}</span> : null}
+          <span className="mp-card__batch">{item.certificationStatus || 'Chưa có chứng chỉ'}</span>
         </div>
 
         <div className="mp-card__meta">
-          {item.productCode ? <span className="mp-card__batch">Mã SP: {item.productCode}</span> : null}
-          {item.farmCode ? <span className="mp-card__batch">Mã farm: {item.farmCode}</span> : null}
+          {item.harvestDate ? <span className="mp-card__batch">Thu hoạch: {formatDate(item.harvestDate)}</span> : null}
+          {item.expiryDate ? <span className="mp-card__batch">HSD: {formatDate(item.expiryDate)}</span> : null}
+        </div>
+
+        <div className="mp-card__meta">
+          {item.batchCode ? <span className="mp-card__batch">Lô: {item.batchCode}</span> : null}
+          {item.traceCode ? <span className="mp-card__batch">Trace: {item.traceCode}</span> : null}
         </div>
 
         <div className="mp-card__footer">
@@ -57,9 +71,17 @@ function ProductCard({ item, onOpen }) {
           <span className="mp-card__unit">/ {item.unit || 'kg'}</span>
         </div>
 
+        <div className="mp-card__meta">
+          <span className="mp-card__batch">Farm duyệt: {item.farmApproved ? 'Đã duyệt' : 'Chưa duyệt'}</span>
+          <span className="mp-card__batch">Mua được: {item.availableForRetailer ? 'Sẵn sàng' : 'Cần bổ sung hồ sơ'}</span>
+        </div>
+
         <div className="mp-card__actions" style={{ display: 'flex', gap: 12, marginTop: 14, flexWrap: 'wrap' }}>
-          <Link className="mp-retry-btn" to={traceHref}>
-            Xem nguồn gốc lô hàng này
+          <Link className="mp-retry-btn" to={traceHref} onClick={(event) => event.stopPropagation()}>
+            Xem nguồn gốc
+          </Link>
+          <Link className="mp-retry-btn" to={`/listings/${item.listingId}`} onClick={(event) => event.stopPropagation()}>
+            Xem chi tiết
           </Link>
         </div>
       </div>
@@ -122,6 +144,8 @@ export function GuestMarketplacePage() {
   const initialProvince = searchParams.get('province') || ''
   const initialMinPrice = searchParams.get('minPrice') || ''
   const initialMaxPrice = searchParams.get('maxPrice') || ''
+  const initialCertification = searchParams.get('certification') || ''
+  const initialType = searchParams.get('productCategory') || searchParams.get('type') || ''
   const initialSort = searchParams.get('sort') || 'createdAt,desc'
   const initialPage = parsePositiveInt(searchParams.get('page'), 0)
   const initialSize = parsePositiveInt(searchParams.get('size'), 9) || 9
@@ -137,13 +161,15 @@ export function GuestMarketplacePage() {
   const [province, setProvince] = useState(initialProvince)
   const [minPrice, setMinPrice] = useState(initialMinPrice)
   const [maxPrice, setMaxPrice] = useState(initialMaxPrice)
+  const [certification, setCertification] = useState(initialCertification)
+  const [type, setType] = useState(initialType)
   const [sort, setSort] = useState(initialSort)
   const [page, setPage] = useState(initialPage)
   const [size] = useState(initialSize)
   const [meta, setMeta] = useState({ page: initialPage, size: initialSize, totalItems: 0, totalPages: 0, sort: initialSort })
   const debounceRef = useRef(null)
 
-  const hasActiveFilters = Boolean(search || province || minPrice || maxPrice || sort !== 'createdAt,desc')
+  const hasActiveFilters = Boolean(search || province || minPrice || maxPrice || certification || type || sort !== 'createdAt,desc')
 
   useEffect(() => {
     const nextParams = new URLSearchParams()
@@ -151,11 +177,13 @@ export function GuestMarketplacePage() {
     if (province) nextParams.set('province', province)
     if (minPrice) nextParams.set('minPrice', minPrice)
     if (maxPrice) nextParams.set('maxPrice', maxPrice)
+    if (certification) nextParams.set('certification', certification)
+    if (type) nextParams.set('productCategory', type)
     if (sort !== 'createdAt,desc') nextParams.set('sort', sort)
     if (page > 0) nextParams.set('page', String(page))
     if (size !== 9) nextParams.set('size', String(size))
     setSearchParams(nextParams, { replace: true })
-  }, [search, province, minPrice, maxPrice, sort, page, size, setSearchParams])
+  }, [search, province, minPrice, maxPrice, certification, type, sort, page, size, setSearchParams])
 
   useEffect(() => {
     if (debounceRef.current) {
@@ -175,7 +203,7 @@ export function GuestMarketplacePage() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [search, province, minPrice, maxPrice, sort, page])
+  }, [search, province, minPrice, maxPrice, certification, type, sort, page])
 
   useEffect(() => {
     async function loadContent() {
@@ -220,6 +248,8 @@ export function GuestMarketplacePage() {
         province,
         minPrice,
         maxPrice,
+        certification,
+        productCategory: type,
         page: targetPage,
         size,
         sort,
@@ -241,6 +271,8 @@ export function GuestMarketplacePage() {
     setProvince('')
     setMinPrice('')
     setMaxPrice('')
+    setCertification('')
+    setType('')
     setSort('createdAt,desc')
     setPage(0)
   }
@@ -259,27 +291,33 @@ export function GuestMarketplacePage() {
     <section className="marketplace">
       <div className="mp-hero">
         <div className="mp-hero__content">
-          <p className="mp-hero__eyebrow">SÀN NÔNG SẢN BICAP</p>
-          <h1 className="mp-hero__title">Marketplace công khai + content hub cho guest</h1>
-          <p className="mp-hero__subtitle">
-            Không chỉ tìm nông sản, giờ guest còn xem được nội dung giáo dục, bài viết, video và kiến thức nền tảng ngay trên public UI.
-          </p>
+          <p className="mp-hero__eyebrow">SÀN GIAO DỊCH</p>
+          <p className="mp-hero__subtitle">Chợ nông sản sạch</p>
         </div>
 
-        <form className="mp-hero__search" onSubmit={(event) => event.preventDefault()} style={{ display: 'grid', gap: 10 }}>
-          <input
-            type="text"
-            placeholder="Tìm theo tên sản phẩm hoặc mã lô"
-            value={search}
-            onChange={(event) => { setSearch(event.target.value); setPage(0) }}
-            className="mp-hero__search-input"
-          />
-          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
+        <form className="mp-hero__search" onSubmit={(event) => event.preventDefault()}>
+          <div className="mp-hero__search-main">
+            <input
+              type="text"
+              placeholder="Tìm theo tên sản phẩm, farm hoặc mã lô"
+              value={search}
+              onChange={(event) => { setSearch(event.target.value); setPage(0) }}
+              className="mp-hero__search-input"
+            />
+          </div>
+          <div className="mp-hero__filters-grid">
             <input
               type="text"
               placeholder="Tỉnh thành"
               value={province}
               onChange={(event) => { setProvince(event.target.value); setPage(0) }}
+              className="mp-hero__search-input"
+            />
+            <input
+              type="text"
+              placeholder="Loại nông sản / loại farm"
+              value={type}
+              onChange={(event) => { setType(event.target.value); setPage(0) }}
               className="mp-hero__search-input"
             />
             <input
@@ -298,14 +336,22 @@ export function GuestMarketplacePage() {
               onChange={(event) => { setMaxPrice(event.target.value); setPage(0) }}
               className="mp-hero__search-input"
             />
+            <select value={certification} onChange={(event) => { setCertification(event.target.value); setPage(0) }} className="mp-hero__search-input">
+              <option value="">Chứng chỉ bất kỳ</option>
+              <option value="VIETGAP">VietGAP</option>
+              <option value="GLOBALGAP">GlobalGAP</option>
+              <option value="ORGANIC">Organic</option>
+              <option value="PENDING">Đang cập nhật</option>
+            </select>
             <select value={sort} onChange={(event) => { setSort(event.target.value); setPage(0) }} className="mp-hero__search-input">
               <option value="createdAt,desc">Mới nhất</option>
               <option value="price,asc">Giá tăng dần</option>
               <option value="price,desc">Giá giảm dần</option>
+              <option value="quantityAvailable,desc">Nhiều hàng nhất</option>
               <option value="title,asc">Tên A-Z</option>
             </select>
           </div>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="mp-hero__actions">
             <button className="mp-retry-btn" type="button" onClick={handleReset}>Xóa bộ lọc</button>
             {isDebouncing ? <span className="mp-hint">Đang cập nhật kết quả...</span> : null}
           </div>
@@ -320,6 +366,10 @@ export function GuestMarketplacePage() {
         <div className="mp-stat">
           <span className="mp-stat__value">{stats.farmCount || '—'}</span>
           <span className="mp-stat__label">Nông trại</span>
+        </div>
+        <div className="mp-stat">
+          <span className="mp-stat__value">{stats.provinceCount || '—'}</span>
+          <span className="mp-stat__label">Vùng</span>
         </div>
         <div className="mp-stat">
           <span className="mp-stat__value">{contentItems.length || '—'}</span>

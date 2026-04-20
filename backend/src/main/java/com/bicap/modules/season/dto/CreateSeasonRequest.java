@@ -13,18 +13,18 @@ public class CreateSeasonRequest {
     @NotNull(message = "product_id is required")
     private Long productId;
 
-    @NotBlank(message = "season_code is required")
-    @Size(max = 100, message = "season_code must be at most 100 characters")
+    @NotBlank(message = "Mã mùa vụ là bắt buộc")
+    @Size(max = 100, message = "Mã mùa vụ không được vượt quá 100 ký tự")
     private String seasonCode;
 
-    @NotNull(message = "start_date is required")
+    @NotNull(message = "Ngày bắt đầu là bắt buộc")
     private LocalDate startDate;
 
-    @NotNull(message = "expected_harvest_date is required")
+    @NotNull(message = "Ngày thu hoạch dự kiến là bắt buộc")
     private LocalDate expectedHarvestDate;
 
-    @NotBlank(message = "farming_method is required")
-    @Size(max = 255, message = "farming_method must be at most 255 characters")
+    @NotBlank(message = "Phương pháp canh tác là bắt buộc")
+    @Size(max = 255, message = "Phương pháp canh tác không được vượt quá 255 ký tự")
     private String farmingMethod;
 
     public Long getFarmId() { return farmId; }

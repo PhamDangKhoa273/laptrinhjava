@@ -28,6 +28,8 @@ public class DiscoveryController {
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) String province,
+            @RequestParam(required = false) String productCategory,
+            @RequestParam(required = false) String certification,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort) {
@@ -42,7 +44,17 @@ public class DiscoveryController {
             throw new IllegalArgumentException("size phải nằm trong khoảng 1 đến 100");
         }
 
-        Page<ListingResponse> results = discoveryService.search(keyword, minPrice, maxPrice, province, page, size, sort);
+        Page<ListingResponse> results = discoveryService.search(
+                keyword,
+                minPrice,
+                maxPrice,
+                province,
+                productCategory,
+                certification,
+                page,
+                size,
+                sort
+        );
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("items", results.getContent());
         payload.put("page", results.getNumber());

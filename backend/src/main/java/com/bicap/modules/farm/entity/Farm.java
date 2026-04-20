@@ -38,6 +38,7 @@ public class Farm {
     private String logoUrl;
     
     private String businessLicenseNo;
+    private String businessLicenseFileUrl;
     private String certificationStatus;
     private String approvalStatus;
     private String reviewComment;
@@ -79,6 +80,8 @@ public class Farm {
     public void setLogoUrl(String s) { this.logoUrl = s; }
     public String getBusinessLicenseNo() { return businessLicenseNo; }
     public void setBusinessLicenseNo(String s) { this.businessLicenseNo = s; }
+    public String getBusinessLicenseFileUrl() { return businessLicenseFileUrl; }
+    public void setBusinessLicenseFileUrl(String s) { this.businessLicenseFileUrl = s; }
     public String getCertificationStatus() { return certificationStatus; }
     public void setCertificationStatus(String s) { this.certificationStatus = s; }
     public String getApprovalStatus() { return approvalStatus; }

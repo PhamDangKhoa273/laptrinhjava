@@ -125,7 +125,6 @@ export function AdminOperationsPage() {
         <div>
           <p className="eyebrow">Admin operations</p>
           <h2>Duyệt listing, xem report, theo dõi notification</h2>
-          <p>Khóa các workflow vận hành chính của phase 2-4 trước khi đi tiếp sang phase 5-6.</p>
         </div>
         <div className="section-actions">
           <Button variant="secondary" onClick={loadData} disabled={loading}>Làm mới</Button>

@@ -103,6 +103,10 @@ export async function traceBatch(id, isPublic = false) {
   return normalizeTraceResponse(unwrap(await api.get(path)))
 }
 
+export async function traceBatchByCode(traceCode) {
+  return normalizeTraceResponse(unwrap(await api.get('/public/trace', { params: { traceCode } })))
+}
+
 export async function verifyBatch(id) {
   return unwrap(await api.get(`/batches/${id}/verify`))
 }
