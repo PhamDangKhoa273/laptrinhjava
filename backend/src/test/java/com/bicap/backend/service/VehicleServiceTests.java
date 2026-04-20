@@ -58,7 +58,7 @@ class VehicleServiceTests {
         vehicle.setVehicleId(30L);
         vehicle.setPlateNo("51A-12345");
         vehicle.setVehicleType("Truck");
-        vehicle.setCapacity(new BigDecimal("1000"));
+        vehicle.setCapacity(1000);
         vehicle.setStatus("ACTIVE");
         vehicle.setManagerUser(manager);
     }
