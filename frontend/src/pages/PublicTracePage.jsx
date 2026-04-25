@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '../components/Button.jsx'
 import { TextInput } from '../components/TextInput.jsx'
-import { traceBatch, verifyBatch } from '../services/phase3Service'
+import { traceBatch, traceBatchByCode, verifyBatch } from '../services/phase3Service'
 import { getErrorMessage } from '../utils/helpers'
 
 function formatDate(value) {
@@ -16,6 +16,7 @@ function formatDateTime(value) {
 
 export function PublicTracePage() {
   const [batchId, setBatchId] = useState('')
+  const [traceCode, setTraceCode] = useState('')
   const [traceResult, setTraceResult] = useState(null)
   const [verifyResult, setVerifyResult] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -24,23 +25,27 @@ export function PublicTracePage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const initialBatchId = params.get('batchId')
+    const initialTraceCode = params.get('traceCode')
     if (initialBatchId && Number(initialBatchId) > 0) {
       setBatchId(initialBatchId)
+    }
+    if (initialTraceCode) {
+      setTraceCode(initialTraceCode)
     }
   }, [])
 
   async function handleSubmit(event) {
     event.preventDefault()
-    if (!batchId.trim() || Number(batchId) <= 0) return
+    if ((!batchId.trim() || Number(batchId) <= 0) && !traceCode.trim()) return
 
     setLoading(true)
     setError('')
     try {
-      const numericBatchId = Number(batchId)
-      const [traceData, verifyData] = await Promise.all([
-        traceBatch(numericBatchId, true),
-        verifyBatch(numericBatchId),
-      ])
+      const traceData = traceCode.trim()
+        ? await traceBatchByCode(traceCode.trim())
+        : await traceBatch(Number(batchId), true)
+      const resolvedBatchId = traceData?.batch?.batchId || Number(batchId)
+      const verifyData = resolvedBatchId ? await verifyBatch(resolvedBatchId) : null
       setTraceResult(traceData)
       setVerifyResult(verifyData)
     } catch (err) {
@@ -58,13 +63,16 @@ export function PublicTracePage() {
         <div>
           <p className="eyebrow">Public trace</p>
           <h2>Tra cứu nguồn gốc lô hàng</h2>
-          <p>Nhập batch ID để xem mùa vụ, quy trình, QR và đối chiếu hash blockchain công khai.</p>
+          <p>Nhập batch ID hoặc trace code từ QR để xem mùa vụ, quy trình, QR và đối chiếu hash blockchain công khai.</p>
         </div>
       </div>
 
       <article className="glass-card">
         <form className="form-grid" onSubmit={handleSubmit}>
-          <TextInput label="Batch ID" name="batchId" type="number" min="1" value={batchId} onChange={(event) => setBatchId(event.target.value)} required />
+          <div className="grid-two">
+            <TextInput label="Batch ID" name="batchId" type="number" min="1" value={batchId} onChange={(event) => setBatchId(event.target.value)} />
+            <TextInput label="Trace code" name="traceCode" value={traceCode} onChange={(event) => setTraceCode(event.target.value)} />
+          </div>
           <Button type="submit" disabled={loading}>{loading ? 'Đang truy xuất...' : 'Tra cứu'}</Button>
         </form>
         {error ? <div className="alert alert-error top-gap">{error}</div> : null}
@@ -78,6 +86,9 @@ export function PublicTracePage() {
               <li>Farm: {traceResult.seasonInfo?.farmName || 'N/A'} ({traceResult.seasonInfo?.farmCode || 'N/A'})</li>
               <li>Batch: {traceResult.batch.batchCode || 'N/A'} • Status: {traceResult.batch.batchStatus || 'N/A'}</li>
               <li>QR serial: {traceResult.qrInfo?.serialNo || 'Chưa tạo'}</li>
+
+              <li>Trace code: {traceResult.qrInfo?.traceCode || traceResult.batch?.traceCode || 'N/A'}</li>
+
               <li>Blockchain match: {verifyResult?.matched ? 'YES' : 'NO'}</li>
               <li>Available quantity: {traceResult.batch.availableQuantity}/{traceResult.batch.quantity}</li>
             </ul>
@@ -109,8 +120,9 @@ export function PublicTracePage() {
             <h3>Thông tin QR</h3>
             <ul className="feature-list">
               <li>Serial: {traceResult.qrInfo?.serialNo || 'Chưa tạo'}</li>
-              <li>URL: {traceResult.qrInfo?.qrUrl || 'Chưa tạo'}</li>
+              <li>URL: {traceResult.qrInfo?.qrUrl || traceResult.batch?.publicTraceUrl || 'Chưa tạo'}</li>
               <li>Payload: {traceResult.qrInfo?.qrValue || 'Chưa tạo'}</li>
+              <li>Mapped batch: {traceResult.batch?.batchId || 'N/A'}</li>
             </ul>
             {traceResult.qrInfo?.qrImageBase64 ? <img alt="QR batch" src={`data:image/png;base64,${traceResult.qrInfo.qrImageBase64}`} style={{ maxWidth: 180 }} /> : null}
           </article>

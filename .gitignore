@@ -23,3 +23,7 @@ Thumbs.db
 *.env.local
 *.env.development.local
 *.env.production.local
+
+
+backend/build_output*.txt
+

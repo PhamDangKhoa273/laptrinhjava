@@ -273,6 +273,31 @@ class OrderServiceTests {
     }
 
     @Test
+
+
+    void confirmDelivery_shouldReleaseDepositWhenCompleted() {
+        order.setStatus("DELIVERED");
+        order.setShippingProofImageUrl("https://example.com/shipping.jpg");
+        order.setPaymentStatus("DEPOSIT_PAID");
+        order.setDepositAmount(BigDecimal.valueOf(300));
+        when(retailerRepository.findByUserUserId(123L)).thenReturn(Optional.of(retailer));
+        when(orderRepository.findById(7L)).thenReturn(Optional.of(order));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ConfirmDeliveryRequest request = new ConfirmDeliveryRequest();
+        request.setProofImageUrl("https://example.com/delivery.jpg");
+        request.setNote("Retailer accepted goods");
+
+        try (MockedStatic<com.bicap.core.security.SecurityUtils> security = mockStatic(com.bicap.core.security.SecurityUtils.class)) {
+            security.when(com.bicap.core.security.SecurityUtils::getCurrentUserId).thenReturn(123L);
+            OrderResponse response = orderService.confirmDelivery(7L, request);
+            assertEquals("COMPLETED", response.getStatus());
+            assertEquals("RELEASED", response.getPaymentStatus());
+        }
+    }
+
+    @Test
+
     void getOrderStatusHistory_shouldAllowDriverRoleVisibility() {
         when(orderRepository.findById(7L)).thenReturn(Optional.of(order));
         when(statusHistoryRepository.findByOrderIdOrderByChangedAtDesc(7L)).thenReturn(List.of());
@@ -292,6 +317,23 @@ class OrderServiceTests {
         try (MockedStatic<com.bicap.core.security.SecurityUtils> security = mockStatic(com.bicap.core.security.SecurityUtils.class)) {
             security.when(com.bicap.core.security.SecurityUtils::getCurrentUserId).thenReturn(123L);
             assertThrows(BusinessException.class, () -> orderService.uploadDeliveryProofFile(7L, null));
+        }
+    }
+
+
+    @Test
+    void payDeposit_shouldRequireMethodAndTransactionReference() {
+        when(retailerRepository.findByUserUserId(123L)).thenReturn(Optional.of(retailer));
+        when(orderRepository.findById(7L)).thenReturn(Optional.of(order));
+
+        OrderDepositRequest request = new OrderDepositRequest();
+        request.setAmount(BigDecimal.valueOf(300));
+        request.setMethod("   ");
+        request.setTransactionRef("   ");
+
+        try (MockedStatic<com.bicap.core.security.SecurityUtils> security = mockStatic(com.bicap.core.security.SecurityUtils.class)) {
+            security.when(com.bicap.core.security.SecurityUtils::getCurrentUserId).thenReturn(123L);
+            assertThrows(BusinessException.class, () -> orderService.payDeposit(7L, request));
         }
     }
 

@@ -1,5 +1,7 @@
 package com.bicap.modules.order.entity;
 
+import com.bicap.core.enums.OrderPaymentStatus;
+import com.bicap.core.enums.OrderStatus;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -55,6 +57,18 @@ public class Order {
     @Column(name = "shipping_proof_image_url", length = 500)
     private String shippingProofImageUrl;
 
+
+
+    @Column(name = "deposit_released_at")
+    private LocalDateTime depositReleasedAt;
+
+    @Column(name = "deposit_released_by_user_id")
+    private Long depositReleasedByUserId;
+
+    @Column(name = "deposit_release_note", length = 500)
+    private String depositReleaseNote;
+
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
@@ -70,7 +84,10 @@ public class Order {
         this.createdAt = now;
         this.updatedAt = now;
         if (this.status == null || this.status.isBlank()) {
-            this.status = "PENDING";
+            this.status = OrderStatus.PENDING.name();
+        }
+        if (this.paymentStatus == null || this.paymentStatus.isBlank()) {
+            this.paymentStatus = OrderPaymentStatus.UNPAID.name();
         }
         if (this.paymentStatus == null || this.paymentStatus.isBlank()) {
             this.paymentStatus = "UNPAID";
@@ -207,6 +224,32 @@ public class Order {
         this.shippingProofImageUrl = shippingProofImageUrl;
     }
 
+
+    public LocalDateTime getDepositReleasedAt() {
+        return depositReleasedAt;
+    }
+
+    public void setDepositReleasedAt(LocalDateTime depositReleasedAt) {
+        this.depositReleasedAt = depositReleasedAt;
+    }
+
+    public Long getDepositReleasedByUserId() {
+        return depositReleasedByUserId;
+    }
+
+    public void setDepositReleasedByUserId(Long depositReleasedByUserId) {
+        this.depositReleasedByUserId = depositReleasedByUserId;
+    }
+
+    public String getDepositReleaseNote() {
+        return depositReleaseNote;
+    }
+
+    public void setDepositReleaseNote(String depositReleaseNote) {
+        this.depositReleaseNote = depositReleaseNote;
+    }
+
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -221,5 +264,21 @@ public class Order {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public OrderStatus getStatusEnum() {
+        return status == null ? null : OrderStatus.valueOf(status);
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status != null ? status.name() : null;
+    }
+
+    public OrderPaymentStatus getPaymentStatusEnum() {
+        return paymentStatus == null ? null : OrderPaymentStatus.valueOf(paymentStatus);
+    }
+
+    public void setPaymentStatus(OrderPaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus != null ? paymentStatus.name() : null;
     }
 }

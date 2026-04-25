@@ -53,6 +53,13 @@ export async function getOrdersV2() {
   return Array.isArray(data?.items) ? data.items : []
 }
 
+
+export async function getOrderAllowedActions(orderId) {
+  const order = await getOrderById(orderId)
+  return Array.isArray(order?.allowedActions) ? order.allowedActions : []
+}
+
+
 export async function getOrderById(orderId) {
   return unwrap(await api.get(`/orders/${orderId}`))
 }

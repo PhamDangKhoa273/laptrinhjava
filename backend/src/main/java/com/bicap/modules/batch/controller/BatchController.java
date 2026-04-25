@@ -61,6 +61,11 @@ public class BatchController {
         return ApiResponse.success(productBatchService.traceBatch(id));
     }
 
+    @GetMapping("/api/v1/public/trace")
+    public ApiResponse<TraceBatchResponse> publicTraceByCode(@RequestParam String traceCode) {
+        return ApiResponse.success(productBatchService.traceBatchByTraceCode(traceCode));
+    }
+
     @GetMapping("/api/v1/batches/{id}/verify")
     public ApiResponse<VerifyTraceResponse> verifyBatch(@PathVariable Long id) {
         return ApiResponse.success(productBatchService.verifyBatch(id));

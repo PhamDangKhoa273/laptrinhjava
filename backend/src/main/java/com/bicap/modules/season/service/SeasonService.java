@@ -11,6 +11,7 @@ import com.bicap.modules.season.dto.CreateSeasonRequest;
 import com.bicap.modules.season.dto.SeasonResponse;
 import com.bicap.modules.season.dto.UpdateSeasonRequest;
 import com.bicap.modules.season.entity.FarmingSeason;
+import com.bicap.modules.season.repository.FarmingProcessRepository;
 import com.bicap.modules.season.repository.FarmingSeasonRepository;
 import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.repository.UserRepository;
@@ -18,13 +19,21 @@ import com.bicap.modules.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class SeasonService {
 
+    private static final Set<String> ALLOWED_STATUSES = Set.of("PLANNED", "IN_PROGRESS", "HARVESTED", "COMPLETED");
+    private static final Set<String> MUTABLE_STATUSES = Set.of("PLANNED", "IN_PROGRESS", "HARVESTED");
+
     private final FarmingSeasonRepository farmingSeasonRepository;
+    private final FarmingProcessRepository farmingProcessRepository;
     private final FarmRepository farmRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
@@ -32,12 +41,14 @@ public class SeasonService {
     private final BlockchainService blockchainService;
 
     public SeasonService(FarmingSeasonRepository farmingSeasonRepository,
+                         FarmingProcessRepository farmingProcessRepository,
                          FarmRepository farmRepository,
                          ProductRepository productRepository,
                          UserRepository userRepository,
                          UserService userService,
                          BlockchainService blockchainService) {
         this.farmingSeasonRepository = farmingSeasonRepository;
+        this.farmingProcessRepository = farmingProcessRepository;
         this.farmRepository = farmRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
@@ -80,8 +91,13 @@ public class SeasonService {
     }
 
     public SeasonResponse getSeasonById(Long id) {
-        FarmingSeason s = farmingSeasonRepository.findById(id).orElseThrow(() -> new BusinessException("Mùa vụ không tồn tại"));
-        return mapToResponse(s);
+        FarmingSeason season = farmingSeasonRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Mùa vụ không tồn tại"));
+        Long currentUserId = com.bicap.core.security.SecurityUtils.getCurrentUserIdOrNull();
+        if (currentUserId != null) {
+            checkPermission(season.getFarm(), currentUserId);
+        }
+        return mapToResponse(season);
     }
 
     public FarmingSeason findSeasonAndCheckPermission(Long seasonId, Long currentUserId) {
@@ -115,19 +131,23 @@ public class SeasonService {
 
         checkPermission(farm, currentUserId);
         validateFarmApproved(farm);
-        validateSeasonDates(request.getStartDate(), request.getExpectedHarvestDate(), null, null);
-        ensureSeasonCodeUnique(request.getSeasonCode(), null);
 
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new BusinessException("Sản phẩm không tồn tại."));
 
+        String normalizedSeasonCode = normalizeSeasonCode(request.getSeasonCode());
+        String normalizedFarmingMethod = normalizeText(request.getFarmingMethod(), "Phương pháp canh tác không được để trống.");
+
+        validateSeasonDates(request.getStartDate(), request.getExpectedHarvestDate(), null, "PLANNED");
+        ensureSeasonCodeUnique(normalizedSeasonCode, null);
+
         FarmingSeason season = new FarmingSeason();
         season.setFarm(farm);
         season.setProduct(product);
-        season.setSeasonCode(request.getSeasonCode());
+        season.setSeasonCode(normalizedSeasonCode);
         season.setStartDate(request.getStartDate());
         season.setExpectedHarvestDate(request.getExpectedHarvestDate());
-        season.setFarmingMethod(request.getFarmingMethod());
+        season.setFarmingMethod(normalizedFarmingMethod);
         season.setSeasonStatus("PLANNED");
 
         FarmingSeason saved = farmingSeasonRepository.save(season);
@@ -147,15 +167,25 @@ public class SeasonService {
         FarmingSeason season = farmingSeasonRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Mùa vụ không tồn tại"));
         checkPermission(season.getFarm(), currentUserId);
-        String nextSeasonCode = request.getSeasonCode() != null ? request.getSeasonCode() : season.getSeasonCode();
-        java.time.LocalDate nextStartDate = request.getStartDate() != null ? request.getStartDate() : season.getStartDate();
-        java.time.LocalDate nextExpectedHarvestDate = request.getExpectedHarvestDate() != null ? request.getExpectedHarvestDate() : season.getExpectedHarvestDate();
-        java.time.LocalDate nextActualHarvestDate = request.getActualHarvestDate() != null ? request.getActualHarvestDate() : season.getActualHarvestDate();
-        String nextFarmingMethod = request.getFarmingMethod() != null ? request.getFarmingMethod() : season.getFarmingMethod();
-        String nextSeasonStatus = request.getSeasonStatus() != null ? request.getSeasonStatus() : season.getSeasonStatus();
+        ensureSeasonMutable(season);
 
+        String nextSeasonCode = request.getSeasonCode() != null
+                ? normalizeSeasonCode(request.getSeasonCode())
+                : season.getSeasonCode();
+        LocalDate nextStartDate = request.getStartDate() != null ? request.getStartDate() : season.getStartDate();
+        LocalDate nextExpectedHarvestDate = request.getExpectedHarvestDate() != null ? request.getExpectedHarvestDate() : season.getExpectedHarvestDate();
+        LocalDate nextActualHarvestDate = request.getActualHarvestDate() != null ? request.getActualHarvestDate() : season.getActualHarvestDate();
+        String nextFarmingMethod = request.getFarmingMethod() != null
+                ? normalizeText(request.getFarmingMethod(), "Phương pháp canh tác không được để trống.")
+                : season.getFarmingMethod();
+        String nextSeasonStatus = request.getSeasonStatus() != null
+                ? normalizeStatus(request.getSeasonStatus())
+                : season.getSeasonStatus();
+
+        validateSeasonStatusTransition(season.getSeasonStatus(), nextSeasonStatus, season);
         validateSeasonDates(nextStartDate, nextExpectedHarvestDate, nextActualHarvestDate, nextSeasonStatus);
         ensureSeasonCodeUnique(nextSeasonCode, id);
+        validateProcessDatesWithinSeason(id, nextStartDate, nextActualHarvestDate, nextSeasonStatus);
 
         season.setSeasonCode(nextSeasonCode);
         season.setStartDate(nextStartDate);
@@ -164,6 +194,33 @@ public class SeasonService {
         season.setFarmingMethod(nextFarmingMethod);
         season.setSeasonStatus(nextSeasonStatus);
         return mapToResponse(farmingSeasonRepository.save(season));
+    }
+
+    public void ensureProcessMutationAllowed(FarmingSeason season) {
+        ensureSeasonMutable(season);
+        String status = normalizeStatus(season.getSeasonStatus());
+        if ("PLANNED".equals(status)) {
+            throw new BusinessException("Mùa vụ đang ở trạng thái PLANNED, hãy chuyển sang IN_PROGRESS trước khi cập nhật nhật ký quy trình.");
+        }
+    }
+
+    public void validateProcessDateAgainstSeason(FarmingSeason season, LocalDateTime performedAt) {
+        if (performedAt == null) {
+            throw new BusinessException("Thời điểm thực hiện không được để trống.");
+        }
+        if (season.getStartDate() != null && performedAt.toLocalDate().isBefore(season.getStartDate())) {
+            throw new BusinessException("Thời điểm thực hiện không được trước ngày bắt đầu mùa vụ.");
+        }
+        if (season.getActualHarvestDate() != null && performedAt.toLocalDate().isAfter(season.getActualHarvestDate())) {
+            throw new BusinessException("Thời điểm thực hiện không được sau ngày thu hoạch thực tế.");
+        }
+        if (season.getExpectedHarvestDate() != null
+                && performedAt.toLocalDate().isAfter(season.getExpectedHarvestDate())
+                && season.getActualHarvestDate() == null
+                && !"HARVESTED".equalsIgnoreCase(season.getSeasonStatus())
+                && !"COMPLETED".equalsIgnoreCase(season.getSeasonStatus())) {
+            throw new BusinessException("Thời điểm thực hiện vượt quá ngày thu hoạch dự kiến. Hãy cập nhật trạng thái mùa vụ trước.");
+        }
     }
 
     private void checkPermission(Farm farm, Long currentUserId) {
@@ -182,27 +239,87 @@ public class SeasonService {
         }
     }
 
-    private void validateSeasonDates(java.time.LocalDate startDate,
-                                     java.time.LocalDate expectedHarvestDate,
-                                     java.time.LocalDate actualHarvestDate,
+    private void validateSeasonDates(LocalDate startDate,
+                                     LocalDate expectedHarvestDate,
+                                     LocalDate actualHarvestDate,
                                      String seasonStatus) {
-        if (startDate != null && expectedHarvestDate != null && expectedHarvestDate.isBefore(startDate)) {
+        if (startDate == null || expectedHarvestDate == null) {
+            throw new BusinessException("Ngày bắt đầu và ngày thu hoạch dự kiến là bắt buộc.");
+        }
+        if (expectedHarvestDate.isBefore(startDate)) {
             throw new BusinessException("Ngày thu hoạch dự kiến phải lớn hơn hoặc bằng ngày bắt đầu.");
         }
+        String normalizedStatus = normalizeStatus(seasonStatus == null ? "PLANNED" : seasonStatus);
         if (actualHarvestDate != null) {
-            if (startDate != null && actualHarvestDate.isBefore(startDate)) {
+            if (actualHarvestDate.isBefore(startDate)) {
                 throw new BusinessException("Ngày thu hoạch thực tế không hợp lệ.");
             }
-            if (seasonStatus == null || !("HARVESTED".equalsIgnoreCase(seasonStatus) || "COMPLETED".equalsIgnoreCase(seasonStatus))) {
-                throw new BusinessException("Chỉ được nhập ngày thu hoạch thực tế khi mùa vụ đã thu hoạch.");
+            if (actualHarvestDate.isAfter(LocalDate.now().plusYears(1))) {
+                throw new BusinessException("Ngày thu hoạch thực tế vượt quá giới hạn hợp lý.");
             }
+            if (!("HARVESTED".equals(normalizedStatus) || "COMPLETED".equals(normalizedStatus))) {
+                throw new BusinessException("Chỉ được nhập ngày thu hoạch thực tế khi mùa vụ đã thu hoạch hoặc hoàn tất.");
+            }
+        }
+        if ("COMPLETED".equals(normalizedStatus) && actualHarvestDate == null) {
+            throw new BusinessException("Mùa vụ COMPLETED phải có ngày thu hoạch thực tế.");
+        }
+    }
+
+    private void validateSeasonStatusTransition(String currentStatus, String nextStatus, FarmingSeason season) {
+        String current = normalizeStatus(currentStatus == null ? "PLANNED" : currentStatus);
+        String next = normalizeStatus(nextStatus == null ? current : nextStatus);
+
+        if (!ALLOWED_STATUSES.contains(next)) {
+            throw new BusinessException("Trạng thái mùa vụ không hợp lệ.");
+        }
+        if (current.equals(next)) {
+            return;
+        }
+        if ("PLANNED".equals(current) && !("IN_PROGRESS".equals(next) || "PLANNED".equals(next))) {
+            throw new BusinessException("Mùa vụ PLANNED chỉ có thể chuyển sang IN_PROGRESS.");
+        }
+        if ("IN_PROGRESS".equals(current) && !("HARVESTED".equals(next) || "IN_PROGRESS".equals(next))) {
+            throw new BusinessException("Mùa vụ IN_PROGRESS chỉ có thể chuyển sang HARVESTED.");
+        }
+        if ("HARVESTED".equals(current) && !("COMPLETED".equals(next) || "HARVESTED".equals(next))) {
+            throw new BusinessException("Mùa vụ HARVESTED chỉ có thể chuyển sang COMPLETED.");
+        }
+        if ("COMPLETED".equals(current)) {
+            throw new BusinessException("Mùa vụ COMPLETED không thể cập nhật lại.");
+        }
+        if ("HARVESTED".equals(next) && farmingProcessRepository.findBySeason_SeasonIdOrderByStepNoAsc(season.getSeasonId()).isEmpty()) {
+            throw new BusinessException("Mùa vụ phải có ít nhất một bước quy trình trước khi chuyển sang HARVESTED.");
+        }
+    }
+
+    private void validateProcessDatesWithinSeason(Long seasonId,
+                                                  LocalDate nextStartDate,
+                                                  LocalDate nextActualHarvestDate,
+                                                  String nextSeasonStatus) {
+        List<LocalDateTime> processDates = farmingProcessRepository.findBySeason_SeasonIdOrderByPerformedAtAsc(seasonId).stream()
+                .map(process -> process.getPerformedAt())
+                .toList();
+
+        if (processDates.isEmpty()) {
+            return;
+        }
+
+        LocalDate earliestProcessDate = processDates.get(0).toLocalDate();
+        LocalDate latestProcessDate = processDates.get(processDates.size() - 1).toLocalDate();
+
+        if (earliestProcessDate.isBefore(nextStartDate)) {
+            throw new BusinessException("Không thể cập nhật ngày bắt đầu sau nhật ký quy trình đầu tiên.");
+        }
+        if (nextActualHarvestDate != null && latestProcessDate.isAfter(nextActualHarvestDate)) {
+            throw new BusinessException("Không thể cập nhật ngày thu hoạch thực tế trước nhật ký quy trình cuối cùng.");
+        }
+        if ("PLANNED".equals(nextSeasonStatus)) {
+            throw new BusinessException("Mùa vụ đã có nhật ký quy trình, không thể chuyển lại PLANNED.");
         }
     }
 
     private void ensureSeasonCodeUnique(String seasonCode, Long currentSeasonId) {
-        if (seasonCode == null || seasonCode.isBlank()) {
-            throw new BusinessException("Mã mùa vụ không được để trống.");
-        }
         farmingSeasonRepository.findBySeasonCode(seasonCode)
                 .filter(existing -> currentSeasonId == null || !existing.getSeasonId().equals(currentSeasonId))
                 .ifPresent(existing -> {
@@ -210,7 +327,17 @@ public class SeasonService {
                 });
     }
 
+    private void ensureSeasonMutable(FarmingSeason season) {
+        String status = normalizeStatus(season.getSeasonStatus());
+        if (!MUTABLE_STATUSES.contains(status)) {
+            throw new BusinessException("Mùa vụ ở trạng thái " + status + " không thể cập nhật nữa.");
+        }
+    }
+
     private SeasonResponse mapToResponse(FarmingSeason season) {
+        List<com.bicap.modules.season.entity.FarmingProcess> processes = farmingProcessRepository.findBySeason_SeasonIdOrderByPerformedAtAsc(season.getSeasonId());
+        LocalDateTime latestProcessAt = processes.isEmpty() ? null : processes.get(processes.size() - 1).getPerformedAt();
+
         return SeasonResponse.builder()
                 .id(season.getSeasonId())
                 .farmId(season.getFarm().getFarmId())
@@ -220,6 +347,8 @@ public class SeasonService {
                 .productName(season.getProduct() != null ? season.getProduct().getProductName() : null)
                 .seasonCode(season.getSeasonCode())
                 .seasonStatus(season.getSeasonStatus())
+                .processCount(processes.size())
+                .latestProcessAt(latestProcessAt)
                 .startDate(season.getStartDate())
                 .expectedHarvestDate(season.getExpectedHarvestDate())
                 .actualHarvestDate(season.getActualHarvestDate())
@@ -227,5 +356,26 @@ public class SeasonService {
                 .createdAt(season.getCreatedAt())
                 .updatedAt(season.getUpdatedAt())
                 .build();
+    }
+
+    private String normalizeSeasonCode(String seasonCode) {
+        return normalizeText(seasonCode, "Mã mùa vụ không được để trống.")
+                .toUpperCase(Locale.ROOT)
+                .replaceAll("\\s+", "-");
+    }
+
+    private String normalizeStatus(String seasonStatus) {
+        return normalizeText(seasonStatus, "Trạng thái mùa vụ không được để trống.").toUpperCase(Locale.ROOT);
+    }
+
+    private String normalizeText(String value, String message) {
+        if (value == null) {
+            throw new BusinessException(message);
+        }
+        String normalized = value.trim().replaceAll("\\s+", " ");
+        if (normalized.isBlank()) {
+            throw new BusinessException(message);
+        }
+        return normalized;
     }
 }
