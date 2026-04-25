@@ -56,8 +56,13 @@ public class ProductListing {
         LocalDateTime now = LocalDateTime.now();
         if (this.createdAt == null) this.createdAt = now;
         this.updatedAt = now;
+
+        if (this.status == null || this.status.isBlank()) this.status = "DRAFT";
+        if (this.approvalStatus == null || this.approvalStatus.isBlank()) this.approvalStatus = "DRAFT";
+
         if (this.status == null || this.status.isBlank()) this.status = ListingStatus.DRAFT.name();
         if (this.approvalStatus == null || this.approvalStatus.isBlank()) this.approvalStatus = ApprovalStatus.DRAFT.name();
+
         if (this.unit == null || this.unit.isBlank()) this.unit = "kg";
     }
 

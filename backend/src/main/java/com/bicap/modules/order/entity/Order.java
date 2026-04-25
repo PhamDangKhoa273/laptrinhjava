@@ -57,6 +57,8 @@ public class Order {
     @Column(name = "shipping_proof_image_url", length = 500)
     private String shippingProofImageUrl;
 
+
+
     @Column(name = "deposit_released_at")
     private LocalDateTime depositReleasedAt;
 
@@ -65,6 +67,7 @@ public class Order {
 
     @Column(name = "deposit_release_note", length = 500)
     private String depositReleaseNote;
+
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
@@ -85,6 +88,9 @@ public class Order {
         }
         if (this.paymentStatus == null || this.paymentStatus.isBlank()) {
             this.paymentStatus = OrderPaymentStatus.UNPAID.name();
+        }
+        if (this.paymentStatus == null || this.paymentStatus.isBlank()) {
+            this.paymentStatus = "UNPAID";
         }
     }
 
@@ -218,6 +224,7 @@ public class Order {
         this.shippingProofImageUrl = shippingProofImageUrl;
     }
 
+
     public LocalDateTime getDepositReleasedAt() {
         return depositReleasedAt;
     }
@@ -241,6 +248,7 @@ public class Order {
     public void setDepositReleaseNote(String depositReleaseNote) {
         this.depositReleaseNote = depositReleaseNote;
     }
+
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

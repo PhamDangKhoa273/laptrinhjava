@@ -12,7 +12,9 @@ import {
   getMySubscriptions,
   getPackages,
   updateFarm,
+
   uploadFarmBusinessLicense,
+
 } from '../services/businessService'
 import { createListing, getMyListings, updateListing } from '../services/listingService.js'
 import {
@@ -102,7 +104,9 @@ const listingStatuses = ['DRAFT', 'ACTIVE', 'INACTIVE']
 const paymentMethods = ['BANK_TRANSFER', 'MOMO', 'CASH']
 const paymentStatuses = ['PENDING', 'PAID', 'FAILED']
 const seasonStatuses = ['PLANNED', 'IN_PROGRESS', 'HARVESTED', 'COMPLETED']
+
 const seasonEditableStatuses = new Set(['PLANNED', 'IN_PROGRESS', 'HARVESTED'])
+
 const batchStatuses = ['CREATED', 'READY', 'STORED', 'SOLD_OUT']
 const qualityGrades = ['A', 'B', 'C']
 
@@ -178,16 +182,20 @@ export function FarmWorkspacePage() {
   const [batchForm, setBatchForm] = useState(initialBatchForm)
   const [loading, setLoading] = useState(true)
   const [savingProfile, setSavingProfile] = useState(false)
+
   const [uploadingLicense, setUploadingLicense] = useState(false)
   const [profileErrors, setProfileErrors] = useState({})
+
   const [submittingPackageId, setSubmittingPackageId] = useState(null)
   const [savingListing, setSavingListing] = useState(false)
   const [savingPayment, setSavingPayment] = useState(false)
   const [savingSeason, setSavingSeason] = useState(false)
   const [savingProcess, setSavingProcess] = useState(false)
   const [savingBatch, setSavingBatch] = useState(false)
+
   const [seasonErrors, setSeasonErrors] = useState({})
   const [processErrors, setProcessErrors] = useState({})
+
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -206,9 +214,11 @@ export function FarmWorkspacePage() {
     [batches, selectedBatchId],
   )
 
+
   const selectedSeasonStatus = String(selectedSeason?.seasonStatus || '').toUpperCase()
   const canMutateSelectedSeason = selectedSeason ? seasonEditableStatuses.has(selectedSeasonStatus) : false
   const canManageProcesses = selectedSeason ? selectedSeasonStatus === 'IN_PROGRESS' || selectedSeasonStatus === 'HARVESTED' : false
+
 
   const summary = useMemo(() => ({
     totalPackages: packages.length,
@@ -279,9 +289,11 @@ export function FarmWorkspacePage() {
       setProfileForm({
         farmCode: farmData?.farmCode || '',
         farmName: farmData?.farmName || '',
+
         farmType: farmData?.farmType || '',
         totalArea: farmData?.totalArea ? String(farmData.totalArea) : '',
         contactPerson: farmData?.contactPerson || '',
+
         businessLicenseNo: farmData?.businessLicenseNo || '',
         address: farmData?.address || '',
         province: farmData?.province || '',
@@ -328,6 +340,22 @@ export function FarmWorkspacePage() {
         setSeasonTimeline(await getSeasonProcesses(Number(resolvedSeasonId)))
       } else {
         setSeasonTimeline(null)
+
+      }
+
+      if (resolvedBatchId) {
+        const [traceData, verifyData] = await Promise.all([
+          traceBatch(Number(resolvedBatchId)),
+          verifyBatch(Number(resolvedBatchId)),
+        ])
+        setTraceResult(traceData)
+        setVerifyResult(verifyData)
+      } else {
+        setTraceResult(null)
+        setVerifyResult(null)
+      }
+
+
       }
 
       if (resolvedBatchId) {
@@ -372,7 +400,127 @@ export function FarmWorkspacePage() {
   function handleProfileChange(event) {
     const { name, value } = event.target
     setProfileForm((prev) => ({ ...prev, [name]: value }))
-    setProfileErrors((prev) => ({ ...prev, [name]: '' }))
+
+  }
+
+  function handleListingChange(event) {
+    const { name, value } = event.target
+    setListingForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  function handlePaymentChange(event) {
+    const { name, value } = event.target
+    setPaymentForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  function handleSeasonChange(event) {
+    const { name, value } = event.target
+    setSeasonForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  function handleProcessChange(event) {
+    const { name, value } = event.target
+    setProcessForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  function handleBatchChange(event) {
+    const { name, value } = event.target
+    setBatchForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  function resetListingForm() {
+    setListingForm({
+      ...initialListingForm,
+      batchId: String(batches[0]?.batchId || ''),
+    })
+    setEditingListingId('')
+  }
+
+  function resetSeasonForm() {
+    setSeasonForm({
+      ...initialSeasonForm,
+      farmId: farmContext?.farmId ? String(farmContext.farmId) : '',
+      productId: products[0]?.productId ? String(products[0].productId) : '',
+      seasonCode: buildSeasonCode(farmContext?.farmCode),
+    })
+    setEditingSeasonId('')
+  }
+
+  function resetProcessForm() {
+    setProcessForm(initialProcessForm)
+    setEditingProcessId('')
+  }
+
+  function resetBatchForm() {
+    setBatchForm({
+      ...initialBatchForm,
+      seasonId: selectedSeason?.id ? String(selectedSeason.id) : '',
+      productId: selectedSeason?.productId ? String(selectedSeason.productId) : products[0]?.productId ? String(products[0].productId) : '',
+      batchCode: buildBatchCode(selectedSeason?.seasonCode),
+    })
+    setEditingBatchId('')
+  }
+
+  function fillListingForm(listing) {
+    setEditingListingId(String(listing.listingId))
+    setListingForm({
+      batchId: String(listing.batchId || ''),
+      title: listing.title || '',
+      description: listing.description || '',
+      price: listing.price || '',
+      quantityAvailable: listing.quantityAvailable || '',
+      unit: listing.unit || 'kg',
+      imageUrl: listing.imageUrl || '',
+      registrationNote: '',
+      status: listing.status || 'DRAFT',
+    })
+  }
+
+  function fillSeason(season) {
+    setEditingSeasonId(String(season.id))
+    setSeasonForm({
+      farmId: String(season.farmId || ''),
+      productId: String(season.productId || ''),
+      seasonCode: season.seasonCode || '',
+      startDate: season.startDate || '',
+      expectedHarvestDate: season.expectedHarvestDate || '',
+      actualHarvestDate: season.actualHarvestDate || '',
+      farmingMethod: season.farmingMethod || '',
+      seasonStatus: season.seasonStatus || 'PLANNED',
+    })
+  }
+
+  function fillProcess(process) {
+    setEditingProcessId(String(process.id))
+    setProcessForm({
+      stepNo: String(process.stepNo || ''),
+      stepName: process.stepName || '',
+      performedAt: toDateTimeLocalInput(process.performedAt),
+      description: process.description || '',
+      imageUrl: process.imageUrl || '',
+    })
+  }
+
+  function fillBatch(batch) {
+    setEditingBatchId(String(batch.batchId))
+    setBatchForm({
+      seasonId: String(batch.seasonId || ''),
+      productId: String(batch.productId || ''),
+      batchCode: batch.batchCode || '',
+      harvestDate: batch.harvestDate || '',
+      quantity: String(batch.quantity || ''),
+      availableQuantity: String(batch.availableQuantity || ''),
+      qualityGrade: batch.qualityGrade || '',
+      expiryDate: batch.expiryDate || '',
+      batchStatus: batch.batchStatus || 'CREATED',
+    })
+  }
+
+  async function handleProfileSubmit(event) {
+    event.preventDefault()
+    if (savingProfile) return
+
+   setProfileErrors((prev) => ({ ...prev, [name]: '' }))
   }
 
   function validateProfileFormState() {
@@ -569,6 +717,7 @@ export function FarmWorkspacePage() {
       return
     }
 
+
     setSavingProfile(true)
     setError('')
     setSuccess('')
@@ -577,9 +726,11 @@ export function FarmWorkspacePage() {
       const payload = {
         farmCode: profileForm.farmCode.trim(),
         farmName: profileForm.farmName.trim(),
+
         farmType: profileForm.farmType.trim(),
         totalArea: profileForm.totalArea ? Number(profileForm.totalArea) : null,
         contactPerson: profileForm.contactPerson.trim(),
+
         businessLicenseNo: profileForm.businessLicenseNo.trim(),
         address: profileForm.address.trim(),
         province: profileForm.province.trim(),
@@ -613,6 +764,7 @@ export function FarmWorkspacePage() {
         description: result.description || '',
       })
       setSuccess(farm ? 'Đã cập nhật hồ sơ nông trại.' : 'Đã tạo hồ sơ nông trại.')
+
     } catch (err) {
       setError(getErrorMessage(err, 'Không thể lưu hồ sơ nông trại.'))
     } finally {
@@ -709,6 +861,104 @@ export function FarmWorkspacePage() {
     } catch (err) {
       setError(getErrorMessage(err, 'Không thể lưu listing.'))
     } finally {
+
+    } catch (err) {
+      setError(getErrorMessage(err, 'Không thể lưu hồ sơ nông trại.'))
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  async function handleSubscribe(packageId) {
+    setSubmittingPackageId(packageId)
+    setError('')
+    setSuccess('')
+    try {
+      await createSubscription({ packageId, farmId: farm?.farmId || farmContext?.farmId || null })
+      setSuccess('Đã tạo đăng ký gói dịch vụ.')
+      await loadWorkspace()
+    } catch (err) {
+      setError(getErrorMessage(err, 'Không thể đăng ký gói dịch vụ.'))
+    } finally {
+      setSubmittingPackageId(null)
+    }
+  }
+
+  async function handlePaymentSubmit(event) {
+    event.preventDefault()
+    if (savingPayment) return
+
+    const subscriptionId = toPositiveNumber(paymentForm.subscriptionId)
+    const amount = toPositiveNumber(paymentForm.amount)
+
+    if (!subscriptionId || !amount) {
+      setError('Subscription và số tiền phải hợp lệ.')
+      return
+    }
+
+    setSavingPayment(true)
+    setError('')
+    setSuccess('')
+    try {
+      await createSubscriptionPayment({
+        subscriptionId,
+        amount,
+        method: paymentForm.method,
+        transactionRef: paymentForm.transactionRef.trim(),
+        paymentStatus: paymentForm.paymentStatus,
+      })
+      setSuccess('Đã ghi nhận payment subscription.')
+      setPaymentForm((prev) => ({ ...prev, amount: '', transactionRef: '' }))
+      await loadWorkspace()
+    } catch (err) {
+      setError(getErrorMessage(err, 'Không thể tạo payment subscription.'))
+    } finally {
+      setSavingPayment(false)
+    }
+  }
+
+  async function handleListingSubmit(event) {
+    event.preventDefault()
+    if (savingListing) return
+
+    const batchId = toPositiveNumber(listingForm.batchId)
+    const price = toPositiveNumber(listingForm.price)
+    const quantityAvailable = toPositiveNumber(listingForm.quantityAvailable)
+
+    if (!batchId || !price || !quantityAvailable) {
+      setError('Batch, giá và số lượng phải hợp lệ.')
+      return
+    }
+
+    setSavingListing(true)
+    setError('')
+    setSuccess('')
+    try {
+      const payload = {
+        batchId,
+        title: listingForm.title.trim(),
+        description: listingForm.description.trim(),
+        price,
+        quantityAvailable,
+        unit: listingForm.unit.trim() || 'kg',
+        imageUrl: listingForm.imageUrl.trim(),
+      }
+
+      const result = editingListingId
+        ? await updateListing(Number(editingListingId), { ...payload, status: listingForm.status || 'DRAFT' })
+        : await createListing(payload)
+
+      if (!editingListingId && listingForm.registrationNote.trim()) {
+        await submitListingRegistration(result.listingId, { note: listingForm.registrationNote.trim() })
+      }
+
+      setSuccess(editingListingId ? 'Đã cập nhật listing.' : 'Đã tạo listing mới.')
+      resetListingForm()
+      await loadWorkspace()
+    } catch (err) {
+      setError(getErrorMessage(err, 'Không thể lưu listing.'))
+    } finally {
+
       setSavingListing(false)
     }
   }
@@ -716,6 +966,15 @@ export function FarmWorkspacePage() {
   async function handleSeasonSubmit(event) {
     event.preventDefault()
     if (savingSeason) return
+
+
+    const farmId = toPositiveNumber(seasonForm.farmId)
+    const productId = toPositiveNumber(seasonForm.productId)
+    if (!farmId || !productId) {
+      setError('Farm ID và Product ID phải hợp lệ.')
+      return
+    }
+
 
     const nextErrors = validateSeasonFormState()
     setSeasonErrors(nextErrors)
@@ -725,6 +984,7 @@ export function FarmWorkspacePage() {
 
     const farmId = toPositiveNumber(seasonForm.farmId)
     const productId = toPositiveNumber(seasonForm.productId)
+
 
     setSavingSeason(true)
     setError('')
@@ -762,6 +1022,15 @@ export function FarmWorkspacePage() {
       setError('Hãy chọn mùa vụ trước khi thêm quy trình.')
       return
     }
+
+
+    const stepNo = toPositiveNumber(processForm.stepNo)
+    if (!stepNo) {
+      setError('Step no phải hợp lệ.')
+      return
+    }
+
+
     if (!canManageProcesses) {
       setError('Chỉ mùa vụ IN_PROGRESS hoặc HARVESTED mới được cập nhật quy trình.')
       return
@@ -774,6 +1043,7 @@ export function FarmWorkspacePage() {
     }
 
     const stepNo = toPositiveNumber(processForm.stepNo)
+
 
     setSavingProcess(true)
     setError('')
@@ -873,10 +1143,12 @@ export function FarmWorkspacePage() {
   }
 
   async function handleDeleteProcess(processId) {
+
     if (!canManageProcesses) {
       setError('Mùa vụ hiện tại không cho phép xóa quy trình.')
       return
     }
+
     setError('')
     setSuccess('')
     try {
@@ -895,10 +1167,12 @@ export function FarmWorkspacePage() {
 
   async function handleReorderProcess(processId, nextStepNo) {
     if (!toPositiveNumber(nextStepNo)) return
+
     if (!canManageProcesses) {
       setError('Mùa vụ hiện tại không cho phép đổi thứ tự quy trình.')
       return
     }
+
     setError('')
     setSuccess('')
     try {
@@ -1001,7 +1275,9 @@ export function FarmWorkspacePage() {
                 <strong>Approval</strong>
                 <p>{farm?.approvalStatus || 'Chưa tạo hồ sơ'}</p>
                 <p>Reviewer note: {farm?.reviewComment || 'Chưa có'}</p>
+
                 <p>Reviewed at: {farm?.reviewedAt ? formatDateTime(farm.reviewedAt) : 'Chưa được review'}</p>
+
               </div>
             </div>
             <div className="business-card farm-info-card">
@@ -1009,13 +1285,25 @@ export function FarmWorkspacePage() {
                 <strong>Certification</strong>
                 <p>{farm?.certificationStatus || 'N/A'}</p>
                 <p>Owner: {farm?.ownerName || 'Current FARM account'}</p>
+
                 <p>Reviewer: {farm?.reviewedByFullName || 'Chưa có'}</p>
+
               </div>
             </div>
           </div>
 
           <form className="form-grid top-gap" onSubmit={handleProfileSubmit}>
             <div className="grid-two">
+
+              <TextInput label="Farm code" name="farmCode" value={profileForm.farmCode} onChange={handleProfileChange} required disabled={Boolean(farm)} />
+              <TextInput label="Farm name" name="farmName" value={profileForm.farmName} onChange={handleProfileChange} required />
+            </div>
+            <div className="grid-two">
+              <TextInput label="Business license" name="businessLicenseNo" value={profileForm.businessLicenseNo} onChange={handleProfileChange} required />
+              <TextInput label="Province" name="province" value={profileForm.province} onChange={handleProfileChange} />
+            </div>
+            <TextInput label="Address" name="address" value={profileForm.address} onChange={handleProfileChange} />
+
               <TextInput label="Farm code" name="farmCode" value={profileForm.farmCode} onChange={handleProfileChange} error={profileErrors.farmCode} required disabled={Boolean(farm)} />
               <TextInput label="Farm name" name="farmName" value={profileForm.farmName} onChange={handleProfileChange} error={profileErrors.farmName} required />
             </div>
@@ -1058,6 +1346,7 @@ export function FarmWorkspacePage() {
               </div>
             </div>
             <TextInput label="Address" name="address" value={profileForm.address} onChange={handleProfileChange} error={profileErrors.address} required />
+
             <TextAreaField label="Description" name="description" value={profileForm.description} onChange={handleProfileChange} />
             <Button type="submit" disabled={savingProfile}>{savingProfile ? 'Đang lưu...' : farm ? 'Cập nhật farm profile' : 'Tạo farm profile'}</Button>
           </form>
@@ -1156,6 +1445,96 @@ export function FarmWorkspacePage() {
               <p>Quản lý mùa vụ, timeline canh tác và thao tác vận hành ngay trong workspace farm.</p>
             </div>
           </div>
+
+
+          <div className="farm-ops-grid">
+            <div className="form-grid">
+              <h4>{editingSeasonId ? 'Cập nhật mùa vụ' : 'Tạo mùa vụ'}</h4>
+              <form className="form-grid" onSubmit={handleSeasonSubmit}>
+                <div className="grid-two">
+                  <TextInput label="Farm ID" name="farmId" value={seasonForm.farmId} onChange={handleSeasonChange} required disabled={Boolean(farmContext?.farmId)} />
+                  <label className="field-group">
+                    <span className="field-label">Product</span>
+                    <select className="field-input" name="productId" value={seasonForm.productId} onChange={handleSeasonChange}>
+                      <option value="">Chọn sản phẩm</option>
+                      {products.map((product) => (
+                        <option key={product.productId} value={product.productId}>
+                          {product.productCode ? `${product.productCode} - ` : ''}{product.productName}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <div className="grid-two">
+                  <TextInput label="Season code" name="seasonCode" value={seasonForm.seasonCode} onChange={handleSeasonChange} required />
+                  <TextInput label="Farming method" name="farmingMethod" value={seasonForm.farmingMethod} onChange={handleSeasonChange} required />
+                </div>
+                <div className="grid-two">
+                  <TextInput label="Start date" name="startDate" type="date" value={seasonForm.startDate} onChange={handleSeasonChange} required />
+                  <TextInput label="Expected harvest date" name="expectedHarvestDate" type="date" value={seasonForm.expectedHarvestDate} onChange={handleSeasonChange} required />
+                </div>
+                <div className="grid-two">
+                  <TextInput label="Actual harvest date" name="actualHarvestDate" type="date" value={seasonForm.actualHarvestDate} onChange={handleSeasonChange} />
+                  <label className="field-group">
+                    <span className="field-label">Season status</span>
+                    <select className="field-input" name="seasonStatus" value={seasonForm.seasonStatus} onChange={handleSeasonChange}>
+                      {seasonStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <div className="section-actions">
+                  <Button type="submit" disabled={savingSeason}>{savingSeason ? 'Đang lưu...' : editingSeasonId ? 'Lưu cập nhật mùa vụ' : 'Tạo mùa vụ'}</Button>
+                  <Button type="button" variant="secondary" onClick={resetSeasonForm}>Làm mới form</Button>
+                </div>
+              </form>
+            </div>
+
+            <div className="form-grid">
+              <h4>Danh sách mùa vụ</h4>
+              {seasons.length === 0 ? <p>Chưa có mùa vụ.</p> : seasons.map((season) => {
+                const isActive = String(season.id) === String(selectedSeasonId)
+                return (
+                  <div key={season.id} className="business-card">
+                    <div>
+                      <strong>{season.seasonCode}</strong>
+                      <p>Farm: {season.farmName} • Product: {season.productName || season.productId}</p>
+                      <p>Method: {season.farmingMethod || 'N/A'}</p>
+                      <p>Status: {season.seasonStatus}</p>
+                    </div>
+                    <div className="inline-actions">
+                      <Button variant={isActive ? 'primary' : 'secondary'} onClick={() => handleSelectSeason(season.id)}>
+                        {isActive ? 'Đang xem timeline' : 'Xem timeline'}
+                      </Button>
+                      <Button variant="secondary" onClick={() => fillSeason(season)}>Sửa</Button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="farm-ops-grid top-gap">
+            <div className="form-grid">
+              <h4>{editingProcessId ? 'Cập nhật bước quy trình' : 'Thêm bước quy trình'}</h4>
+              <p>Mùa vụ đang chọn: <strong>{selectedSeason?.seasonCode || 'Chưa chọn'}</strong></p>
+              <form className="form-grid" onSubmit={handleProcessSubmit}>
+                <div className="grid-two">
+                  <TextInput label="Step no" name="stepNo" type="number" min="1" value={processForm.stepNo} onChange={handleProcessChange} required />
+                  <TextInput label="Step name" name="stepName" value={processForm.stepName} onChange={handleProcessChange} required />
+                </div>
+                <TextInput label="Performed at" name="performedAt" type="datetime-local" value={processForm.performedAt} onChange={handleProcessChange} required />
+                <TextAreaField label="Description" name="description" value={processForm.description} onChange={handleProcessChange} />
+                <TextInput label="Image URL" name="imageUrl" value={processForm.imageUrl} onChange={handleProcessChange} />
+                <div className="section-actions">
+                  <Button type="submit" disabled={savingProcess}>{savingProcess ? 'Đang lưu...' : editingProcessId ? 'Lưu bước quy trình' : 'Thêm bước quy trình'}</Button>
+                  <Button type="button" variant="secondary" onClick={resetProcessForm}>Làm mới form</Button>
+                </div>
+              </form>
+            </div>
+
+            <div className="form-grid">
+              <h4>Timeline quy trình</h4>
+
 
           <div className="farm-ops-grid">
             <div className="form-grid">
@@ -1268,6 +1647,7 @@ export function FarmWorkspacePage() {
                   </div>
                 </div>
               ) : null}
+
               {seasonTimeline?.steps?.length ? seasonTimeline.steps.map((process) => (
                 <div key={process.id} className="business-card">
                   <div>
@@ -1277,10 +1657,17 @@ export function FarmWorkspacePage() {
                     <p>{process.description || 'Không có mô tả.'}</p>
                   </div>
                   <div className="inline-actions">
+
+                    <Button variant="secondary" onClick={() => fillProcess(process)}>Sửa</Button>
+                    <Button variant="secondary" onClick={() => handleReorderProcess(process.id, Math.max(1, (process.stepNo || 1) - 1))}>↑</Button>
+                    <Button variant="secondary" onClick={() => handleReorderProcess(process.id, (process.stepNo || 1) + 1)}>↓</Button>
+                    <Button variant="danger" onClick={() => handleDeleteProcess(process.id)}>Xóa</Button>
+
                     <Button variant="secondary" onClick={() => fillProcess(process)} disabled={!canManageProcesses}>Sửa</Button>
                     <Button variant="secondary" onClick={() => handleReorderProcess(process.id, Math.max(1, (process.stepNo || 1) - 1))} disabled={!canManageProcesses}>↑</Button>
                     <Button variant="secondary" onClick={() => handleReorderProcess(process.id, (process.stepNo || 1) + 1)} disabled={!canManageProcesses}>↓</Button>
                     <Button variant="danger" onClick={() => handleDeleteProcess(process.id)} disabled={!canManageProcesses}>Xóa</Button>
+
                   </div>
                 </div>
               )) : <p>Chưa có quy trình cho mùa vụ này.</p>}
@@ -1476,7 +1863,9 @@ export function FarmWorkspacePage() {
                     <p>Quantity: {batch.availableQuantity}/{batch.quantity}</p>
                     <p>Status: {batch.batchStatus}</p>
                     <p>Harvest: {formatDate(batch.harvestDate)} • Expiry: {formatDate(batch.expiryDate)}</p>
+
                     <p>Trace: {batch.traceCode || 'Chưa tạo QR'} </p>
+
                   </div>
                   <div className="inline-actions">
                     <Button variant="secondary" onClick={() => fillBatch(batch)}>Sửa</Button>
@@ -1504,8 +1893,12 @@ export function FarmWorkspacePage() {
                 <div>
                   <strong>QR info</strong>
                   <p>Serial: {traceResult.qrInfo?.serialNo || 'Chưa tạo'}</p>
+
+                  <p>URL: {traceResult.qrInfo?.qrUrl || 'Chưa tạo'}</p>
+
                   <p>Trace code: {traceResult.qrInfo?.traceCode || traceResult.batch?.traceCode || 'Chưa tạo'}</p>
                   <p>URL: {traceResult.qrInfo?.qrUrl || traceResult.batch?.publicTraceUrl || 'Chưa tạo'}</p>
+
                   <div className="section-actions">
                     <Button type="button" variant="secondary" onClick={handleCopyQrUrl} disabled={!traceResult.qrInfo?.qrUrl}>Copy URL</Button>
                   </div>

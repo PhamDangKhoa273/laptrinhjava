@@ -166,7 +166,11 @@ public class UserService {
     public UserResponse removeRole(Long userId, RoleName roleName) {
         User user = getUserEntityById(userId);
 
+
+        Role role = roleRepository.findByRoleName(roleName.name())
+
         roleRepository.findByRoleName(roleName.name())
+
                 .orElseThrow(() -> new BusinessException("Role không tồn tại"));
 
         List<UserRole> allRoles = userRoleRepository.findByUser(user);

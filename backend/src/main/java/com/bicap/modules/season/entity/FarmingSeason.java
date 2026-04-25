@@ -30,6 +30,15 @@ public class FarmingSeason {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    @Column(name = "blockchain_status", length = 50)
+    private String blockchainStatus;
+
+    @Column(name = "tx_hash", length = 100)
+    private String txHash;
+
+    @Column(name = "contract_address", length = 100)
+    private String contractAddress;
+
     @PrePersist
     public void onCreate() {
         LocalDateTime now = LocalDateTime.now();
@@ -66,4 +75,13 @@ public class FarmingSeason {
     public void setCreatedAt(LocalDateTime t) { this.createdAt = t; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime t) { this.updatedAt = t; }
+
+    public String getBlockchainStatus() { return blockchainStatus; }
+    public void setBlockchainStatus(String s) { this.blockchainStatus = s; }
+
+    public String getTxHash() { return txHash; }
+    public void setTxHash(String s) { this.txHash = s; }
+
+    public String getContractAddress() { return contractAddress; }
+    public void setContractAddress(String s) { this.contractAddress = s; }
 }

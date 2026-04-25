@@ -338,6 +338,9 @@ public class ProductBatchService {
         }
     }
 
+
+        return new VerifyTraceResponse(batchId, localHash, onChainHash, matched);
+
     private void validateBatchQuantities(BigDecimal quantity, BigDecimal availableQuantity) {
         if (quantity == null || availableQuantity == null) {
             throw new BusinessException("Số lượng batch không được để trống.");
@@ -364,6 +367,7 @@ public class ProductBatchService {
 
     private String buildQrSerial(ProductBatch batch) {
         return "QR-BATCH-" + batch.getBatchId();
+
     }
 
     private boolean canAccessBatch(ProductBatch batch, Long currentUserId) {

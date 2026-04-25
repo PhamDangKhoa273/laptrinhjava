@@ -86,7 +86,9 @@ export function PublicTracePage() {
               <li>Farm: {traceResult.seasonInfo?.farmName || 'N/A'} ({traceResult.seasonInfo?.farmCode || 'N/A'})</li>
               <li>Batch: {traceResult.batch.batchCode || 'N/A'} • Status: {traceResult.batch.batchStatus || 'N/A'}</li>
               <li>QR serial: {traceResult.qrInfo?.serialNo || 'Chưa tạo'}</li>
+
               <li>Trace code: {traceResult.qrInfo?.traceCode || traceResult.batch?.traceCode || 'N/A'}</li>
+
               <li>Blockchain match: {verifyResult?.matched ? 'YES' : 'NO'}</li>
               <li>Available quantity: {traceResult.batch.availableQuantity}/{traceResult.batch.quantity}</li>
             </ul>

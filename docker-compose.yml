@@ -11,10 +11,19 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD:-1234}"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD:-1234}" ]
       interval: 10s
       timeout: 5s
       retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: bicap-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
   backend:
     build:
@@ -32,6 +41,8 @@ services:
       APP_JWT_SECRET: ${APP_JWT_SECRET:-change-this-secret-key-change-this-secret-key-123456}
       APP_JWT_EXPIRATION_MS: ${APP_JWT_EXPIRATION_MS:-86400000}
       APP_JWT_REFRESH_EXPIRATION_MS: ${APP_JWT_REFRESH_EXPIRATION_MS:-604800000}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
     ports:
       - "8080:8080"
 
@@ -47,3 +58,4 @@ services:
 
 volumes:
   mysql_data:
+  redis_data:

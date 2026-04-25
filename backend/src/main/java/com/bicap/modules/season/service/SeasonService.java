@@ -2,8 +2,7 @@ package com.bicap.modules.season.service;
 
 import com.bicap.core.enums.RoleName;
 import com.bicap.core.exception.BusinessException;
-import com.bicap.modules.batch.dto.SeasonBlockchainPayload;
-import com.bicap.modules.batch.service.BlockchainService;
+import com.bicap.core.service.BlockchainService;
 import com.bicap.modules.farm.entity.Farm;
 import com.bicap.modules.farm.repository.FarmRepository;
 import com.bicap.modules.product.entity.Product;
@@ -153,15 +152,12 @@ public class SeasonService {
 
         FarmingSeason saved = farmingSeasonRepository.save(season);
 
-        SeasonBlockchainPayload payload = SeasonBlockchainPayload.builder()
-                .seasonId(saved.getSeasonId())
-                .seasonCode(saved.getSeasonCode())
-                .farmId(saved.getFarm().getFarmId())
-                .productId(saved.getProduct().getProductId())
-                .startDate(saved.getStartDate())
-                .farmingMethod(saved.getFarmingMethod())
-                .build();
-        blockchainService.saveSeason(payload);
+        // Gọi Hàm chờ Blockchain Middleware (Giai đoạn 4)
+        String txHash = blockchainService.sendToVeChain(saved);
+        saved.setTxHash(txHash);
+        saved.setBlockchainStatus("PENDING");
+        saved.setContractAddress("0x-fake-contract-address");
+        farmingSeasonRepository.save(saved); // Cập nhật trạng thái sau khi đã có hash
 
         return mapToResponse(saved);
     }

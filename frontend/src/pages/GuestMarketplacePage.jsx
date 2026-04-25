@@ -203,7 +203,27 @@ export function GuestMarketplacePage() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [search, province, minPrice, maxPrice, certification, type, sort, page])
+
+  }, [search, province, minPrice, maxPrice, sort, page])
+ }, [search, province, minPrice, maxPrice, certification, type, sort, page])
+
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        setContentLoading(true)
+        const data = await getPublishedContent()
+        setContentItems(Array.isArray(data) ? data : [])
+        setContentError(null)
+      } catch (err) {
+        setContentError('Không tải được nội dung giáo dục công khai.')
+      } finally {
+        setContentLoading(false)
+      }
+    }
+
+    loadContent()
+  }, [])
+
 
   useEffect(() => {
     async function loadContent() {
@@ -291,8 +311,16 @@ export function GuestMarketplacePage() {
     <section className="marketplace">
       <div className="mp-hero">
         <div className="mp-hero__content">
+
+          <p className="mp-hero__eyebrow">SÀN NÔNG SẢN BICAP</p>
+          <h1 className="mp-hero__title">Marketplace công khai + content hub cho guest</h1>
+          <p className="mp-hero__subtitle">
+            Không chỉ tìm nông sản, giờ guest còn xem được nội dung giáo dục, bài viết, video và kiến thức nền tảng ngay trên public UI.
+          </p>
+
           <p className="mp-hero__eyebrow">SÀN GIAO DỊCH</p>
           <p className="mp-hero__subtitle">Chợ nông sản sạch</p>
+
         </div>
 
         <form className="mp-hero__search" onSubmit={(event) => event.preventDefault()}>
@@ -368,10 +396,12 @@ export function GuestMarketplacePage() {
           <span className="mp-stat__label">Nông trại</span>
         </div>
         <div className="mp-stat">
+
           <span className="mp-stat__value">{stats.provinceCount || '—'}</span>
           <span className="mp-stat__label">Vùng</span>
         </div>
         <div className="mp-stat">
+
           <span className="mp-stat__value">{contentItems.length || '—'}</span>
           <span className="mp-stat__label">Nội dung công khai</span>
         </div>
