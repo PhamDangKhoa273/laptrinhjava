@@ -32,18 +32,13 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.ArrayDeque;
 import java.util.Base64;
-import java.util.Deque;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class AuthService {
 
-    private static final Map<String, Deque<LocalDateTime>> PASSWORD_RESET_ATTEMPTS = new LinkedHashMap<>();
     private static final Set<RoleName> SELF_REGISTER_ROLES = Set.of(RoleName.GUEST, RoleName.FARM, RoleName.RETAILER, RoleName.SHIPPING_MANAGER);
 
     private final AuthenticationManager authenticationManager;
