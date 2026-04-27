@@ -211,7 +211,7 @@ Authorization: Bearer <JWT_TOKEN>
 
 ```bash
 curl -X PATCH http://localhost:8080/api/v1/orders/123/status \
-  -H "Authorization: Bearer eyJhbGc..." \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
   -H "Content-Type: application/json" \
   -d '{
     "status": "CONFIRMED",
@@ -223,13 +223,13 @@ curl -X PATCH http://localhost:8080/api/v1/orders/123/status \
 
 ```bash
 curl -X GET http://localhost:8080/api/v1/orders/123/status-history \
-  -H "Authorization: Bearer eyJhbGc..."
+  -H "Authorization: Bearer <JWT_TOKEN>"
 ```
 
 ### Cách 2: Dùng JavaScript/Fetch
 
 ```javascript
-const token = "eyJhbGc...";
+const token = "<JWT_TOKEN>";
 const orderId = 123;
 
 // Cập nhật trạng thái
