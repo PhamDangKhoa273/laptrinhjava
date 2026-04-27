@@ -1,4 +1,0 @@
-# Example host cron / scheduled task
-# Daily at 02:00 local time
-0 2 * * * /path/to/scripts/backup-db.ps1
-10 2 * * * /path/to/scripts/backup-uploads.ps1

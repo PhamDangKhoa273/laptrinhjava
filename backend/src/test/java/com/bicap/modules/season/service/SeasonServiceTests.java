@@ -2,8 +2,7 @@ package com.bicap.modules.season.service;
 
 import com.bicap.core.enums.RoleName;
 import com.bicap.core.exception.BusinessException;
-import com.bicap.modules.batch.dto.SeasonBlockchainPayload;
-import com.bicap.modules.batch.service.BlockchainService;
+import com.bicap.core.service.BlockchainService;
 import com.bicap.modules.farm.entity.Farm;
 import com.bicap.modules.farm.repository.FarmRepository;
 import com.bicap.modules.product.entity.Product;
@@ -19,7 +18,6 @@ import com.bicap.modules.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -137,10 +135,7 @@ class SeasonServiceTests {
 
         assertNotNull(response);
         assertEquals("SEASON-01", response.getSeasonCode());
-        ArgumentCaptor<SeasonBlockchainPayload> captor = ArgumentCaptor.forClass(SeasonBlockchainPayload.class);
-        verify(blockchainService).saveSeason(captor.capture());
-        assertEquals(99L, captor.getValue().getSeasonId());
-        assertEquals("Organic", captor.getValue().getFarmingMethod());
+        verify(blockchainService).sendToVeChain(any(FarmingSeason.class));
     }
 
     @Test

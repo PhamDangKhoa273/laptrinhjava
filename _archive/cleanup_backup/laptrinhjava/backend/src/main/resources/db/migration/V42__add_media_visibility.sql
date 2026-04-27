@@ -1,2 +1,0 @@
-ALTER TABLE media_files
-    ADD COLUMN visibility VARCHAR(20) NOT NULL DEFAULT 'PRIVATE';
