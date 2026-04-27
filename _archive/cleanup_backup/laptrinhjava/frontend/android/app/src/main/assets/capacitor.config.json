@@ -1,9 +1,0 @@
-{
-	"appId": "com.bicap.driver",
-	"appName": "BICAP Driver",
-	"webDir": "dist",
-	"bundledWebRuntime": false,
-	"server": {
-		"androidScheme": "https"
-	}
-}
