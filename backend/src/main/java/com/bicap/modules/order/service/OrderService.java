@@ -36,6 +36,11 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -47,6 +52,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import java.util.stream.Collectors;
 
 @Service
@@ -122,8 +128,13 @@ public class OrderService {
 
         Order order = new Order();
         order.setRetailerId(retailer.getRetailerId());
+
+        order.setStatus("PENDING");
+        order.setPaymentStatus(PAYMENT_STATUS_UNPAID);
+
         order.setStatus(OrderStatus.PENDING);
         order.setPaymentStatus(OrderPaymentStatus.UNPAID);
+
 
         BigDecimal totalAmount = BigDecimal.ZERO;
         Long farmId = null;
@@ -170,6 +181,15 @@ public class OrderService {
         else if (hasAnyRole("SHIPPING_MANAGER", "DRIVER", "ADMIN")) orders = orderRepository.findAll();
         else throw new BusinessException("Bạn không có quyền xem danh sách đơn hàng");
         return orders.stream().map(this::toResponse).toList();
+
+    }
+
+    public OrderResponse getOrderById(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy đơn hàng với ID: " + id));
+        assertCanViewOrder(order, SecurityUtils.getCurrentUserId());
+        return toResponse(order);
+
     }
 
     public OrderResponse getOrderById(Long id) {
@@ -576,11 +596,15 @@ public class OrderService {
                 .status(order.getStatus())
                 .paymentStatus(order.getPaymentStatus())
                 .depositAmount(order.getDepositAmount())
+
+                .depositPaidAt(order.getDepositPaidAt())
+
                 .minimumDepositAmount(calculateMinimumDeposit(order))
                 .depositPaidAt(order.getDepositPaidAt())
                 .depositReleasedAt(order.getDepositReleasedAt())
                 .depositReleasedByUserId(order.getDepositReleasedByUserId())
                 .depositReleaseNote(order.getDepositReleaseNote())
+
                 .cancellationReason(order.getCancellationReason())
                 .cancelledAt(order.getCancelledAt())
                 .deliveryConfirmedAt(order.getDeliveryConfirmedAt())

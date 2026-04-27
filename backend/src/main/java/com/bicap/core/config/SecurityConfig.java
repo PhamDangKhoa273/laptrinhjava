@@ -92,6 +92,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/batches/*/verify").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/notifications/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/products", "/api/v1/search").permitAll()
+                .requestMatchers("/api/v1/farm/**", "/api/farm/**").hasRole("FARM")
+                .requestMatchers("/api/v1/admin/**", "/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             );
 

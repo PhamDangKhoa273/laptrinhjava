@@ -40,7 +40,7 @@ public class VehicleService {
         Vehicle vehicle = new Vehicle();
         vehicle.setPlateNo(request.getPlateNo().trim());
         vehicle.setVehicleType(request.getVehicleType().trim());
-        vehicle.setCapacity(request.getCapacity());
+        vehicle.setCapacity(request.getCapacity().intValue());
         vehicle.setStatus(resolveStatus(request.getStatus()));
         vehicle.setManagerUser(managerUser);
 
@@ -75,7 +75,7 @@ public class VehicleService {
         }
 
         vehicle.setVehicleType(request.getVehicleType().trim());
-        vehicle.setCapacity(request.getCapacity());
+        vehicle.setCapacity(request.getCapacity().intValue());
         vehicle.setStatus(resolveStatus(request.getStatus()));
 
         Vehicle saved = vehicleRepository.save(vehicle);

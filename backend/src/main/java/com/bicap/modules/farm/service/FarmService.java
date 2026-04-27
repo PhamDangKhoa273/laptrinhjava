@@ -179,9 +179,11 @@ public class FarmService {
         if ("REJECTED".equals(normalizedStatus)) {
             farm.setCertificationStatus("PENDING_REVIEW");
         }
+
         if ("PENDING".equals(normalizedStatus)) {
             farm.setCertificationStatus("PENDING");
         }
+
         farm.setReviewComment(reviewComment == null ? null : reviewComment.trim());
         farm.setReviewedByUser(admin);
         farm.setReviewedAt(LocalDateTime.now());

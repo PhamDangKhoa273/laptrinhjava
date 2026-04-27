@@ -60,6 +60,8 @@ public class Order {
     @Column(name = "shipping_proof_image_url", length = 500)
     private String shippingProofImageUrl;
 
+
+
     @Column(name = "deposit_released_at")
     private LocalDateTime depositReleasedAt;
 

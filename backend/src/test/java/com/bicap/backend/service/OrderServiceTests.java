@@ -273,6 +273,8 @@ class OrderServiceTests {
     }
 
     @Test
+
+
     void confirmDelivery_shouldReleaseDepositWhenCompleted() {
         order.setStatus("DELIVERED");
         order.setShippingProofImageUrl("https://example.com/shipping.jpg");
@@ -295,6 +297,7 @@ class OrderServiceTests {
     }
 
     @Test
+
     void getOrderStatusHistory_shouldAllowDriverRoleVisibility() {
         when(orderRepository.findById(7L)).thenReturn(Optional.of(order));
         when(statusHistoryRepository.findByOrderIdOrderByChangedAtDesc(7L)).thenReturn(List.of());
@@ -316,6 +319,7 @@ class OrderServiceTests {
             assertThrows(BusinessException.class, () -> orderService.uploadDeliveryProofFile(7L, null));
         }
     }
+
 
     @Test
     void payDeposit_shouldRequireMethodAndTransactionReference() {
