@@ -4,8 +4,6 @@ import com.bicap.core.enums.ApprovalStatus;
 import com.bicap.core.enums.ListingStatus;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.SecurityUtils;
-import com.bicap.modules.common.notification.dto.CreateNotificationRequest;
-import com.bicap.modules.common.notification.service.NotificationService;
 import com.bicap.modules.batch.entity.ProductBatch;
 import com.bicap.modules.batch.entity.QrCode;
 import com.bicap.modules.batch.repository.ProductBatchRepository;
@@ -18,22 +16,13 @@ import com.bicap.modules.listing.dto.CreateListingRequest;
 import com.bicap.modules.listing.dto.ListingRegistrationRequestDto;
 import com.bicap.modules.listing.dto.ListingRegistrationResponse;
 import com.bicap.modules.listing.dto.ListingResponse;
-
-import com.bicap.modules.listing.dto.ListingRegistrationRequestDto;
-import com.bicap.modules.listing.dto.ListingRegistrationResponse;
 import com.bicap.modules.listing.dto.ReviewListingRegistrationRequest;
-import com.bicap.modules.listing.entity.ListingRegistrationRequest;
-
-import com.bicap.modules.listing.dto.ReviewListingRegistrationRequest;
-
 import com.bicap.modules.listing.dto.UpdateListingRequest;
 import com.bicap.modules.listing.entity.ListingRegistrationRequest;
 import com.bicap.modules.listing.entity.ProductListing;
 import com.bicap.modules.listing.repository.ListingRegistrationRequestRepository;
 import com.bicap.modules.listing.repository.ProductListingRepository;
-
 import com.bicap.modules.product.entity.Product;
-
 import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
@@ -57,14 +46,6 @@ public class ProductListingService {
     private final ListingRegistrationRequestRepository listingRegistrationRequestRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
-
-
-    public ProductListingService(ProductListingRepository listingRepository,
-                                  ProductBatchRepository batchRepository,
-                                  ListingRegistrationRequestRepository listingRegistrationRequestRepository,
-                                  UserRepository userRepository,
-                                  NotificationService notificationService) {
-
     private final QrCodeRepository qrCodeRepository;
     private final FarmSubscriptionRepository farmSubscriptionRepository;
 
@@ -80,7 +61,6 @@ public class ProductListingService {
         this.listingRegistrationRequestRepository = listingRegistrationRequestRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
-
         this.qrCodeRepository = qrCodeRepository;
         this.farmSubscriptionRepository = farmSubscriptionRepository;
     }
@@ -109,13 +89,8 @@ public class ProductListingService {
         listing.setQuantityAvailable(request.getQuantityAvailable());
         listing.setUnit(trimToDefault(request.getUnit(), "kg"));
         listing.setImageUrl(trimToNull(request.getImageUrl()));
-
-        listing.setStatus("DRAFT");
-        listing.setApprovalStatus("DRAFT");
-
         listing.setStatus(ListingStatus.DRAFT);
         listing.setApprovalStatus(ApprovalStatus.DRAFT);
-
 
         ProductListing saved = listingRepository.save(listing);
         return toResponse(saved);
@@ -127,12 +102,8 @@ public class ProductListingService {
 
     public Page<ListingResponse> getPublicListings(int page, int size, String sort) {
         Pageable pageable = PageRequest.of(page, size, resolvePublicSort(sort));
-
-        return listingRepository.findByStatusAndApprovalStatus("ACTIVE", "APPROVED", pageable).map(this::toResponse);
-
         return listingRepository.findByStatusAndApprovalStatus(ListingStatus.ACTIVE.name(), ApprovalStatus.APPROVED.name(), pageable)
                 .map(this::toResponse);
-
     }
 
     public List<ListingResponse> getAllListings() {
@@ -197,13 +168,9 @@ public class ProductListingService {
         }
         if (request.getStatus() != null) {
             String normalizedStatus = request.getStatus().trim().toUpperCase();
-
-            if (!Set.of("DRAFT", "ACTIVE", "INACTIVE", "HIDDEN", "SOLD_OUT").contains(normalizedStatus)) {
-
             try {
                 listing.setStatus(ListingStatus.valueOf(normalizedStatus));
             } catch (IllegalArgumentException ex) {
-
                 throw new BusinessException("Trạng thái listing không hợp lệ.");
             }
         }
@@ -380,26 +347,6 @@ public class ProductListingService {
         ListingRegistrationRequest registrationRequest = new ListingRegistrationRequest();
         registrationRequest.setListing(listing);
         registrationRequest.setRequestedByUser(requester);
-
-        registrationRequest.setStatus("PENDING");
-        registrationRequest.setNote(request.getNote().trim());
-        listing.setApprovalStatus("PENDING");
-        listing.setStatus("INACTIVE");
-
-        ListingRegistrationRequest saved = listingRegistrationRequestRepository.save(registrationRequest);
-        listingRepository.save(listing);
-
-        CreateNotificationRequest notification = new CreateNotificationRequest();
-        notification.setRecipientRole("ADMIN");
-        notification.setTitle("Yêu cầu duyệt listing mới");
-        notification.setMessage("Listing '" + listing.getTitle() + "' đang chờ duyệt từ farm " + listing.getBatch().getSeason().getFarm().getFarmName());
-        notification.setNotificationType("LISTING_REGISTRATION");
-        notification.setTargetType("LISTING");
-        notification.setTargetId(listingId);
-        notificationService.create(notification);
-
-        return toRegistrationResponse(saved);
-
         registrationRequest.setStatus(ApprovalStatus.PENDING.name());
         registrationRequest.setNote(request.getNote().trim());
         listing.setApprovalStatus(ApprovalStatus.PENDING);
@@ -418,32 +365,11 @@ public class ProductListingService {
         notificationService.create(notification);
 
         return response;
-
     }
 
     @Transactional
     public ListingRegistrationResponse reviewRegistration(Long registrationId, ReviewListingRegistrationRequest request) {
         ListingRegistrationRequest registrationRequest = listingRegistrationRequestRepository.findById(registrationId)
-
-                .orElseThrow(() -> new BusinessException("Không tìm thấy yêu cầu đăng ký listing"));
-
-        String status = request.getStatus().trim().toUpperCase();
-        if (!Set.of("APPROVED", "REJECTED").contains(status)) {
-            throw new BusinessException("Trạng thái duyệt không hợp lệ");
-        }
-
-        User reviewer = userRepository.findById(SecurityUtils.getCurrentUserId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy người duyệt"));
-
-        registrationRequest.setStatus(status);
-        registrationRequest.setNote(trimToNull(request.getNote()) != null ? request.getNote().trim() : registrationRequest.getNote());
-        registrationRequest.setReviewedByUser(reviewer);
-        registrationRequest.setReviewedAt(java.time.LocalDateTime.now());
-
-        ProductListing listing = registrationRequest.getListing();
-        listing.setApprovalStatus(status);
-        listing.setStatus("APPROVED".equals(status) ? "ACTIVE" : "INACTIVE");
-
                 .orElseThrow(() -> new BusinessException("Không tìm thấy yêu cầu duyệt listing với ID: " + registrationId));
 
         if (!ApprovalStatus.PENDING.name().equals(registrationRequest.getStatus())) {
@@ -467,17 +393,12 @@ public class ProductListingService {
         ProductListing listing = registrationRequest.getListing();
         listing.setApprovalStatus(ApprovalStatus.valueOf(status));
         listing.setStatus(ApprovalStatus.APPROVED.name().equals(status) ? ListingStatus.ACTIVE : ListingStatus.INACTIVE);
-
         listingRepository.save(listing);
 
         CreateNotificationRequest notification = new CreateNotificationRequest();
         notification.setRecipientUserId(registrationRequest.getRequestedByUser().getUserId());
         notification.setTitle("Kết quả duyệt listing");
-
-        notification.setMessage("Listing '" + listing.getTitle() + "' đã được " + ("APPROVED".equals(status) ? "phê duyệt" : "từ chối"));
-
         notification.setMessage("Listing '" + listing.getTitle() + "' đã được " + (ApprovalStatus.APPROVED.name().equals(status) ? "phê duyệt" : "từ chối"));
-
         notification.setNotificationType("LISTING_REVIEW");
         notification.setTargetType("LISTING");
         notification.setTargetId(listing.getListingId());
@@ -495,11 +416,7 @@ public class ProductListingService {
     }
 
     public List<ListingRegistrationResponse> getPendingRegistrationRequests() {
-
-        return listingRegistrationRequestRepository.findByStatusOrderByCreatedAtDesc("PENDING")
-
         return listingRegistrationRequestRepository.findByStatusOrderByCreatedAtDesc(ApprovalStatus.PENDING.name())
-
                 .stream()
                 .map(this::toRegistrationResponse)
                 .toList();

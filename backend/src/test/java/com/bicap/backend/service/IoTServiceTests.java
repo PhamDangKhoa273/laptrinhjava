@@ -3,12 +3,12 @@ package com.bicap.backend.service;
 import com.bicap.core.AuditLogService;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.modules.batch.service.BlockchainService;
-import com.bicap.modules.iot.dto.CreateIoTReadingRequest;
-import com.bicap.modules.iot.dto.IoTReadingResponse;
+import com.bicap.modules.iot.dto.CreateSensorReadingRequest;
+import com.bicap.modules.iot.dto.SensorAlertResponse;
 import com.bicap.modules.iot.entity.IoTAlert;
-import com.bicap.modules.iot.entity.IoTReading;
+import com.bicap.modules.iot.entity.SensorReading;
 import com.bicap.modules.iot.repository.IoTAlertRepository;
-import com.bicap.modules.iot.repository.IoTReadingRepository;
+import com.bicap.modules.iot.repository.SensorReadingRepository;
 import com.bicap.modules.iot.service.IoTService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class IoTServiceTests {
 
-    @Mock private IoTReadingRepository ioTReadingRepository;
+    @Mock private SensorReadingRepository sensorReadingRepository;
     @Mock private IoTAlertRepository ioTAlertRepository;
     @Mock private AuditLogService auditLogService;
     @Mock private BlockchainService blockchainService;
@@ -38,31 +38,25 @@ class IoTServiceTests {
 
     @Test
     void createReading_shouldRejectHumidityOutOfRange() {
-        CreateIoTReadingRequest request = new CreateIoTReadingRequest();
+        CreateSensorReadingRequest request = new CreateSensorReadingRequest();
         request.setBatchId(1L);
-        request.setTemperature(BigDecimal.valueOf(20));
-        request.setHumidity(BigDecimal.valueOf(120));
-        request.setPhValue(BigDecimal.valueOf(7));
+        request.setMetric("HUMIDITY");
+        request.setValue(BigDecimal.valueOf(120));
 
-        assertThrows(BusinessException.class, () -> ioTService.createReading(request, 1L));
+        assertThrows(BusinessException.class, () -> ioTService.ingest(request));
     }
 
     @Test
     void createReading_shouldCreateAlertWhenThresholdExceeded() {
-        CreateIoTReadingRequest request = new CreateIoTReadingRequest();
+        CreateSensorReadingRequest request = new CreateSensorReadingRequest();
         request.setBatchId(1L);
-        request.setTemperature(BigDecimal.valueOf(40));
-        request.setHumidity(BigDecimal.valueOf(90));
-        request.setPhValue(BigDecimal.valueOf(9));
+        request.setMetric("TEMPERATURE");
+        request.setValue(BigDecimal.valueOf(40));
 
-        when(ioTReadingRepository.save(any(IoTReading.class))).thenAnswer(invocation -> {
-            IoTReading reading = invocation.getArgument(0);
-            reading.setReadingId(10L);
-            return reading;
-        });
+        when(sensorReadingRepository.save(any(SensorReading.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        IoTReadingResponse response = ioTService.createReading(request, 2L);
-        assertEquals(10L, response.getReadingId());
+        SensorAlertResponse response = ioTService.ingest(request);
+        assertEquals("TEMPERATURE", response.getMetric());
 
         ArgumentCaptor<IoTAlert> captor = ArgumentCaptor.forClass(IoTAlert.class);
         verify(ioTAlertRepository, org.mockito.Mockito.atLeastOnce()).save(captor.capture());
