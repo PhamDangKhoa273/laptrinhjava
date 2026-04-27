@@ -1,0 +1,968 @@
+﻿[
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  8,
+        "Method":  "GET",
+        "Call":  "\u0027/users\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/users\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  12,
+        "Method":  "POST",
+        "Call":  "`/users/${id}/roles`, { roleName }",
+        "Source":  "return unwrap(await api.post(`/users/${id}/roles`, { roleName }))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  16,
+        "Method":  "PATCH",
+        "Call":  "`/users/${id}/status`, { status }",
+        "Source":  "return unwrap(await api.patch(`/users/${id}/status`, { status }))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  21,
+        "Method":  "GET",
+        "Call":  "\u0027/farms\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/farms\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  28,
+        "Method":  "POST",
+        "Call":  "`/farms/${id}/review`, { approvalStatus, reviewComment }",
+        "Source":  "return unwrap(await api.post(`/farms/${id}/review`, { approvalStatus, reviewComment }))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  33,
+        "Method":  "GET",
+        "Call":  "\u0027/retailers\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/retailers\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  41,
+        "Method":  "GET",
+        "Call":  "\u0027/packages\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/packages\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  50,
+        "Method":  "GET",
+        "Call":  "\u0027/products\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/products\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  54,
+        "Method":  "POST",
+        "Call":  "\u0027/products\u0027, data",
+        "Source":  "return unwrap(await api.post(\u0027/products\u0027, data))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  58,
+        "Method":  "PUT",
+        "Call":  "`/products/${id}`, data",
+        "Source":  "return unwrap(await api.put(`/products/${id}`, data))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  62,
+        "Method":  "DELETE",
+        "Call":  "`/products/${id}`",
+        "Source":  "return unwrap(await api.delete(`/products/${id}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  66,
+        "Method":  "GET",
+        "Call":  "\u0027/categories\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/categories\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  70,
+        "Method":  "POST",
+        "Call":  "\u0027/categories\u0027, data",
+        "Source":  "return unwrap(await api.post(\u0027/categories\u0027, data))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  74,
+        "Method":  "PUT",
+        "Call":  "`/categories/${id}`, data",
+        "Source":  "return unwrap(await api.put(`/categories/${id}`, data))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  78,
+        "Method":  "DELETE",
+        "Call":  "`/categories/${id}`",
+        "Source":  "return unwrap(await api.delete(`/categories/${id}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  82,
+        "Method":  "GET",
+        "Call":  "`/users/${id}`",
+        "Source":  "return unwrap(await api.get(`/users/${id}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  86,
+        "Method":  "GET",
+        "Call":  "`/farms/${id}`",
+        "Source":  "return unwrap(await api.get(`/farms/${id}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  90,
+        "Method":  "POST",
+        "Call":  "\u0027/users\u0027, data",
+        "Source":  "return unwrap(await api.post(\u0027/users\u0027, data))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  94,
+        "Method":  "DELETE",
+        "Call":  "`/users/${id}/roles`, { data: { roleName } }",
+        "Source":  "return unwrap(await api.delete(`/users/${id}/roles`, { data: { roleName } }))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  98,
+        "Method":  "PUT",
+        "Call":  "`/farms/${id}/admin`, data",
+        "Source":  "return unwrap(await api.put(`/farms/${id}/admin`, data))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  102,
+        "Method":  "DELETE",
+        "Call":  "`/users/${id}`",
+        "Source":  "return unwrap(await api.delete(`/users/${id}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  106,
+        "Method":  "GET",
+        "Call":  "\u0027/admin/governance\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/admin/governance\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  110,
+        "Method":  "GET",
+        "Call":  "\u0027/blockchain/governance/config\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/blockchain/governance/config\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  114,
+        "Method":  "GET",
+        "Call":  "\u0027/blockchain/governance/transactions\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/blockchain/governance/transactions\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  118,
+        "Method":  "POST",
+        "Call":  "\u0027/blockchain/governance/deploy\u0027, data",
+        "Source":  "return unwrap(await api.post(\u0027/blockchain/governance/deploy\u0027, data))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  122,
+        "Method":  "GET",
+        "Call":  "\u0027/permissions/role-matrix\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/permissions/role-matrix\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  126,
+        "Method":  "GET",
+        "Call":  "\u0027/permissions\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/permissions\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  130,
+        "Method":  "POST",
+        "Call":  "\u0027/permissions\u0027, data",
+        "Source":  "return unwrap(await api.post(\u0027/permissions\u0027, data))"
+    },
+    {
+        "File":  "frontend\\src\\services\\adminService.js",
+        "Line":  134,
+        "Method":  "POST",
+        "Call":  "\u0027/permissions/seed\u0027",
+        "Source":  "return unwrap(await api.post(\u0027/permissions/seed\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\analyticsService.js",
+        "Line":  8,
+        "Method":  "GET",
+        "Call":  "\u0027/analytics/dashboard\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/analytics/dashboard\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\analyticsService.js",
+        "Line":  12,
+        "Method":  "GET",
+        "Call":  "\u0027/analytics/forecast/demand\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/analytics/forecast/demand\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\analyticsService.js",
+        "Line":  16,
+        "Method":  "GET",
+        "Call":  "\u0027/analytics/forecast/inventory\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/analytics/forecast/inventory\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\analyticsService.js",
+        "Line":  20,
+        "Method":  "GET",
+        "Call":  "\u0027/analytics/forecast/delivery\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/analytics/forecast/delivery\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\analyticsService.js",
+        "Line":  24,
+        "Method":  "GET",
+        "Call":  "\u0027/analytics/forecast/iot\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/analytics/forecast/iot\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\authService.js",
+        "Line":  14,
+        "Method":  "POST",
+        "Call":  "\u0027/auth/login\u0027, payload",
+        "Source":  "const response = await api.post(\u0027/auth/login\u0027, payload)"
+    },
+    {
+        "File":  "frontend\\src\\services\\authService.js",
+        "Line":  32,
+        "Method":  "POST",
+        "Call":  "\u0027/auth/register\u0027, requestPayload",
+        "Source":  "const response = await api.post(\u0027/auth/register\u0027, requestPayload)"
+    },
+    {
+        "File":  "frontend\\src\\services\\authService.js",
+        "Line":  37,
+        "Method":  "GET",
+        "Call":  "\u0027/auth/me\u0027",
+        "Source":  "const response = await api.get(\u0027/auth/me\u0027)"
+    },
+    {
+        "File":  "frontend\\src\\services\\authService.js",
+        "Line":  48,
+        "Method":  "PUT",
+        "Call":  "\u0027/users/me/profile\u0027, requestPayload",
+        "Source":  "const response = await api.put(\u0027/users/me/profile\u0027, requestPayload)"
+    },
+    {
+        "File":  "frontend\\src\\services\\authService.js",
+        "Line":  53,
+        "Method":  "POST",
+        "Call":  "\u0027/auth/logout\u0027",
+        "Source":  "const response = await api.post(\u0027/auth/logout\u0027)"
+    },
+    {
+        "File":  "frontend\\src\\services\\authService.js",
+        "Line":  58,
+        "Method":  "POST",
+        "Call":  "\u0027/auth/forgot-password\u0027, payload",
+        "Source":  "const response = await api.post(\u0027/auth/forgot-password\u0027, payload)"
+    },
+    {
+        "File":  "frontend\\src\\services\\authService.js",
+        "Line":  63,
+        "Method":  "POST",
+        "Call":  "\u0027/auth/reset-password\u0027, payload",
+        "Source":  "const response = await api.post(\u0027/auth/reset-password\u0027, payload)"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  8,
+        "Method":  "GET",
+        "Call":  "\u0027/farms/me\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/farms/me\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  12,
+        "Method":  "POST",
+        "Call":  "\u0027/farms\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/farms\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  16,
+        "Method":  "PUT",
+        "Call":  "`/farms/${id}`, payload",
+        "Source":  "return unwrap(await api.put(`/farms/${id}`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  30,
+        "Method":  "GET",
+        "Call":  "\u0027/farms\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/farms\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  34,
+        "Method":  "POST",
+        "Call":  "`/farms/${id}/review`, { approvalStatus }",
+        "Source":  "return unwrap(await api.post(`/farms/${id}/review`, { approvalStatus }))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  38,
+        "Method":  "GET",
+        "Call":  "\u0027/retailers/me\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/retailers/me\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  52,
+        "Method":  "POST",
+        "Call":  "\u0027/retailers\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/retailers\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  56,
+        "Method":  "PUT",
+        "Call":  "`/retailers/${id}`, payload",
+        "Source":  "return unwrap(await api.put(`/retailers/${id}`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  60,
+        "Method":  "GET",
+        "Call":  "\u0027/packages\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/packages\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  64,
+        "Method":  "GET",
+        "Call":  "\u0027/farm-subscriptions/me\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/farm-subscriptions/me\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  68,
+        "Method":  "POST",
+        "Call":  "\u0027/farm-subscriptions\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/farm-subscriptions\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  72,
+        "Method":  "GET",
+        "Call":  "\u0027/subscription-payments/me\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/subscription-payments/me\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  76,
+        "Method":  "POST",
+        "Call":  "\u0027/subscription-payments\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/subscription-payments\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  80,
+        "Method":  "GET",
+        "Call":  "\u0027/drivers\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/drivers\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  84,
+        "Method":  "POST",
+        "Call":  "\u0027/drivers\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/drivers\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  88,
+        "Method":  "PUT",
+        "Call":  "`/drivers/${id}`, payload",
+        "Source":  "return unwrap(await api.put(`/drivers/${id}`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  92,
+        "Method":  "PATCH",
+        "Call":  "`/drivers/${id}/deactivate`",
+        "Source":  "return unwrap(await api.patch(`/drivers/${id}/deactivate`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  96,
+        "Method":  "DELETE",
+        "Call":  "`/drivers/${id}`",
+        "Source":  "return unwrap(await api.delete(`/drivers/${id}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  100,
+        "Method":  "GET",
+        "Call":  "\u0027/vehicles\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/vehicles\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  104,
+        "Method":  "POST",
+        "Call":  "\u0027/vehicles\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/vehicles\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  108,
+        "Method":  "PUT",
+        "Call":  "`/vehicles/${id}`, payload",
+        "Source":  "return unwrap(await api.put(`/vehicles/${id}`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  112,
+        "Method":  "PATCH",
+        "Call":  "`/vehicles/${id}/deactivate`",
+        "Source":  "return unwrap(await api.patch(`/vehicles/${id}/deactivate`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  116,
+        "Method":  "DELETE",
+        "Call":  "`/vehicles/${id}`",
+        "Source":  "return unwrap(await api.delete(`/vehicles/${id}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  120,
+        "Method":  "GET",
+        "Call":  "\u0027/users\u0027",
+        "Source":  "const payload = unwrap(await api.get(\u0027/users\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  129,
+        "Method":  "POST",
+        "Call":  "`/users/${id}/roles`, { roleName }",
+        "Source":  "return unwrap(await api.post(`/users/${id}/roles`, { roleName }))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  133,
+        "Method":  "PATCH",
+        "Call":  "`/users/${id}/status`, { status }",
+        "Source":  "return unwrap(await api.patch(`/users/${id}/status`, { status }))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  137,
+        "Method":  "GET",
+        "Call":  "\u0027/iot/alerts/me\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/iot/alerts/me\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  141,
+        "Method":  "POST",
+        "Call":  "\u0027/iot/readings\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/iot/readings\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  145,
+        "Method":  "PATCH",
+        "Call":  "`/iot/alerts/${id}/resolve`",
+        "Source":  "return unwrap(await api.patch(`/iot/alerts/${id}/resolve`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\businessService.js",
+        "Line":  149,
+        "Method":  "POST",
+        "Call":  "\u0027/notifications\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/notifications\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\contractService.js",
+        "Line":  8,
+        "Method":  "GET",
+        "Call":  "`/contracts/farm/${farmId}`",
+        "Source":  "return unwrap(await api.get(`/contracts/farm/${farmId}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\contractService.js",
+        "Line":  12,
+        "Method":  "GET",
+        "Call":  "`/contracts/farm/${farmId}/active`",
+        "Source":  "return unwrap(await api.get(`/contracts/farm/${farmId}/active`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\contractService.js",
+        "Line":  16,
+        "Method":  "GET",
+        "Call":  "`/contracts/retailer/${retailerId}`",
+        "Source":  "return unwrap(await api.get(`/contracts/retailer/${retailerId}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\contractService.js",
+        "Line":  20,
+        "Method":  "POST",
+        "Call":  "\u0027/contracts\u0027, data",
+        "Source":  "return unwrap(await api.post(\u0027/contracts\u0027, data))"
+    },
+    {
+        "File":  "frontend\\src\\services\\contractService.js",
+        "Line":  24,
+        "Method":  "PATCH",
+        "Call":  "`/contracts/${contractId}/review`, null, { params: { status } }",
+        "Source":  "return unwrap(await api.patch(`/contracts/${contractId}/review`, null, { params: { status } }))"
+    },
+    {
+        "File":  "frontend\\src\\services\\contractService.js",
+        "Line":  28,
+        "Method":  "PATCH",
+        "Call":  "`/contracts/${contractId}/cancel`",
+        "Source":  "return unwrap(await api.patch(`/contracts/${contractId}/cancel`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\listingService.js",
+        "Line":  22,
+        "Method":  "GET",
+        "Call":  "\u0027/listings\u0027, { params: cleanParams }",
+        "Source":  "const payload = unwrap(await api.get(\u0027/listings\u0027, { params: cleanParams }))"
+    },
+    {
+        "File":  "frontend\\src\\services\\listingService.js",
+        "Line":  34,
+        "Method":  "GET",
+        "Call":  "`/listings/${id}`",
+        "Source":  "return unwrap(await api.get(`/listings/${id}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\listingService.js",
+        "Line":  38,
+        "Method":  "GET",
+        "Call":  "\u0027/listings/my\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/listings/my\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\listingService.js",
+        "Line":  42,
+        "Method":  "POST",
+        "Call":  "\u0027/listings\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/listings\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\listingService.js",
+        "Line":  46,
+        "Method":  "PUT",
+        "Call":  "`/listings/${id}`, payload",
+        "Source":  "return unwrap(await api.put(`/listings/${id}`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  42,
+        "Method":  "GET",
+        "Call":  "\u0027/seasons\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/seasons\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  46,
+        "Method":  "GET",
+        "Call":  "`/seasons/${id}`",
+        "Source":  "return unwrap(await api.get(`/seasons/${id}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  50,
+        "Method":  "GET",
+        "Call":  "`/seasons/farm/${farmId}`",
+        "Source":  "return unwrap(await api.get(`/seasons/farm/${farmId}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  54,
+        "Method":  "POST",
+        "Call":  "\u0027/seasons\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/seasons\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  58,
+        "Method":  "PUT",
+        "Call":  "`/seasons/${id}`, payload",
+        "Source":  "return unwrap(await api.put(`/seasons/${id}`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  62,
+        "Method":  "GET",
+        "Call":  "`/processes/season/${seasonId}`",
+        "Source":  "return normalizeTimelineResponse(unwrap(await api.get(`/processes/season/${seasonId}`)))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  66,
+        "Method":  "POST",
+        "Call":  "`/processes/season/${seasonId}`, payload",
+        "Source":  "return unwrap(await api.post(`/processes/season/${seasonId}`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  70,
+        "Method":  "PUT",
+        "Call":  "`/processes/${id}`, payload",
+        "Source":  "return unwrap(await api.put(`/processes/${id}`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  74,
+        "Method":  "DELETE",
+        "Call":  "`/processes/${id}`",
+        "Source":  "return unwrap(await api.delete(`/processes/${id}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  78,
+        "Method":  "PATCH",
+        "Call":  "`/processes/${id}/reorder`, null, { params: { stepNo } }",
+        "Source":  "return unwrap(await api.patch(`/processes/${id}/reorder`, null, { params: { stepNo } }))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  82,
+        "Method":  "GET",
+        "Call":  "\u0027/batches\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/batches\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  86,
+        "Method":  "POST",
+        "Call":  "\u0027/batches\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/batches\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  90,
+        "Method":  "PUT",
+        "Call":  "`/batches/${id}`, payload",
+        "Source":  "return unwrap(await api.put(`/batches/${id}`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  94,
+        "Method":  "GET",
+        "Call":  "`/batches/${id}/qr`",
+        "Source":  "return normalizeQrInfo(unwrap(await api.get(`/batches/${id}/qr`)))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  98,
+        "Method":  "POST",
+        "Call":  "`/batches/${id}/qr`",
+        "Source":  "return normalizeQrInfo(unwrap(await api.post(`/batches/${id}/qr`)))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  103,
+        "Method":  "GET",
+        "Call":  "path",
+        "Source":  "return normalizeTraceResponse(unwrap(await api.get(path)))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  107,
+        "Method":  "GET",
+        "Call":  "\u0027/public/trace\u0027, { params: { traceCode } }",
+        "Source":  "return normalizeTraceResponse(unwrap(await api.get(\u0027/public/trace\u0027, { params: { traceCode } })))"
+    },
+    {
+        "File":  "frontend\\src\\services\\phase3Service.js",
+        "Line":  111,
+        "Method":  "GET",
+        "Call":  "`/batches/${id}/verify`",
+        "Source":  "return unwrap(await api.get(`/batches/${id}/verify`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\searchService.js",
+        "Line":  24,
+        "Method":  "GET",
+        "Call":  "\u0027/listings/search\u0027, { params: cleanParams }",
+        "Source":  "const payload = unwrap(await api.get(\u0027/listings/search\u0027, { params: cleanParams }))"
+    },
+    {
+        "File":  "frontend\\src\\services\\seasonExportService.js",
+        "Line":  8,
+        "Method":  "POST",
+        "Call":  "`/seasons/${seasonId}/export`",
+        "Source":  "return unwrap(await api.post(`/seasons/${seasonId}/export`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\seasonExportService.js",
+        "Line":  12,
+        "Method":  "GET",
+        "Call":  "`/seasons/${seasonId}/export/latest`",
+        "Source":  "return unwrap(await api.get(`/seasons/${seasonId}/export/latest`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  8,
+        "Method":  "GET",
+        "Call":  "\u0027/notifications/me\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/notifications/me\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  12,
+        "Method":  "PATCH",
+        "Call":  "`/notifications/${id}/read`",
+        "Source":  "return unwrap(await api.patch(`/notifications/${id}/read`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  16,
+        "Method":  "POST",
+        "Call":  "\u0027/reports\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/reports\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  20,
+        "Method":  "GET",
+        "Call":  "\u0027/reports/me\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/reports/me\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  24,
+        "Method":  "GET",
+        "Call":  "\u0027/content\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/content\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  28,
+        "Method":  "POST",
+        "Call":  "\u0027/content\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/content\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  32,
+        "Method":  "GET",
+        "Call":  "\u0027/announcements/active\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/announcements/active\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  36,
+        "Method":  "PUT",
+        "Call":  "\u0027/announcements/active\u0027, payload",
+        "Source":  "return unwrap(await api.put(\u0027/announcements/active\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  40,
+        "Method":  "POST",
+        "Call":  "`/listings/${listingId}/submit`, payload",
+        "Source":  "return unwrap(await api.post(`/listings/${listingId}/submit`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  44,
+        "Method":  "GET",
+        "Call":  "\u0027/listings/registrations/my\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/listings/registrations/my\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  48,
+        "Method":  "GET",
+        "Call":  "\u0027/listings/registrations/pending\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/listings/registrations/pending\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  52,
+        "Method":  "PATCH",
+        "Call":  "`/listings/registrations/${registrationId}/review`, payload",
+        "Source":  "return unwrap(await api.patch(`/listings/registrations/${registrationId}/review`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  56,
+        "Method":  "POST",
+        "Call":  "\u0027/orders\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/orders\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  60,
+        "Method":  "GET",
+        "Call":  "\u0027/orders\u0027",
+        "Source":  "const data = unwrap(await api.get(\u0027/orders\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  70,
+        "Method":  "GET",
+        "Call":  "`/orders/${orderId}`",
+        "Source":  "return unwrap(await api.get(`/orders/${orderId}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  74,
+        "Method":  "GET",
+        "Call":  "`/orders/${orderId}/status-history`",
+        "Source":  "const data = unwrap(await api.get(`/orders/${orderId}/status-history`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  79,
+        "Method":  "POST",
+        "Call":  "`/orders/${orderId}/deposit`, payload",
+        "Source":  "return unwrap(await api.post(`/orders/${orderId}/deposit`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  83,
+        "Method":  "PATCH",
+        "Call":  "`/orders/${orderId}/status`, payload",
+        "Source":  "return unwrap(await api.patch(`/orders/${orderId}/status`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  87,
+        "Method":  "PATCH",
+        "Call":  "`/orders/${orderId}/status`, payload",
+        "Source":  "return unwrap(await api.patch(`/orders/${orderId}/status`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  91,
+        "Method":  "POST",
+        "Call":  "`/orders/${orderId}/confirm-delivery`, payload",
+        "Source":  "return unwrap(await api.post(`/orders/${orderId}/confirm-delivery`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  95,
+        "Method":  "POST",
+        "Call":  "`/orders/${orderId}/cancel`, payload",
+        "Source":  "return unwrap(await api.post(`/orders/${orderId}/cancel`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  99,
+        "Method":  "POST",
+        "Call":  "`/orders/${orderId}/shipping-proof`, payload",
+        "Source":  "return unwrap(await api.post(`/orders/${orderId}/shipping-proof`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  103,
+        "Method":  "GET",
+        "Call":  "\u0027/shipments/eligible-orders\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/shipments/eligible-orders\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  107,
+        "Method":  "GET",
+        "Call":  "\u0027/shipments\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/shipments\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  111,
+        "Method":  "POST",
+        "Call":  "\u0027/shipments\u0027, payload",
+        "Source":  "return unwrap(await api.post(\u0027/shipments\u0027, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  115,
+        "Method":  "PATCH",
+        "Call":  "`/shipments/${shipmentId}/status`, payload",
+        "Source":  "return unwrap(await api.patch(`/shipments/${shipmentId}/status`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  119,
+        "Method":  "GET",
+        "Call":  "\u0027/shipments/mine\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/shipments/mine\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  123,
+        "Method":  "GET",
+        "Call":  "\u0027/shipments/farm\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/shipments/farm\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  127,
+        "Method":  "GET",
+        "Call":  "\u0027/shipments/retailer\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/shipments/retailer\u0027))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  131,
+        "Method":  "GET",
+        "Call":  "`/shipments/${id}`",
+        "Source":  "return unwrap(await api.get(`/shipments/${id}`))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  135,
+        "Method":  "POST",
+        "Call":  "`/shipments/${id}/pickup`, payload",
+        "Source":  "return unwrap(await api.post(`/shipments/${id}/pickup`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  139,
+        "Method":  "POST",
+        "Call":  "`/shipments/${id}/checkpoints`, payload",
+        "Source":  "return unwrap(await api.post(`/shipments/${id}/checkpoints`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  143,
+        "Method":  "POST",
+        "Call":  "`/shipments/${id}/handover`, payload",
+        "Source":  "return unwrap(await api.post(`/shipments/${id}/handover`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  147,
+        "Method":  "POST",
+        "Call":  "`/shipments/${id}/reports`, payload",
+        "Source":  "return unwrap(await api.post(`/shipments/${id}/reports`, payload))"
+    },
+    {
+        "File":  "frontend\\src\\services\\workflowService.js",
+        "Line":  151,
+        "Method":  "GET",
+        "Call":  "\u0027/announcements/feed\u0027",
+        "Source":  "return unwrap(await api.get(\u0027/announcements/feed\u0027))"
+    }
+]

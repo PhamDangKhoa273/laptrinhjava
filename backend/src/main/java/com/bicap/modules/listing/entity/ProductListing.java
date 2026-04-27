@@ -1,0 +1,97 @@
+package com.bicap.modules.listing.entity;
+
+import com.bicap.core.enums.ApprovalStatus;
+import com.bicap.core.enums.ListingStatus;
+import com.bicap.modules.batch.entity.ProductBatch;
+import jakarta.persistence.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "product_listings")
+public class ProductListing {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "listing_id")
+    private Long listingId;
+
+    @Version
+    private Long version;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "batch_id", nullable = false)
+    private ProductBatch batch;
+
+    @Column(nullable = false, length = 255)
+    private String title;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal price;
+
+    @Column(name = "quantity_available", nullable = false, precision = 15, scale = 2)
+    private BigDecimal quantityAvailable;
+
+    @Column(name = "quantity_reserved", nullable = false, precision = 15, scale = 2)
+    private BigDecimal quantityReserved = BigDecimal.ZERO;
+
+    @Column(length = 50)
+    private String unit;
+
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
+    @Column(length = 20, nullable = false)
+    private String status;
+
+    @Column(name = "approval_status", nullable = false, length = 30)
+    private String approvalStatus;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void onCreate() { LocalDateTime now = LocalDateTime.now(); if (this.createdAt == null) this.createdAt = now; this.updatedAt = now; if (this.status == null || this.status.isBlank()) this.status = ListingStatus.DRAFT.name(); if (this.approvalStatus == null || this.approvalStatus.isBlank()) this.approvalStatus = ApprovalStatus.DRAFT.name(); if (this.unit == null || this.unit.isBlank()) this.unit = "kg"; }
+    @PreUpdate
+    public void onUpdate() { this.updatedAt = LocalDateTime.now(); }
+
+    public Long getListingId() { return listingId; }
+    public void setListingId(Long id) { this.listingId = id; }
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
+    public ProductBatch getBatch() { return batch; }
+    public void setBatch(ProductBatch batch) { this.batch = batch; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
+    public BigDecimal getQuantityAvailable() { return quantityAvailable; }
+    public void setQuantityAvailable(BigDecimal quantityAvailable) { this.quantityAvailable = quantityAvailable; }
+    public BigDecimal getQuantityReserved() { return quantityReserved; }
+    public void setQuantityReserved(BigDecimal quantityReserved) { this.quantityReserved = quantityReserved; }
+    public String getUnit() { return unit; }
+    public void setUnit(String unit) { this.unit = unit; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public String getApprovalStatus() { return approvalStatus; }
+    public void setApprovalStatus(String approvalStatus) { this.approvalStatus = approvalStatus; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public ListingStatus getStatusEnum() { return status == null ? null : ListingStatus.valueOf(status); }
+    public void setStatus(ListingStatus status) { this.status = status != null ? status.name() : null; }
+    public ApprovalStatus getApprovalStatusEnum() { return approvalStatus == null ? null : ApprovalStatus.valueOf(approvalStatus); }
+    public void setApprovalStatus(ApprovalStatus approvalStatus) { this.approvalStatus = approvalStatus != null ? approvalStatus.name() : null; }
+}

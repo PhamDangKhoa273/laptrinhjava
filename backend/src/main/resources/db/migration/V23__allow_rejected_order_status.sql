@@ -1,0 +1,4 @@
+-- Phase 1: farm-side buy request review adds REJECTED status in runtime flows.
+-- Current schema stores order status as VARCHAR(30), so no DDL is required.
+-- This migration intentionally documents the new accepted business status so Flyway history
+-- reflects the rollout and future seed/runtime scripts can rely on it.

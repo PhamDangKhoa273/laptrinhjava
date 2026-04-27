@@ -1,0 +1,100 @@
+services:
+  redis:
+    image: redis:7.4-alpine
+    container_name: bicap-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mysql:
+    image: mysql:8.4
+    container_name: bicap-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in your deployment env}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-bicap_db}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    image: bicap-backend:latest
+    container_name: bicap-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-bicap_db}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-root}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in your deployment env}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-validate}
+      SPRING_FLYWAY_VALIDATE_ON_MIGRATE: ${SPRING_FLYWAY_VALIDATE_ON_MIGRATE:-true}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:?set APP_JWT_SECRET in your deployment env}
+      APP_JWT_EXPIRATION_MS: ${APP_JWT_EXPIRATION_MS:-86400000}
+      APP_JWT_REFRESH_EXPIRATION_MS: ${APP_JWT_REFRESH_EXPIRATION_MS:-604800000}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:?set APP_CORS_ALLOWED_ORIGINS in your deployment env}
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL:?set APP_FRONTEND_URL in your deployment env}
+      APP_MEDIA_UPLOAD_DIR: ${APP_MEDIA_UPLOAD_DIR:-/app/uploads}
+      APP_ORDER_DEPOSIT_GATEWAY_SECRET: ${APP_ORDER_DEPOSIT_GATEWAY_SECRET:?set APP_ORDER_DEPOSIT_GATEWAY_SECRET in your deployment env}
+      APP_SUBSCRIPTION_GATEWAY_SECRET: ${APP_SUBSCRIPTION_GATEWAY_SECRET:?set APP_SUBSCRIPTION_GATEWAY_SECRET in your deployment env}
+      SPRING_CACHE_TYPE: redis
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      MANAGEMENT_ENDPOINTS_EXPOSE: ${MANAGEMENT_ENDPOINTS_EXPOSE:-health,info,metrics,prometheus}
+      MANAGEMENT_HEALTH_DETAILS: ${MANAGEMENT_HEALTH_DETAILS:-when_authorized}
+      APP_RATE_LIMIT_MAX_REQUESTS: ${APP_RATE_LIMIT_MAX_REQUESTS:-60}
+      APP_RATE_LIMIT_WINDOW_SECONDS: ${APP_RATE_LIMIT_WINDOW_SECONDS:-60}
+      BLOCKCHAIN_ENABLED: ${BLOCKCHAIN_ENABLED:-false}
+      BLOCKCHAIN_RPC_URL: ${BLOCKCHAIN_RPC_URL:-}
+      BLOCKCHAIN_PRIVATE_KEY: ${BLOCKCHAIN_PRIVATE_KEY:-}
+      BLOCKCHAIN_CONTRACT_ADDRESS: ${BLOCKCHAIN_CONTRACT_ADDRESS:-}
+      BLOCKCHAIN_CHAIN_ID: ${BLOCKCHAIN_CHAIN_ID:-11155111}
+      VECHAIN_THOR_ENABLED: ${VECHAIN_THOR_ENABLED:-false}
+      VECHAIN_THOR_URL: ${VECHAIN_THOR_URL:-}
+      VECHAIN_THOR_DEV_PRIVATE_KEY: ${VECHAIN_THOR_DEV_PRIVATE_KEY:-}
+      VECHAIN_THOR_TO_ADDRESS: ${VECHAIN_THOR_TO_ADDRESS:-}
+    volumes:
+      - backend_uploads:/app/uploads
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/actuator/health/readiness | grep -q UP"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
+  frontend:
+    image: bicap-frontend:latest
+    container_name: bicap-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz | grep -q ok"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data:
+  redis_data:
+  backend_uploads:

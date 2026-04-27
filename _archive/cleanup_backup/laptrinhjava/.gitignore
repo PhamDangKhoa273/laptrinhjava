@@ -1,0 +1,34 @@
+# Frontend
+frontend/node_modules/
+frontend/dist/
+node_modules/
+dist/
+
+# Backend
+backend/target/
+target/
+
+# Temp / generated
+.tmp/
+tmp/
+*.tmp
+*.patch
+*.diff
+patch_*.py
+tmp_patch_*
+
+# Environment
+.env
+.env.*
+!.env.example
+!.env.prod.example
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
+.env.local
+backend/.env.local
+frontend/.env.local
