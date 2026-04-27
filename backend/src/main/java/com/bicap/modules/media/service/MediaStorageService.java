@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,10 +51,11 @@ public class MediaStorageService {
         String originalFilename = StringUtils.cleanPath(file.getOriginalFilename() == null ? "proof-file" : file.getOriginalFilename());
         String extension = extractExtension(originalFilename);
         String datedFolder = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        String visibility = isPublicTrace(entityType) ? "PUBLIC" : "PRIVATE";
         String storedName = UUID.randomUUID() + (extension.isBlank() ? "" : "." + extension);
 
         Path uploadRoot = Paths.get(mediaStorageProperties.getUploadDir()).toAbsolutePath().normalize();
-        Path entityFolder = uploadRoot.resolve(entityType.toLowerCase()).resolve(datedFolder);
+        Path entityFolder = uploadRoot.resolve(visibility.toLowerCase()).resolve(entityType.toLowerCase()).resolve(datedFolder);
         Path targetFile = entityFolder.resolve(storedName);
 
         try {
@@ -69,11 +71,19 @@ public class MediaStorageService {
         mediaFile.setEntityId(entityId);
         mediaFile.setStoragePath(targetFile.toString());
         mediaFile.setOriginalFilename(originalFilename);
-        mediaFile.setContentType(file.getContentType());
+        mediaFile.setContentType(file.getContentType().toLowerCase());
         mediaFile.setFileSize(file.getSize());
+        mediaFile.setVisibility(visibility);
 
         MediaFile saved = mediaFileRepository.save(mediaFile);
         return toResponse(saved, uploadRoot, targetFile);
+    }
+
+    @Transactional(readOnly = true)
+    public StoredMedia getMedia(Long mediaFileId) {
+        MediaFile mediaFile = mediaFileRepository.findById(mediaFileId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy file"));
+        return new StoredMedia(mediaFile, Path.of(mediaFile.getStoragePath()));
     }
 
     private void validateFile(MultipartFile file) {
@@ -86,6 +96,37 @@ public class MediaStorageService {
         if (file.getContentType() == null || !ALLOWED_CONTENT_TYPES.contains(file.getContentType().toLowerCase())) {
             throw new BusinessException("Chỉ chấp nhận file ảnh JPG, PNG hoặc WEBP");
         }
+        validateMagicBytes(file);
+    }
+
+    private void validateMagicBytes(MultipartFile file) {
+        try (InputStream input = file.getInputStream()) {
+            byte[] header = input.readNBytes(12);
+            if (header.length < 4) {
+                throw new BusinessException("File không hợp lệ");
+            }
+            boolean jpeg = header[0] == (byte) 0xFF && header[1] == (byte) 0xD8;
+            boolean png = header[0] == (byte) 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47;
+            boolean webp = header.length >= 12 && header[0] == 0x52 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x46
+                    && header[8] == 0x57 && header[9] == 0x45 && header[10] == 0x42 && header[11] == 0x50;
+            if (!(jpeg || png || webp)) {
+                throw new BusinessException("Chữ ký file không khớp loại file cho phép");
+            }
+            String sample = new String(header, java.nio.charset.StandardCharsets.ISO_8859_1);
+            if (sample.contains("<script") || sample.contains("<?php") || sample.contains("eval(") || sample.contains("onerror=")) {
+                throw new BusinessException("File upload có nội dung không an toàn");
+            }
+        } catch (IOException e) {
+            throw new BusinessException("Không thể đọc file upload");
+        }
+    }
+
+    private boolean isPublicTrace(String entityType) {
+        if (entityType == null) {
+            return false;
+        }
+        String normalized = entityType.trim().toUpperCase();
+        return normalized.contains("TRACE") || normalized.contains("QR");
     }
 
     private String extractExtension(String filename) {
@@ -102,8 +143,11 @@ public class MediaStorageService {
         response.setEntityType(mediaFile.getEntityType());
         response.setEntityId(mediaFile.getEntityId());
         response.setCreatedAt(mediaFile.getCreatedAt());
-        String relativePath = uploadRoot.relativize(targetFile).toString().replace('\\', '/');
-        response.setFileUrl("/uploads/" + relativePath);
+        response.setFileUrl(mediaFile.getVisibility().equals("PUBLIC")
+                ? "/uploads/public/" + mediaFile.getMediaFileId()
+                : "/api/v1/media/" + mediaFile.getMediaFileId() + "/download");
         return response;
     }
+
+    public record StoredMedia(MediaFile mediaFile, Path path) {}
 }

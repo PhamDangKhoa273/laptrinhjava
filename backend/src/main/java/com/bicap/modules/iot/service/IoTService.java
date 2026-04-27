@@ -1,126 +1,103 @@
 package com.bicap.modules.iot.service;
 
-import com.bicap.core.AuditLogService;
-import com.bicap.core.enums.IoTAlertLevel;
 import com.bicap.core.exception.BusinessException;
-import com.bicap.modules.batch.service.BlockchainService;
-import com.bicap.modules.iot.dto.CreateIoTReadingRequest;
-import com.bicap.modules.iot.dto.IoTAlertResponse;
-import com.bicap.modules.iot.dto.IoTReadingResponse;
+import com.bicap.core.security.SecurityUtils;
+import com.bicap.modules.batch.entity.ProductBatch;
+import com.bicap.modules.batch.repository.ProductBatchRepository;
+import com.bicap.modules.common.notification.service.NotificationDispatcher;
+import com.bicap.core.AuditLogService;
+import com.bicap.core.security.MetricsSecurityEvents;
+import com.bicap.modules.farm.entity.Farm;
+import com.bicap.modules.iot.dto.CreateSensorReadingRequest;
+import com.bicap.modules.iot.dto.SensorAlertResponse;
 import com.bicap.modules.iot.entity.IoTAlert;
-import com.bicap.modules.iot.entity.IoTReading;
+import com.bicap.modules.iot.entity.SensorReading;
+import com.bicap.modules.iot.entity.ThresholdRule;
 import com.bicap.modules.iot.repository.IoTAlertRepository;
-import com.bicap.modules.iot.repository.IoTReadingRepository;
+import com.bicap.modules.iot.repository.SensorReadingRepository;
+import com.bicap.modules.iot.repository.ThresholdRuleRepository;
+import com.bicap.modules.season.entity.FarmingSeason;
+import com.bicap.modules.season.repository.FarmingSeasonRepository;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Slf4j
 public class IoTService {
-
-    private final IoTReadingRepository ioTReadingRepository;
-    private final IoTAlertRepository ioTAlertRepository;
+    private final SensorReadingRepository sensorReadingRepository;
+    private final ThresholdRuleRepository thresholdRuleRepository;
+    private final IoTAlertRepository iotAlertRepository;
+    private final ProductBatchRepository productBatchRepository;
+    private final FarmingSeasonRepository farmingSeasonRepository;
+    private final NotificationDispatcher notificationDispatcher;
     private final AuditLogService auditLogService;
-    private final BlockchainService blockchainService;
+    private final MetricsSecurityEvents metrics;
 
-    public IoTService(IoTReadingRepository ioTReadingRepository,
-                      IoTAlertRepository ioTAlertRepository,
-                      AuditLogService auditLogService,
-                      BlockchainService blockchainService) {
-        this.ioTReadingRepository = ioTReadingRepository;
-        this.ioTAlertRepository = ioTAlertRepository;
-        this.auditLogService = auditLogService;
-        this.blockchainService = blockchainService;
+    public IoTService(SensorReadingRepository sensorReadingRepository, ThresholdRuleRepository thresholdRuleRepository, IoTAlertRepository iotAlertRepository, ProductBatchRepository productBatchRepository, FarmingSeasonRepository farmingSeasonRepository, NotificationDispatcher notificationDispatcher, AuditLogService auditLogService, MetricsSecurityEvents metrics) {
+        this.sensorReadingRepository = sensorReadingRepository; this.thresholdRuleRepository = thresholdRuleRepository; this.iotAlertRepository = iotAlertRepository; this.productBatchRepository = productBatchRepository; this.farmingSeasonRepository = farmingSeasonRepository; this.notificationDispatcher = notificationDispatcher; this.auditLogService = auditLogService; this.metrics = metrics;
     }
 
     @Transactional
-    public IoTReadingResponse createReading(CreateIoTReadingRequest request, Long currentUserId) {
-        validateReading(request);
-        IoTReading reading = new IoTReading();
-        reading.setBatchId(request.getBatchId());
-        reading.setTemperature(request.getTemperature());
-        reading.setHumidity(request.getHumidity());
-        reading.setPhValue(request.getPhValue());
-
-        IoTReading saved = ioTReadingRepository.save(reading);
-        createAlertIfNeeded(saved);
-        auditLogService.log(currentUserId, "CREATE_IOT_READING", "IOT_READING", saved.getReadingId(), "batchId=" + saved.getBatchId());
-        try {
-            blockchainService.saveTransaction("IOT_READING", saved.getReadingId(), "SENSOR_CAPTURE",
-                    "batchId=" + saved.getBatchId() + ",temp=" + saved.getTemperature() + ",humidity=" + saved.getHumidity() + ",ph=" + saved.getPhValue());
-        } catch (Exception ignored) {
-        }
-        return toReadingResponse(saved);
+    public SensorAlertResponse ingest(CreateSensorReadingRequest request) {
+        ProductBatch batch = request.getBatchId() != null ? productBatchRepository.findById(request.getBatchId()).orElseThrow(() -> new BusinessException("Không tìm thấy batch")) : null;
+        FarmingSeason season = request.getSeasonId() != null ? farmingSeasonRepository.findById(request.getSeasonId()).orElseThrow(() -> new BusinessException("Không tìm thấy season")) : null;
+        Farm farm = batch != null ? batch.getSeason().getFarm() : season != null ? season.getFarm() : null;
+        if (farm == null) throw new BusinessException("Sensor reading phải gắn với batch hoặc season hợp lệ");
+        enforceIngestOwnership(farm);
+        validateDeviceIdentityIfPresent(request, farm);
+        SensorReading reading = new SensorReading(); reading.setBatch(batch); reading.setSeason(season != null ? season : (batch != null ? batch.getSeason() : null)); reading.setFarm(farm); reading.setMetric(request.getMetric().trim().toUpperCase()); reading.setValue(request.getValue()); reading.setMeasuredAt(parseMeasuredAt(request.getMeasuredAt())); sensorReadingRepository.save(reading);
+        ThresholdRule rule = thresholdRuleRepository.findByFarmFarmIdAndEnabledTrue(farm.getFarmId()).stream().filter(r -> r.getMetric() != null && r.getMetric().equalsIgnoreCase(reading.getMetric())).findFirst().orElse(null);
+        if (rule == null || !violates(rule, reading.getValue())) return mapAlert(null);
+        IoTAlert alert = new IoTAlert(); alert.setFarm(farm); alert.setBatch(batch); alert.setSeason(reading.getSeason()); alert.setMetric(reading.getMetric()); alert.setValue(reading.getValue()); alert.setMinValue(rule.getMinValue()); alert.setMaxValue(rule.getMaxValue()); alert.setSeverity(severityFor(rule, reading.getValue())); alert.setTitle("Cảnh báo " + reading.getMetric()); alert.setDescription("Giá trị " + reading.getMetric() + " vượt ngưỡng quy định"); alert.setMeasuredAt(reading.getMeasuredAt()); IoTAlert saved = iotAlertRepository.save(alert);
+        try { if (metrics != null) metrics.iotAlertCount.increment(); } catch (Exception ex) { log.debug("Không thể tăng metric iotAlertCount", ex); }
+        notificationDispatcher.send(farm.getOwnerUser().getUserId(), null, "IoT alert: " + saved.getTitle(), saved.getDescription(), "IOT_ALERT", "IOT_ALERT", saved.getAlertId());
+        auditLogService.log(SecurityUtils.getCurrentUserId(), "NOTIFY_IOT_NEW", "IOT_ALERT", saved.getAlertId(), "recipient=farm:" + farm.getFarmId());
+        if ("HIGH".equalsIgnoreCase(saved.getSeverity())) notificationDispatcher.send(null, "ADMIN", "Critical IoT alert", "Farm " + farm.getFarmName() + " phát sinh cảnh báo HIGH: " + saved.getMetric(), "IOT_ALERT", "IOT_ALERT", saved.getAlertId());
+        return mapAlert(saved);
     }
 
-    private void validateReading(CreateIoTReadingRequest request) {
-        if (request.getTemperature().compareTo(BigDecimal.valueOf(-20)) < 0 || request.getTemperature().compareTo(BigDecimal.valueOf(80)) > 0) {
-            throw new BusinessException("Temperature vượt ngoài biên hợp lệ");
+    public List<SensorAlertResponse> getMyAlerts() { Long currentUserId = SecurityUtils.getCurrentUserId(); return iotAlertRepository.findByFarmOwnerUserUserIdOrderByCreatedAtDesc(currentUserId).stream().map(this::mapAlert).toList(); }
+    @Transactional
+    public SensorAlertResponse resolve(Long alertId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        IoTAlert alert = iotAlertRepository.findById(alertId).orElseThrow(() -> new BusinessException("Không tìm thấy alert"));
+        if (alert.getFarm() == null || alert.getFarm().getOwnerUser() == null || !alert.getFarm().getOwnerUser().getUserId().equals(currentUserId)) {
+            throw new BusinessException("Bạn không có quyền resolve alert này");
         }
-        if (request.getHumidity().compareTo(BigDecimal.ZERO) < 0 || request.getHumidity().compareTo(BigDecimal.valueOf(100)) > 0) {
-            throw new BusinessException("Humidity phải nằm trong khoảng 0-100");
-        }
-        if (request.getPhValue().compareTo(BigDecimal.ZERO) <= 0 || request.getPhValue().compareTo(BigDecimal.valueOf(14)) > 0) {
-            throw new BusinessException("pH phải nằm trong khoảng (0,14]");
-        }
+        if ("RESOLVED".equalsIgnoreCase(alert.getStatus())) return mapAlert(alert);
+        alert.setStatus("RESOLVED"); alert.setResolvedAt(LocalDateTime.now());
+        return mapAlert(saveRetrySafe(alert));
     }
-
-    public List<IoTReadingResponse> getReadings(Long batchId) {
-        return ioTReadingRepository.findTop50ByBatchIdOrderByCapturedAtDesc(batchId).stream()
-                .map(this::toReadingResponse)
-                .toList();
-    }
-
-    public List<IoTAlertResponse> getAlerts(Long batchId) {
-        return ioTAlertRepository.findTop50ByBatchIdOrderByCreatedAtDesc(batchId).stream()
-                .map(this::toAlertResponse)
-                .toList();
-    }
-
-    private void createAlertIfNeeded(IoTReading reading) {
-        checkMetric(reading.getBatchId(), "TEMPERATURE", reading.getTemperature(), BigDecimal.valueOf(35), IoTAlertLevel.WARNING);
-        checkMetric(reading.getBatchId(), "HUMIDITY", reading.getHumidity(), BigDecimal.valueOf(85), IoTAlertLevel.WARNING);
-        if (reading.getPhValue().compareTo(BigDecimal.valueOf(5)) < 0 || reading.getPhValue().compareTo(BigDecimal.valueOf(8)) > 0) {
-            saveAlert(reading.getBatchId(), "PH", "Chỉ số pH vượt ngưỡng an toàn", IoTAlertLevel.CRITICAL);
+    private IoTAlert saveRetrySafe(IoTAlert alert) { try { return iotAlertRepository.save(alert); } catch (OptimisticLockingFailureException ex) { return iotAlertRepository.findById(alert.getAlertId()).orElseThrow(); } }
+    private void enforceIngestOwnership(Farm farm) {
+        var currentUser = SecurityUtils.getCurrentUser();
+        boolean isAdmin = currentUser.getAuthorities().stream().anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        if (isAdmin) return;
+        Long ownerUserId = farm.getOwnerUser() != null ? farm.getOwnerUser().getUserId() : null;
+        if (ownerUserId == null || !ownerUserId.equals(currentUser.getUserId())) {
+            throw new BusinessException("Bạn không có quyền gửi dữ liệu IoT cho farm này");
         }
     }
-
-    private void checkMetric(Long batchId, String metric, BigDecimal value, BigDecimal threshold, IoTAlertLevel level) {
-        if (value != null && value.compareTo(threshold) > 0) {
-            saveAlert(batchId, metric, metric + " vượt ngưỡng cấu hình", level);
+    private void validateDeviceIdentityIfPresent(CreateSensorReadingRequest request, Farm farm) {
+        boolean hasDeviceCode = request.getDeviceCode() != null && !request.getDeviceCode().isBlank();
+        boolean hasApiKey = request.getApiKey() != null && !request.getApiKey().isBlank();
+        if (!hasDeviceCode && !hasApiKey) return;
+        if (!hasDeviceCode || !hasApiKey) {
+            throw new BusinessException("Thông tin định danh thiết bị IoT không hợp lệ");
+        }
+        String expectedKey = "BICAP-IOT-" + farm.getFarmId() + "-" + request.getDeviceCode().trim();
+        if (!expectedKey.equals(request.getApiKey().trim())) {
+            throw new BusinessException("API key thiết bị IoT không hợp lệ");
         }
     }
-
-    private void saveAlert(Long batchId, String metric, String message, IoTAlertLevel level) {
-        IoTAlert alert = new IoTAlert();
-        alert.setBatchId(batchId);
-        alert.setMetric(metric);
-        alert.setMessage(message);
-        alert.setLevel(level);
-        ioTAlertRepository.save(alert);
-    }
-
-    private IoTReadingResponse toReadingResponse(IoTReading reading) {
-        IoTReadingResponse response = new IoTReadingResponse();
-        response.setReadingId(reading.getReadingId());
-        response.setBatchId(reading.getBatchId());
-        response.setTemperature(reading.getTemperature());
-        response.setHumidity(reading.getHumidity());
-        response.setPhValue(reading.getPhValue());
-        response.setCapturedAt(reading.getCapturedAt());
-        return response;
-    }
-
-    private IoTAlertResponse toAlertResponse(IoTAlert alert) {
-        IoTAlertResponse response = new IoTAlertResponse();
-        response.setAlertId(alert.getAlertId());
-        response.setBatchId(alert.getBatchId());
-        response.setMetric(alert.getMetric());
-        response.setMessage(alert.getMessage());
-        response.setLevel(alert.getLevel().name());
-        response.setCreatedAt(alert.getCreatedAt());
-        return response;
-    }
+    private boolean violates(ThresholdRule rule, BigDecimal value) { return (rule.getMinValue() != null && value.compareTo(rule.getMinValue()) < 0) || (rule.getMaxValue() != null && value.compareTo(rule.getMaxValue()) > 0); }
+    private String severityFor(ThresholdRule rule, BigDecimal value) { if (rule.getMaxValue() != null && value.compareTo(rule.getMaxValue()) > 0) return "HIGH"; if (rule.getMinValue() != null && value.compareTo(rule.getMinValue()) < 0) return "HIGH"; return "MEDIUM"; }
+    private LocalDateTime parseMeasuredAt(String measuredAt) { if (measuredAt == null || measuredAt.isBlank()) return LocalDateTime.now(); return LocalDateTime.parse(measuredAt); }
+    private SensorAlertResponse mapAlert(IoTAlert alert) { if (alert == null) return null; SensorAlertResponse response = new SensorAlertResponse(); response.setAlertId(alert.getAlertId()); response.setFarmId(alert.getFarm() != null ? alert.getFarm().getFarmId() : null); response.setBatchId(alert.getBatch() != null ? alert.getBatch().getBatchId() : null); response.setSeasonId(alert.getSeason() != null ? alert.getSeason().getSeasonId() : null); response.setMetric(alert.getMetric()); response.setValue(alert.getValue()); response.setMinValue(alert.getMinValue()); response.setMaxValue(alert.getMaxValue()); response.setSeverity(alert.getSeverity()); response.setStatus(alert.getStatus()); response.setTitle(alert.getTitle()); response.setDescription(alert.getDescription()); response.setMeasuredAt(alert.getMeasuredAt()); response.setCreatedAt(alert.getCreatedAt()); response.setResolvedAt(alert.getResolvedAt()); return response; }
 }

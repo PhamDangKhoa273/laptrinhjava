@@ -501,12 +501,196 @@ p {
   padding: 32px 20px;
   border-right: 1px solid rgba(160, 182, 214, 0.12);
   background: rgba(3, 11, 22, 0.82);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Floating collapse toggle (Zalo-like) */
+.sidebar-collapse-floating {
+  position: absolute;
+  top: 20px;
+  right: -14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(162, 184, 214, 0.2);
+  background: rgba(3, 11, 22, 0.92);
+  color: #dbe7f5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 50;
+}
+
+.sidebar {
+  position: sticky;
+}
+
+.sidebar-top {
+  position: relative;
+}
+
+.sidebar.is-collapsed {
+  width: 84px;
+  padding: 24px 12px;
+}
+
+.sidebar.is-collapsed .sidebar-collapse-floating {
+  right: -14px;
+}
+
+/* Collapsed: visually shrink nav items to icon-only pills */
+.sidebar.is-collapsed .sidebar-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  padding: 14px 10px !important;
+}
+
+.sidebar.is-collapsed .sidebar-link-icon {
+  width: 26px;
+  height: 26px;
+}
+
+/* When collapsed: hard-hide text and descriptions */
+.sidebar.is-collapsed .sidebar-link-text,
+.sidebar.is-collapsed .sidebar-link-desc,
+.sidebar.is-collapsed .sidebar-title {
+  display: none !important;
+}
+
+.sidebar.is-collapsed .sidebar-link {
+  grid-template-columns: 1fr !important;
+  justify-items: center !important;
+}
+
+.sidebar.is-collapsed .sidebar-link-icon {
+  margin: 0 !important;
+}
+
+.sidebar-top {
+  display: grid;
+  gap: 18px;
+}
+
+.sidebar-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sidebar-collapse {
+  height: 34px;
+  width: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(162, 184, 214, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  color: #dbe7f5;
+  cursor: pointer;
+}
+
+.sidebar-collapse:active {
+  transform: translateY(1px);
+}
+
+.sidebar-collapse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.sidebar.is-collapsed .sidebar-title,
+.sidebar.is-collapsed .sidebar-link-text,
+.sidebar.is-collapsed .sidebar-link-desc {
+  display: none;
+}
+
+.sidebar-link {
+  grid-template-columns: 26px 1fr;
+  align-items: center;
+}
+
+.sidebar-link-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #e8f0f8;
+}
+
+.sidebar.is-collapsed .sidebar-link {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  padding: 14px 10px;
+}
+
+.sidebar.is-collapsed .sidebar-user {
+  padding: 10px;
+}
+
+.sidebar.is-collapsed .sidebar-user-row {
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar.is-collapsed .sidebar-logout.button {
+  width: 100%;
+  padding: 0;
+  justify-content: center;
+}
+
+.sidebar-user {
+  display: grid;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(162, 184, 214, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.sidebar-user-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.sidebar-user-row > * {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.sidebar-logout.button {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 0.9rem;
 }
 
 .sidebar-nav {
   display: grid;
   gap: 10px;
   margin-top: 20px;
+  overflow: auto;
+  max-height: calc(100vh - 220px);
+  padding-right: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+.sidebar.is-collapsed .sidebar-nav {
+  max-height: calc(100vh - 170px);
 }
 
 .sidebar-link {
@@ -920,6 +1104,56 @@ p {
   background: rgba(87, 173, 255, 0.12);
   color: #93cbff;
   border: 1px solid rgba(87, 173, 255, 0.22);
+}
+
+.role-chip-wrap-manage {
+  margin-top: 10px;
+}
+
+.role-chip-manage {
+  gap: 8px;
+  padding-right: 6px;
+}
+
+.role-chip-remove {
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.16);
+  color: inherit;
+  cursor: pointer;
+  font-weight: 900;
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+
+.role-chip-remove:hover:not(:disabled) {
+  transform: scale(1.08);
+  background: rgba(255, 93, 93, 0.28);
+}
+
+.role-chip-remove:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.admin-users-action-hint {
+  margin-top: 4px;
+  margin-bottom: 12px;
+}
+
+.admin-users-role-manager {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(162, 184, 214, 0.14);
+}
+
+.compact-alert {
+  margin: 10px 0 12px;
+  padding: 10px 12px;
 }
 
 .status-pill {

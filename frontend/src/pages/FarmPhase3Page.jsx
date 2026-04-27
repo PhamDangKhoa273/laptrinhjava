@@ -197,6 +197,7 @@ export function FarmPhase3Page() {
 
   useEffect(() => {
     loadDashboard()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

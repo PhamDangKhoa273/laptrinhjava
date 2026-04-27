@@ -60,4 +60,12 @@ public class DriverController {
                 driverService.deactivate(id, SecurityUtils.getCurrentUserId())
         );
     }
+
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER','ADMIN')")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        driverService.delete(id, SecurityUtils.getCurrentUserId());
+        return ApiResponse.success("Xóa driver thành công", null);
+    }
 }

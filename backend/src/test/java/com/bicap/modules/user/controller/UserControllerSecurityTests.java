@@ -12,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -42,7 +41,7 @@ class UserControllerSecurityTests {
                 .userId(1L)
                 .fullName("Normal User")
                 .email("user@example.com")
-                .roles(List.of("GUEST"))
+                .roles(java.util.List.of("GUEST"))
                 .primaryRole("GUEST")
                 .build();
 
@@ -60,7 +59,7 @@ class UserControllerSecurityTests {
                 .userId(99L)
                 .fullName("Managed User")
                 .email("managed@example.com")
-                .roles(List.of("GUEST"))
+                .roles(java.util.List.of("GUEST"))
                 .primaryRole("GUEST")
                 .build();
 
@@ -79,7 +78,7 @@ class UserControllerSecurityTests {
                 .fullName("Updated User")
                 .email("user@example.com")
                 .phone("0901234567")
-                .roles(List.of("GUEST"))
+                .roles(java.util.List.of("GUEST"))
                 .primaryRole("GUEST")
                 .build();
 

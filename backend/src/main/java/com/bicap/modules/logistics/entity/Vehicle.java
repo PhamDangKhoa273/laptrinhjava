@@ -2,7 +2,6 @@ package com.bicap.modules.logistics.entity;
 import com.bicap.modules.user.entity.User;
 import jakarta.persistence.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity

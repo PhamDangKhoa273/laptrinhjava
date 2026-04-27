@@ -1,23 +1,40 @@
 import { useState, useEffect } from 'react'
 import { Button } from './Button.jsx'
+import { getActiveAnnouncement } from '../services/workflowService.js'
+import { getDefaultAnnouncementHtml, sanitizeAnnouncementHtml } from '../utils/announcementSanitizer.js'
 
 export function AnnouncementBanner() {
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === 'undefined') return true
+    return window.sessionStorage.getItem('bicap-announcement-dismissed') !== 'true'
+      && window.localStorage.getItem('bicap-announcement-hidden') !== 'true'
+  })
   const [content, setContent] = useState('')
 
   useEffect(() => {
-    function loadContent() {
-      const saved = localStorage.getItem('system_announcement')
-      if (saved) {
-        setContent(saved)
-      } else {
-        setContent('<p class="announcement-line">BICAP</p><p class="announcement-highlight dark">CHÚC BẠN</p><p class="announcement-highlight bright">MỘT NGÀY VUI VẺ 😊</p>')
+    let mounted = true
+    async function loadContent() {
+      try {
+        const data = await getActiveAnnouncement()
+        if (!mounted) return
+        setContent(sanitizeAnnouncementHtml(data?.contentHtml || data?.body || getDefaultAnnouncementHtml()))
+      } catch {
+        if (mounted) setContent(sanitizeAnnouncementHtml(getDefaultAnnouncementHtml()))
       }
     }
     loadContent()
-    window.addEventListener('storage', loadContent)
-    return () => window.removeEventListener('storage', loadContent)
+    return () => { mounted = false }
   }, [])
+
+  function dismissForSession() {
+    if (typeof window !== 'undefined') window.sessionStorage.setItem('bicap-announcement-dismissed', 'true')
+    setVisible(false)
+  }
+
+  function hidePermanently() {
+    if (typeof window !== 'undefined') window.localStorage.setItem('bicap-announcement-hidden', 'true')
+    setVisible(false)
+  }
 
   if (!visible) return null
 
@@ -29,8 +46,8 @@ export function AnnouncementBanner() {
         </div>
         <div className="announcement-body" dangerouslySetInnerHTML={{ __html: content }} />
         <div className="announcement-actions">
-          <Button variant="secondary" style={{ color: '#3a4f67', backgroundColor: '#eef2f6', borderColor: '#d1dce6' }} onClick={() => setVisible(false)}>Không hiển thị lại</Button>
-          <Button onClick={() => setVisible(false)}>Đóng</Button>
+          <Button variant="secondary" style={{ color: '#3a4f67', backgroundColor: '#eef2f6', borderColor: '#d1dce6' }} onClick={hidePermanently}>Không hiển thị lại</Button>
+          <Button onClick={dismissForSession}>Đóng</Button>
         </div>
       </div>
     </div>

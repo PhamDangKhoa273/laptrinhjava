@@ -1,18 +1,19 @@
 package com.bicap.modules.discovery.controller;
 
 import com.bicap.core.dto.ApiResponse;
+import com.bicap.core.dto.PagedResponse;
 import com.bicap.modules.discovery.service.DiscoveryService;
 import com.bicap.modules.listing.dto.ListingResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/v1/search")
 public class DiscoveryController {
 
@@ -23,7 +24,7 @@ public class DiscoveryController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Map<String, Object>>> search(
+    public ResponseEntity<ApiResponse<PagedResponse<ListingResponse>>> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
@@ -36,7 +37,6 @@ public class DiscoveryController {
         if (minPrice != null && maxPrice != null && minPrice.compareTo(maxPrice) > 0) {
             throw new IllegalArgumentException("minPrice không được lớn hơn maxPrice");
         }
-
         if (page < 0) {
             throw new IllegalArgumentException("page không được nhỏ hơn 0");
         }
@@ -44,24 +44,7 @@ public class DiscoveryController {
             throw new IllegalArgumentException("size phải nằm trong khoảng 1 đến 100");
         }
 
-        Page<ListingResponse> results = discoveryService.search(
-                keyword,
-                minPrice,
-                maxPrice,
-                province,
-                productCategory,
-                certification,
-                page,
-                size,
-                sort
-        );
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("items", results.getContent());
-        payload.put("page", results.getNumber());
-        payload.put("size", results.getSize());
-        payload.put("totalItems", results.getTotalElements());
-        payload.put("totalPages", results.getTotalPages());
-        payload.put("sort", sort);
-        return ResponseEntity.ok(ApiResponse.success("Tìm kiếm sản phẩm thành công", payload));
+        Page<ListingResponse> results = discoveryService.search(keyword, minPrice, maxPrice, province, productCategory, certification, page, size, sort);
+        return ResponseEntity.ok(ApiResponse.success("Tìm kiếm sản phẩm thành công", PagedResponse.of(results.getContent(), results.getNumber(), results.getSize(), results.getTotalElements(), results.getTotalPages(), sort)));
     }
 }

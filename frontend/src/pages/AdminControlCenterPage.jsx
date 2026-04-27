@@ -1,752 +1,280 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { RoleCoveragePanel } from '../components/RoleCoveragePanel.jsx'
+import { StatusCard } from '../components/StatusCard.jsx'
+import { getFarms, getPackages, getProducts, getRetailers, getUsers } from '../services/adminService.js'
+import { getErrorMessage } from '../utils/helpers.js'
 import '../admin-control.css'
 import '../transaction-hardening.css'
-import { Button } from '../components/Button.jsx'
-import {
-  assignRole,
-  changeUserStatus,
-  createAdminAccount,
-  createCategory,
-  createProduct,
-  deleteCategory,
-  deleteProduct,
-  getCategories,
-  getFarmById,
-  getFarms,
-  getProducts,
-  getUserById,
-  getUsers,
-  removeUserRole,
-  reviewFarm,
-  updateCategory,
-  updateFarmDetailByAdmin,
-  updateProduct,
-} from '../services/adminService.js'
-import { getErrorMessage } from '../utils/helpers.js'
-import { ROLE_LABELS, ROLES } from '../utils/constants.js'
 
-const userStatusFlow = ['ACTIVE', 'INACTIVE', 'BLOCKED']
-const adminCreationInitial = {
-  fullName: '',
-  email: '',
-  password: '',
-  phone: '',
-  initialRole: 'ADMIN',
+function normalizeList(payload) {
+  if (Array.isArray(payload)) return payload
+  if (Array.isArray(payload?.items)) return payload.items
+  if (Array.isArray(payload?.content)) return payload.content
+  if (Array.isArray(payload?.users)) return payload.users
+  return []
 }
 
-const farmEditInitial = {
-  farmId: null,
-  farmName: '',
-  farmType: '',
-  businessLicenseNo: '',
-  address: '',
-  province: '',
-  totalArea: '',
-  contactPerson: '',
-  description: '',
+function countByStatus(items, statusKey, expectedStatus) {
+  return items.filter((item) => String(item?.[statusKey] || '').toUpperCase() === expectedStatus).length
 }
 
-const productFormInitial = {
-  productId: null,
-  productName: '',
-  productCode: '',
-  description: '',
-  price: '',
-  imageUrl: '',
-  sortOrder: 0,
-  status: 'ACTIVE',
-  categoryId: '',
-}
+const quickModules = [
+  {
+    title: 'Tài khoản & phân quyền',
+    description: 'Khóa/mở tài khoản, thay vai trò và phân quyền người dùng.',
+    to: '/dashboard/admin/accounts',
+    badge: 'RBAC',
+  },
+  {
+    title: 'Duyệt Farm',
+    description: 'Duyệt, từ chối và kiểm tra hồ sơ/giấy phép farm trước khi tham gia chuỗi.',
+    to: '/dashboard/admin/farms',
+    badge: 'Approval',
+  },
+  {
+    title: 'Retailer',
+    description: 'Theo dõi nhà bán lẻ, hồ sơ kinh doanh và trạng thái hoạt động.',
+    to: '/dashboard/admin/retailers',
+    badge: 'Partner',
+  },
+  {
+    title: 'Sản phẩm & lô SX',
+    description: 'Quản lý sản phẩm, chuyên mục và điểm vào cho batch/process trace.',
+    to: '/dashboard/admin/products',
+    badge: 'Catalog',
+  },
+  {
+    title: 'Gói dịch vụ',
+    description: 'Quản lý package, subscription và payment workflow cho Farm.',
+    to: '/dashboard/admin/packages',
+    badge: 'Package',
+  },
+  {
+    title: 'Logistics',
+    description: 'Giám sát shipment, tài xế, phương tiện và sự cố giao nhận.',
+    to: '/dashboard/admin/logistics',
+    badge: 'Shipment',
+  },
+  {
+    title: 'Blockchain Trace',
+    description: 'Theo dõi contract, transaction, QR verification và trace integrity.',
+    to: '/dashboard/admin/blockchain',
+    badge: 'Chain',
+  },
+  {
+    title: 'Nội dung website',
+    description: 'Quản lý thông báo, bài viết, giáo dục và giao diện public site.',
+    to: '/dashboard/admin/content',
+    badge: 'CMS',
+  },
+]
 
-const categoryFormInitial = {
-  categoryId: null,
-  categoryName: '',
-  slug: '',
-  imageUrl: '',
-  icon: '',
-  sortOrder: 0,
-  status: 'ACTIVE',
-}
+const adminCoverageItems = [
+  { title: 'Tài khoản hệ thống', description: 'Admin, Farm, Retailer, Shipping Manager, Driver user accounts và role/status.', href: '/dashboard/admin/accounts' },
+  { title: 'Duyệt Farm', description: 'Kiểm tra giấy phép, chứng nhận, trạng thái approval và năng lực tham gia chuỗi.', href: '/dashboard/admin/farms' },
+  { title: 'Quản lý Retailer', description: 'Business license, trạng thái hoạt động, order/shipment/report liên quan retailer.', href: '/dashboard/admin/retailers' },
+  { title: 'Gói dịch vụ', description: 'Package, subscription, payment, quyền đăng sản phẩm và hạn mức sử dụng.', href: '/dashboard/admin/packages' },
+  { title: 'Sản phẩm / Batch / QR', description: 'Danh mục, sản phẩm, mùa vụ, batch, QR và dữ liệu truy xuất nguồn gốc.', href: '/dashboard/admin/products' },
+  { title: 'Logistics', description: 'Shipment, driver, vehicle, status timeline, dispute và delivery proof.', href: '/dashboard/admin/logistics' },
+  { title: 'Blockchain', description: 'Smart contract, transaction hash, proof verification và dữ liệu trace không sửa đổi.', href: '/dashboard/admin/blockchain' },
+  { title: 'Nội dung & thông báo', description: 'Public announcement, content library, website appearance và education feed.', href: '/dashboard/admin/content' },
+  { title: 'Analytics / Báo cáo', description: 'KPI vận hành, pending queue, report từ Farm/Retailer/Driver và audit trail.', href: '/dashboard/admin/analytics' },
+]
 
-function countByStatus(list, key) {
-  return list.reduce((acc, item) => {
-    const value = item?.[key] || 'UNKNOWN'
-    acc[value] = (acc[value] || 0) + 1
-    return acc
-  }, {})
-}
-
-function formatDate(value) {
-  if (!value) return 'Chưa có'
-  return new Date(value).toLocaleString('vi-VN')
-}
-
-function normalizePrice(value) {
-  if (value === '' || value === null || value === undefined) return null
-  const parsed = Number(value)
-  return Number.isNaN(parsed) ? null : parsed
-}
 
 export function AdminControlCenterPage() {
   const [users, setUsers] = useState([])
   const [farms, setFarms] = useState([])
+  const [retailers, setRetailers] = useState([])
+  const [packages, setPackages] = useState([])
   const [products, setProducts] = useState([])
-  const [categories, setCategories] = useState([])
-  const [adminForm, setAdminForm] = useState(adminCreationInitial)
-  const [farmEdit, setFarmEdit] = useState(farmEditInitial)
-  const [selectedUserId, setSelectedUserId] = useState(null)
-  const [selectedRole, setSelectedRole] = useState(ROLES.ADMIN)
-  const [reviewDrafts, setReviewDrafts] = useState({})
-  const [selectedFarmId, setSelectedFarmId] = useState(null)
-  const [farmDetail, setFarmDetail] = useState(null)
-  const [selectedProductId, setSelectedProductId] = useState(null)
-  const [selectedCategoryId, setSelectedCategoryId] = useState(null)
-  const [productForm, setProductForm] = useState(productFormInitial)
-  const [categoryForm, setCategoryForm] = useState(categoryFormInitial)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
 
-  const selectedUser = useMemo(
-    () => users.find((user) => user.userId === Number(selectedUserId)) || users[0] || null,
-    [users, selectedUserId],
-  )
+  useEffect(() => {
+    loadOverview()
+  }, [])
 
-  const selectedProduct = useMemo(
-    () => products.find((product) => product.productId === Number(selectedProductId)) || null,
-    [products, selectedProductId],
-  )
+  const metrics = useMemo(() => {
+    const activeUsers = countByStatus(users, 'status', 'ACTIVE')
+    const inactiveUsers = countByStatus(users, 'status', 'INACTIVE')
+    const pendingFarms = farms.filter((farm) => String(farm.approvalStatus || '').toUpperCase() !== 'APPROVED').length
+    const approvedFarms = countByStatus(farms, 'approvalStatus', 'APPROVED')
 
-  const selectedCategory = useMemo(
-    () => categories.find((category) => category.categoryId === Number(selectedCategoryId)) || null,
-    [categories, selectedCategoryId],
-  )
+    return {
+      totalUsers: users.length,
+      activeUsers,
+      inactiveUsers,
+      totalFarms: farms.length,
+      pendingFarms,
+      approvedFarms,
+      totalRetailers: retailers.length,
+      totalPackages: packages.length,
+      totalProducts: products.length,
+    }
+  }, [users, farms, retailers, packages, products])
 
-  const pendingFarms = useMemo(
-    () => farms.filter((farm) => farm.approvalStatus === 'PENDING'),
-    [farms],
-  )
-
-  const metrics = useMemo(() => ({
-    userStatuses: countByStatus(users, 'status'),
-    farmApprovals: countByStatus(farms, 'approvalStatus'),
-  }), [users, farms])
-
-  async function loadAll() {
+  async function loadOverview() {
     try {
       setLoading(true)
       setError('')
-      const [userData, farmData, productData, categoryData] = await Promise.all([
+      const [usersData, farmsData, retailersData, packagesData, productsData] = await Promise.all([
         getUsers(),
         getFarms(),
+        getRetailers(),
+        getPackages(),
         getProducts(),
-        getCategories(),
       ])
-      const normalizedUsers = Array.isArray(userData) ? userData : []
-      const normalizedFarms = Array.isArray(farmData) ? farmData : []
-      const normalizedProducts = Array.isArray(productData) ? productData : []
-      const normalizedCategories = Array.isArray(categoryData) ? categoryData : []
-      setUsers(normalizedUsers)
-      setFarms(normalizedFarms)
-      setProducts(normalizedProducts)
-      setCategories(normalizedCategories)
-      setSelectedUserId((prev) => prev || normalizedUsers[0]?.userId || null)
-      setSelectedFarmId((prev) => prev || normalizedFarms[0]?.farmId || null)
-      setSelectedProductId((prev) => prev || normalizedProducts[0]?.productId || null)
-      setSelectedCategoryId((prev) => prev || normalizedCategories[0]?.categoryId || null)
+
+      setUsers(normalizeList(usersData))
+      setFarms(normalizeList(farmsData))
+      setRetailers(normalizeList(retailersData))
+      setPackages(normalizeList(packagesData))
+      setProducts(normalizeList(productsData))
     } catch (err) {
-      setError(getErrorMessage(err, 'Không tải được dữ liệu control center.'))
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    loadAll()
-  }, [])
-
-  useEffect(() => {
-    async function loadFarmDetail() {
-      if (!selectedFarmId) {
-        setFarmDetail(null)
-        return
-      }
-      try {
-        const detail = await getFarmById(selectedFarmId)
-        setFarmDetail(detail)
-        setFarmEdit({
-          farmId: detail.farmId,
-          farmName: detail.farmName || '',
-          farmType: detail.farmType || '',
-          businessLicenseNo: detail.businessLicenseNo || '',
-          address: detail.address || '',
-          province: detail.province || '',
-          totalArea: detail.totalArea || '',
-          contactPerson: detail.contactPerson || '',
-          description: detail.description || '',
-        })
-      } catch (err) {
-        setError(getErrorMessage(err, 'Không tải được chi tiết farm.'))
-      }
-    }
-
-    loadFarmDetail()
-  }, [selectedFarmId])
-
-  useEffect(() => {
-    if (selectedProduct) {
-      setProductForm({
-        productId: selectedProduct.productId,
-        productName: selectedProduct.productName || '',
-        productCode: selectedProduct.productCode || '',
-        description: selectedProduct.description || '',
-        price: selectedProduct.price || '',
-        imageUrl: selectedProduct.imageUrl || '',
-        sortOrder: selectedProduct.sortOrder ?? 0,
-        status: selectedProduct.status || 'ACTIVE',
-        categoryId: selectedProduct.categoryId || '',
-      })
-    } else {
-      setProductForm(productFormInitial)
-    }
-  }, [selectedProduct])
-
-  useEffect(() => {
-    if (selectedCategory) {
-      setCategoryForm({
-        categoryId: selectedCategory.categoryId,
-        categoryName: selectedCategory.categoryName || '',
-        slug: selectedCategory.slug || '',
-        imageUrl: selectedCategory.imageUrl || '',
-        icon: selectedCategory.icon || '',
-        sortOrder: selectedCategory.sortOrder ?? 0,
-        status: selectedCategory.status || 'ACTIVE',
-      })
-    } else {
-      setCategoryForm(categoryFormInitial)
-    }
-  }, [selectedCategory])
-
-  function patchReviewDraft(farmId, key, value) {
-    setReviewDrafts((prev) => ({
-      ...prev,
-      [farmId]: {
-        ...prev[farmId],
-        [key]: value,
-      },
-    }))
-  }
-
-  async function handleCreateAdmin(event) {
-    event.preventDefault()
-    try {
-      setSaving(true)
-      setError('')
-      await createAdminAccount(adminForm)
-      setAdminForm(adminCreationInitial)
-      setSuccess('Đã tạo tài khoản quản trị mới bằng flow thật.')
-      await loadAll()
-    } catch (err) {
-      setError(getErrorMessage(err, 'Không tạo được tài khoản quản trị.'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function handleAssignRole() {
-    if (!selectedUser) return
-    try {
-      setSaving(true)
-      setError('')
-      await assignRole(selectedUser.userId, selectedRole)
-      const freshUser = await getUserById(selectedUser.userId)
-      setSuccess(`Đã gán role ${ROLE_LABELS[selectedRole] || selectedRole} cho ${selectedUser.fullName}.`)
-      setUsers((prev) => prev.map((user) => (user.userId === freshUser.userId ? freshUser : user)))
-    } catch (err) {
-      setError(getErrorMessage(err, 'Không gán được role.'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function handleRemoveRole(roleName) {
-    if (!selectedUser) return
-    try {
-      setSaving(true)
-      setError('')
-      await removeUserRole(selectedUser.userId, roleName)
-      const freshUser = await getUserById(selectedUser.userId)
-      setSuccess(`Đã gỡ role ${ROLE_LABELS[roleName] || roleName} khỏi ${selectedUser.fullName}.`)
-      setUsers((prev) => prev.map((user) => (user.userId === freshUser.userId ? freshUser : user)))
-    } catch (err) {
-      setError(getErrorMessage(err, 'Không gỡ được role.'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function handleStatusChange(nextStatus) {
-    if (!selectedUser) return
-    try {
-      setSaving(true)
-      setError('')
-      await changeUserStatus(selectedUser.userId, nextStatus)
-      const freshUser = await getUserById(selectedUser.userId)
-      setSuccess(`Đã chuyển trạng thái ${selectedUser.fullName} sang ${nextStatus}.`)
-      setUsers((prev) => prev.map((user) => (user.userId === freshUser.userId ? freshUser : user)))
-    } catch (err) {
-      setError(getErrorMessage(err, 'Không cập nhật được trạng thái user.'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function handleReviewFarm(farmId, status) {
-    try {
-      setSaving(true)
-      setError('')
-      const draft = reviewDrafts[farmId] || {}
-      await reviewFarm(farmId, status, draft.reviewComment || '')
-      setSuccess(`Đã ${status === 'APPROVED' ? 'duyệt' : 'từ chối'} hồ sơ nông trại.`)
-      await loadAll()
-      if (Number(selectedFarmId) === Number(farmId)) {
-        const detail = await getFarmById(farmId)
-        setFarmDetail(detail)
-      }
-    } catch (err) {
-      setError(getErrorMessage(err, 'Không xử lý được review farm.'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function handleSaveFarmDetail(event) {
-    event.preventDefault()
-    if (!farmEdit.farmId) return
-    try {
-      setSaving(true)
-      setError('')
-      await updateFarmDetailByAdmin(farmEdit.farmId, {
-        farmName: farmEdit.farmName,
-        farmType: farmEdit.farmType,
-        businessLicenseNo: farmEdit.businessLicenseNo,
-        address: farmEdit.address,
-        province: farmEdit.province,
-        totalArea: farmEdit.totalArea === '' ? null : Number(farmEdit.totalArea),
-        contactPerson: farmEdit.contactPerson,
-        description: farmEdit.description,
-      })
-      const detail = await getFarmById(farmEdit.farmId)
-      setFarmDetail(detail)
-      setSuccess('Đã cập nhật chi tiết farm từ admin control center.')
-      await loadAll()
-    } catch (err) {
-      setError(getErrorMessage(err, 'Không lưu được chi tiết farm.'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function handleSaveProduct(event) {
-    event.preventDefault()
-    try {
-      setSaving(true)
-      setError('')
-      const payload = {
-        productName: productForm.productName,
-        productCode: productForm.productCode,
-        description: productForm.description,
-        price: normalizePrice(productForm.price),
-        imageUrl: productForm.imageUrl,
-        sortOrder: Number(productForm.sortOrder) || 0,
-        status: productForm.status,
-        categoryId: productForm.categoryId ? Number(productForm.categoryId) : null,
-      }
-      if (productForm.productId) {
-        await updateProduct(productForm.productId, payload)
-        setSuccess('Đã cập nhật sản phẩm.')
-      } else {
-        await createProduct(payload)
-        setSuccess('Đã tạo sản phẩm mới.')
-      }
-      await loadAll()
-    } catch (err) {
-      setError(getErrorMessage(err, 'Không lưu được sản phẩm.'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function handleDeleteSelectedProduct() {
-    if (!productForm.productId) return
-    try {
-      setSaving(true)
-      setError('')
-      await deleteProduct(productForm.productId)
-      setSuccess('Đã xoá sản phẩm.')
-      setSelectedProductId(null)
-      setProductForm(productFormInitial)
-      await loadAll()
-    } catch (err) {
-      setError(getErrorMessage(err, 'Không xóa được sản phẩm.'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function handleSaveCategory(event) {
-    event.preventDefault()
-    try {
-      setSaving(true)
-      setError('')
-      const payload = {
-        categoryName: categoryForm.categoryName,
-        slug: categoryForm.slug,
-        imageUrl: categoryForm.imageUrl,
-        icon: categoryForm.icon,
-        sortOrder: Number(categoryForm.sortOrder) || 0,
-        status: categoryForm.status,
-      }
-      if (categoryForm.categoryId) {
-        await updateCategory(categoryForm.categoryId, payload)
-        setSuccess('Đã cập nhật chuyên mục.')
-      } else {
-        await createCategory(payload)
-        setSuccess('Đã tạo chuyên mục mới.')
-      }
-      await loadAll()
-    } catch (err) {
-      setError(getErrorMessage(err, 'Không lưu được chuyên mục.'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function handleDeleteSelectedCategory() {
-    if (!categoryForm.categoryId) return
-    try {
-      setSaving(true)
-      setError('')
-      await deleteCategory(categoryForm.categoryId)
-      setSuccess('Đã xoá chuyên mục.')
-      setSelectedCategoryId(null)
-      setCategoryForm(categoryFormInitial)
-      await loadAll()
-    } catch (err) {
-      setError(getErrorMessage(err, 'Không xóa được chuyên mục.'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
   return (
-    <section className="page-section admin-control-page">
-      <div className="section-heading">
+    <section className="page-section admin-page admin-control-page dashboard-command-page admin-live-command-page">
+      <div className="command-hero admin-live-hero">
         <div>
-          <p className="eyebrow">Admin governance core</p>
-          <h2>Admin control center</h2>
-          <p>Điều phối user lifecycle, hồ sơ farm, và product catalog trong một trung tâm quản trị nhất quán, ít mock và sát nghiệp vụ hơn.</p>
+          <div className="command-role-pill">
+            <span aria-hidden="true" />
+            BICAP ADMIN COMMAND CENTER
+          </div>
+          <h1>Welcome back, Admin!</h1>
+          <p>Live operating cockpit for users, farms, retailers, catalog, logistics and traceability governance.</p>
         </div>
-        <div className="section-actions">
-          <Button variant="secondary" onClick={loadAll} disabled={loading || saving}>Làm mới</Button>
-        </div>
+        <button className="command-primary-action admin-live-refresh" type="button" onClick={loadOverview} disabled={loading}>
+          <span>{loading ? 'Đang đồng bộ...' : 'Refresh live data'}</span>
+          <span className="material-symbols-outlined" aria-hidden="true">sync</span>
+        </button>
       </div>
 
       {error ? <div className="alert alert-error">{error}</div> : null}
-      {success ? <div className="alert alert-success">{success}</div> : null}
-      {loading ? <div className="glass-card">Đang tải dữ liệu governance...</div> : null}
 
-      <div className="status-grid">
-        <div className="glass-card admin-summary-card"><strong>{users.length}</strong><p>Tổng user</p><small>ACTIVE: {metrics.userStatuses.ACTIVE || 0}, INACTIVE: {metrics.userStatuses.INACTIVE || 0}, BLOCKED: {metrics.userStatuses.BLOCKED || 0}</small></div>
-        <div className="glass-card admin-summary-card"><strong>{pendingFarms.length}</strong><p>Farm chờ duyệt</p><small>APPROVED: {metrics.farmApprovals.APPROVED || 0}, REJECTED: {metrics.farmApprovals.REJECTED || 0}</small></div>
-        <div className="glass-card admin-summary-card"><strong>{products.length}</strong><p>Sản phẩm quản lý</p><small>{products.filter((item) => item.status === 'ACTIVE').length} đang public</small></div>
-        <div className="glass-card admin-summary-card"><strong>{categories.length}</strong><p>Chuyên mục</p><small>{categories.filter((item) => item.status === 'ACTIVE').length} đang hiển thị</small></div>
-      </div>
-
-      <div className="content-grid top-gap admin-control-grid">
-        <article className="glass-card admin-panel-card">
-          <div className="panel-header-row">
-            <div>
-              <p className="eyebrow">Admin accounts</p>
-              <h3>Tạo tài khoản quản trị</h3>
-            </div>
+      <div className="command-stats-grid admin-live-stats" aria-label="Admin live statistics">
+        <article className="command-stat-card tone-blue">
+          <div className="command-stat-topline">
+            <span className="command-stat-icon material-symbols-outlined" aria-hidden="true">group</span>
+            <span className="command-stat-badge">Accounts</span>
           </div>
-          <form className="form-grid" onSubmit={handleCreateAdmin}>
-            <input className="form-input" placeholder="Họ tên" value={adminForm.fullName} onChange={(e) => setAdminForm((prev) => ({ ...prev, fullName: e.target.value }))} />
-            <input className="form-input" placeholder="Email" value={adminForm.email} onChange={(e) => setAdminForm((prev) => ({ ...prev, email: e.target.value }))} />
-            <input className="form-input" placeholder="Số điện thoại" value={adminForm.phone} onChange={(e) => setAdminForm((prev) => ({ ...prev, phone: e.target.value }))} />
-            <input className="form-input" type="password" placeholder="Mật khẩu" value={adminForm.password} onChange={(e) => setAdminForm((prev) => ({ ...prev, password: e.target.value }))} />
-            <select className="form-input" value={adminForm.initialRole} onChange={(e) => setAdminForm((prev) => ({ ...prev, initialRole: e.target.value }))}>
-              <option value="ADMIN">ADMIN</option>
-              <option value="GUEST">GUEST</option>
-            </select>
-            <Button type="submit" disabled={saving}>{saving ? 'Đang tạo...' : 'Tạo admin/account quản trị'}</Button>
-          </form>
+          <p>Total Users</p>
+          <strong>{metrics.totalUsers}</strong>
         </article>
-
-        <article className="glass-card admin-panel-card">
-          <div className="panel-header-row">
-            <div>
-              <p className="eyebrow">User governance</p>
-              <h3>User lifecycle</h3>
-            </div>
+        <article className="command-stat-card tone-green">
+          <div className="command-stat-topline">
+            <span className="command-stat-icon material-symbols-outlined" aria-hidden="true">verified_user</span>
+            <span className="command-stat-badge">Active</span>
           </div>
-          <select className="form-input" value={selectedUserId || ''} onChange={(e) => setSelectedUserId(e.target.value)}>
-            {users.map((user) => (
-              <option key={user.userId} value={user.userId}>{user.fullName} - {user.email}</option>
-            ))}
-          </select>
-          {selectedUser ? (
-            <div className="top-gap form-grid">
-              <div className="business-card business-card-stack">
-                <strong>{selectedUser.fullName}</strong>
-                <p>{selectedUser.email}</p>
-                <p>Trạng thái hiện tại: {selectedUser.status}</p>
-                <p>Roles: {selectedUser.roles?.join(', ') || 'GUEST'}</p>
-              </div>
-
-              <div className="inline-actions inline-actions-stretch">
-                <select className="form-input" value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)}>
-                  {Object.values(ROLES).map((role) => <option key={role} value={role}>{ROLE_LABELS[role] || role}</option>)}
-                </select>
-                <Button onClick={handleAssignRole} disabled={saving}>Gán role</Button>
-              </div>
-
-              <div className="role-chip-wrap">
-                {userStatusFlow.filter((status) => status !== selectedUser.status).map((status) => (
-                  <button key={status} type="button" className="role-chip clickable-chip" onClick={() => handleStatusChange(status)} disabled={saving}>{status}</button>
-                ))}
-              </div>
-
-              <div className="role-chip-wrap">
-                {(selectedUser.roles || []).map((role) => (
-                  <button key={role} type="button" className="role-chip clickable-chip" onClick={() => handleRemoveRole(role)} disabled={saving}>
-                    Gỡ {ROLE_LABELS[role] || role}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : <p className="top-gap">Chưa có user nào.</p>}
+          <p>Operational Accounts</p>
+          <strong>{metrics.activeUsers}</strong>
+        </article>
+        <article className="command-stat-card tone-amber">
+          <div className="command-stat-topline">
+            <span className="command-stat-icon material-symbols-outlined" aria-hidden="true">pending_actions</span>
+            <span className="command-stat-badge">Queue</span>
+          </div>
+          <p>Farm Review Queue</p>
+          <strong>{metrics.pendingFarms}</strong>
+        </article>
+        <article className="command-stat-card tone-red">
+          <div className="command-stat-topline">
+            <span className="command-stat-icon material-symbols-outlined" aria-hidden="true">inventory_2</span>
+            <span className="command-stat-badge">Catalog</span>
+          </div>
+          <p>Products Governed</p>
+          <strong>{metrics.totalProducts}</strong>
         </article>
       </div>
 
-      <div className="content-grid top-gap admin-control-grid admin-control-grid-wide">
-        <article className="glass-card admin-panel-card">
-          <div className="panel-header-row">
-            <div>
-              <p className="eyebrow">Farm approval board</p>
-              <h3>Review queue</h3>
-            </div>
-          </div>
-          <div className="form-grid">
-            {pendingFarms.length === 0 ? <p>Không còn farm chờ duyệt.</p> : null}
-            {pendingFarms.map((farm) => {
-              const draft = reviewDrafts[farm.farmId] || {}
-              return (
-                <div key={farm.farmId} className="business-card business-card-stack admin-queue-card">
-                  <div className="detail-topline">
-                    <strong>{farm.farmName}</strong>
-                    <span className={`status-pill status-${(farm.approvalStatus || '').toLowerCase()}`}>{farm.approvalStatus}</span>
-                  </div>
-                  <p>Mã farm: {farm.farmCode}</p>
-                  <p>Owner: {farm.ownerName || 'Chưa rõ'}</p>
-                  <p>Giấy phép: {farm.businessLicenseNo || 'Chưa có'}</p>
-                  <textarea
-                    className="form-input"
-                    rows={3}
-                    placeholder="Ghi chú review, bắt buộc khi từ chối"
-                    value={draft.reviewComment || ''}
-                    onChange={(e) => patchReviewDraft(farm.farmId, 'reviewComment', e.target.value)}
-                  />
-                  <div className="action-row-wrap">
-                    <Button variant="secondary" onClick={() => handleReviewFarm(farm.farmId, 'APPROVED')} disabled={saving}>Duyệt</Button>
-                    <Button onClick={() => handleReviewFarm(farm.farmId, 'REJECTED')} disabled={saving}>Từ chối</Button>
-                    <Button variant="secondary" onClick={() => setSelectedFarmId(farm.farmId)}>Mở chi tiết</Button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </article>
-
-        <article className="glass-card admin-panel-card admin-detail-drawer">
-          <div className="panel-header-row">
-            <div>
-              <p className="eyebrow">Farm detail drawer</p>
-              <h3>Lịch sử review và chỉnh hồ sơ</h3>
-            </div>
-          </div>
-          <select className="form-input" value={selectedFarmId || ''} onChange={(e) => setSelectedFarmId(Number(e.target.value))}>
-            <option value="">Chọn farm để quản lý chi tiết</option>
-            {farms.map((farm) => (
-              <option key={farm.farmId} value={farm.farmId}>{farm.farmName} - {farm.approvalStatus}</option>
-            ))}
-          </select>
-          {farmDetail ? (
-            <>
-              <div className="farm-review-history top-gap">
-                <div className="business-card business-card-stack detail-card subtle-card">
-                  <div className="detail-topline">
-                    <strong>{farmDetail.farmName}</strong>
-                    <span className={`status-pill status-${(farmDetail.approvalStatus || '').toLowerCase()}`}>{farmDetail.approvalStatus}</span>
-                  </div>
-                  <p>Reviewer: {farmDetail.reviewedByFullName || 'Chưa review'}</p>
-                  <p>Reviewed at: {formatDate(farmDetail.reviewedAt)}</p>
-                  <p>Review note: {farmDetail.reviewComment || 'Chưa có ghi chú'}</p>
-                  <p>Certification: {farmDetail.certificationStatus || 'PENDING'}</p>
-                </div>
-              </div>
-              <form className="form-grid top-gap" onSubmit={handleSaveFarmDetail}>
-                <input className="form-input" placeholder="Tên farm" value={farmEdit.farmName} onChange={(e) => setFarmEdit((prev) => ({ ...prev, farmName: e.target.value }))} />
-                <input className="form-input" placeholder="Loại farm" value={farmEdit.farmType} onChange={(e) => setFarmEdit((prev) => ({ ...prev, farmType: e.target.value }))} />
-                <input className="form-input" placeholder="Business license" value={farmEdit.businessLicenseNo} onChange={(e) => setFarmEdit((prev) => ({ ...prev, businessLicenseNo: e.target.value }))} />
-                <input className="form-input" placeholder="Địa chỉ" value={farmEdit.address} onChange={(e) => setFarmEdit((prev) => ({ ...prev, address: e.target.value }))} />
-                <input className="form-input" placeholder="Tỉnh/Thành" value={farmEdit.province} onChange={(e) => setFarmEdit((prev) => ({ ...prev, province: e.target.value }))} />
-                <input className="form-input" placeholder="Tổng diện tích" value={farmEdit.totalArea} onChange={(e) => setFarmEdit((prev) => ({ ...prev, totalArea: e.target.value }))} />
-                <input className="form-input" placeholder="Người liên hệ" value={farmEdit.contactPerson} onChange={(e) => setFarmEdit((prev) => ({ ...prev, contactPerson: e.target.value }))} />
-                <textarea className="form-input" rows={4} placeholder="Mô tả farm" value={farmEdit.description} onChange={(e) => setFarmEdit((prev) => ({ ...prev, description: e.target.value }))} />
-                <Button type="submit" disabled={saving}>{saving ? 'Đang lưu...' : 'Lưu chi tiết farm'}</Button>
-              </form>
-            </>
-          ) : <p className="top-gap">Chọn một farm để mở detail drawer.</p>}
-        </article>
-      </div>
-
-      <div className="glass-card top-gap admin-panel-card">
-        <div className="panel-header-row">
-          <div>
-            <p className="eyebrow">Marketplace hardening</p>
-            <h3>Cross-flow governance snapshot</h3>
-            <p>Siết consistency giữa listing, approval và traceability để admin nhìn ra các điểm hở giao dịch nhanh hơn.</p>
-          </div>
-        </div>
-        <div className="transaction-kpi-grid">
-          <div className="transaction-kpi-card">
-            <strong>{products.filter((item) => item.status === 'ACTIVE').length}</strong>
-            <p>Product ACTIVE</p>
-          </div>
-          <div className="transaction-kpi-card">
-            <strong>{farms.filter((item) => item.approvalStatus === 'APPROVED').length}</strong>
-            <p>Farm APPROVED</p>
-          </div>
-          <div className="transaction-kpi-card">
-            <strong>{farms.filter((item) => item.approvalStatus !== 'APPROVED').length}</strong>
-            <p>Farm chưa APPROVED</p>
-          </div>
-          <div className="transaction-kpi-card">
-            <strong>{categories.filter((item) => item.status === 'ACTIVE').length}</strong>
-            <p>Category ACTIVE</p>
-          </div>
-        </div>
-        <div className="transaction-audit-grid top-gap">
-          <div className="transaction-issue-list">
-            <div className="transaction-issue-card">
-              <strong>Farm governance risk</strong>
-              <p>{farms.filter((farm) => farm.approvalStatus === 'APPROVED' && !farm.certificationStatus).length} farm approved nhưng thiếu certification status rõ ràng.</p>
-            </div>
-            <div className="transaction-issue-card">
-              <strong>Review visibility</strong>
-              <p>{farms.filter((farm) => farm.approvalStatus === 'REJECTED' && !farm.reviewComment).length} farm bị reject nhưng chưa thấy note ở snapshot list.</p>
-            </div>
-          </div>
-          <div className="transaction-issue-list">
-            <div className="transaction-issue-card">
-              <strong>Catalog readiness</strong>
-              <p>{products.filter((product) => !product.categoryId).length} sản phẩm chưa gắn category, dễ gây lệch discovery ở marketplace.</p>
-            </div>
-            <div className="transaction-issue-card">
-              <strong>Visibility consistency</strong>
-              <p>{products.filter((product) => product.status !== 'ACTIVE').length} sản phẩm đang không ACTIVE, cần kiểm tra xem đã bị loại khỏi flow listing/buying đúng chưa.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="content-grid top-gap admin-control-grid admin-control-grid-wide">
-        <article className="glass-card admin-panel-card admin-catalog-panel">
-          <div className="panel-header-row">
-            <div>
-              <p className="eyebrow">Product governance</p>
-              <h3>Quản lý sản phẩm sâu hơn</h3>
-            </div>
-            <Button variant="secondary" onClick={() => { setSelectedProductId(null); setProductForm(productFormInitial) }}>Tạo mới</Button>
-          </div>
-          <div className="catalog-editor-grid">
-            <div className="catalog-list">
-              {products.map((product) => (
-                <button key={product.productId} type="button" className={`catalog-list-item ${Number(selectedProductId) === Number(product.productId) ? 'is-active' : ''}`} onClick={() => setSelectedProductId(product.productId)}>
-                  <strong>{product.productName}</strong>
-                  <span>{product.productCode}</span>
-                  <small>{product.categoryName || 'Chưa phân loại'} • {product.status}</small>
-                </button>
+      <div className="command-content-grid admin-live-grid">
+        <aside className="command-side-stack" aria-label="Admin quick modules">
+          <article className="command-panel admin-live-panel">
+            <div className="command-panel-kicker">Mission shortcuts</div>
+            <div className="command-shortcuts">
+              {quickModules.slice(0, 5).map((module) => (
+                <Link key={module.to} className="command-shortcut" to={module.to}>
+                  <span className="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
+                  <strong>{module.title}</strong>
+                  <i className="material-symbols-outlined" aria-hidden="true">chevron_right</i>
+                </Link>
               ))}
             </div>
-            <form className="form-grid" onSubmit={handleSaveProduct}>
-              <input className="form-input" placeholder="Tên sản phẩm" value={productForm.productName} onChange={(e) => setProductForm((prev) => ({ ...prev, productName: e.target.value }))} />
-              <input className="form-input" placeholder="Mã sản phẩm" value={productForm.productCode} onChange={(e) => setProductForm((prev) => ({ ...prev, productCode: e.target.value }))} />
-              <textarea className="form-input" rows={4} placeholder="Mô tả" value={productForm.description} onChange={(e) => setProductForm((prev) => ({ ...prev, description: e.target.value }))} />
-              <div className="grid-two">
-                <input className="form-input" type="number" placeholder="Giá" value={productForm.price} onChange={(e) => setProductForm((prev) => ({ ...prev, price: e.target.value }))} />
-                <input className="form-input" type="number" placeholder="Sort order" value={productForm.sortOrder} onChange={(e) => setProductForm((prev) => ({ ...prev, sortOrder: e.target.value }))} />
-              </div>
-              <div className="grid-two">
-                <select className="form-input" value={productForm.status} onChange={(e) => setProductForm((prev) => ({ ...prev, status: e.target.value }))}>
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="INACTIVE">INACTIVE</option>
-                </select>
-                <select className="form-input" value={productForm.categoryId} onChange={(e) => setProductForm((prev) => ({ ...prev, categoryId: e.target.value }))}>
-                  <option value="">Chọn category</option>
-                  {categories.map((category) => <option key={category.categoryId} value={category.categoryId}>{category.categoryName}</option>)}
-                </select>
-              </div>
-              <input className="form-input" placeholder="Image URL" value={productForm.imageUrl} onChange={(e) => setProductForm((prev) => ({ ...prev, imageUrl: e.target.value }))} />
-              <div className="action-row-wrap">
-                <Button type="submit" disabled={saving}>{saving ? 'Đang lưu...' : productForm.productId ? 'Lưu sản phẩm' : 'Tạo sản phẩm'}</Button>
-                <Button type="button" variant="secondary" onClick={handleDeleteSelectedProduct} disabled={saving || !productForm.productId}>Xoá</Button>
-              </div>
-            </form>
-          </div>
-        </article>
+          </article>
 
-        <article className="glass-card admin-panel-card admin-catalog-panel">
-          <div className="panel-header-row">
-            <div>
-              <p className="eyebrow">Category governance</p>
-              <h3>Quản lý category sâu hơn</h3>
+          <article className="command-health-card admin-live-health">
+            <div className="health-content">
+              <div className="health-badge">
+                <span className="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span>
+                RBAC + Governance Online
+              </div>
+              <h2>BICAP Network Health</h2>
+              <p>{metrics.totalFarms + metrics.totalRetailers} verified partners, {metrics.totalPackages} service packages and protected admin modules are active.</p>
+              <div className="health-meter" aria-label="Admin system health">
+                <span />
+              </div>
             </div>
-            <Button variant="secondary" onClick={() => { setSelectedCategoryId(null); setCategoryForm(categoryFormInitial) }}>Tạo mới</Button>
+            <span className="health-watermark material-symbols-outlined" aria-hidden="true">hub</span>
+          </article>
+        </aside>
+
+        <article className="command-activity-card admin-live-activity">
+          <div className="command-activity-head">
+            <h2>Admin Operations Feed</h2>
+            <Link to="/dashboard/admin/analytics">Open analytics</Link>
           </div>
-          <div className="catalog-editor-grid">
-            <div className="catalog-list">
-              {categories.map((category) => (
-                <button key={category.categoryId} type="button" className={`catalog-list-item ${Number(selectedCategoryId) === Number(category.categoryId) ? 'is-active' : ''}`} onClick={() => setSelectedCategoryId(category.categoryId)}>
-                  <strong>{category.icon ? `${category.icon} ` : ''}{category.categoryName}</strong>
-                  <span>{category.slug || 'Không có slug'}</span>
-                  <small>{category.status}</small>
-                </button>
-              ))}
+
+          <div className="command-timeline">
+            <div className="command-event">
+              <div className="command-event-rail" aria-hidden="true"><span className="tone-green" /><i /></div>
+              <div className="command-event-body">
+                <div className="command-event-title"><h3>Account governance synced</h3><time>Live</time></div>
+                <p>{metrics.activeUsers} active users and {metrics.inactiveUsers} inactive/locked accounts detected across the platform.</p>
+                <div className="command-event-chips"><span>Users: {metrics.totalUsers}</span><span>RBAC Ready</span></div>
+              </div>
             </div>
-            <form className="form-grid" onSubmit={handleSaveCategory}>
-              <input className="form-input" placeholder="Tên chuyên mục" value={categoryForm.categoryName} onChange={(e) => setCategoryForm((prev) => ({ ...prev, categoryName: e.target.value }))} />
-              <input className="form-input" placeholder="Slug" value={categoryForm.slug} onChange={(e) => setCategoryForm((prev) => ({ ...prev, slug: e.target.value }))} />
-              <div className="grid-two">
-                <input className="form-input" placeholder="Icon/Emoji" value={categoryForm.icon} onChange={(e) => setCategoryForm((prev) => ({ ...prev, icon: e.target.value }))} />
-                <input className="form-input" type="number" placeholder="Sort order" value={categoryForm.sortOrder} onChange={(e) => setCategoryForm((prev) => ({ ...prev, sortOrder: e.target.value }))} />
+            <div className="command-event">
+              <div className="command-event-rail" aria-hidden="true"><span className="tone-blue" /><i /></div>
+              <div className="command-event-body">
+                <div className="command-event-title"><h3>Farm approval queue</h3><time>Now</time></div>
+                <p>{metrics.pendingFarms} farm hồ sơ cần kiểm tra; {metrics.approvedFarms} farm đã đủ điều kiện tham gia chuỗi.</p>
+                <div className="command-event-chips"><span>Approved: {metrics.approvedFarms}</span><span>Pending: {metrics.pendingFarms}</span></div>
               </div>
-              <select className="form-input" value={categoryForm.status} onChange={(e) => setCategoryForm((prev) => ({ ...prev, status: e.target.value }))}>
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="INACTIVE">INACTIVE</option>
-              </select>
-              <input className="form-input" placeholder="Image URL" value={categoryForm.imageUrl} onChange={(e) => setCategoryForm((prev) => ({ ...prev, imageUrl: e.target.value }))} />
-              <div className="action-row-wrap">
-                <Button type="submit" disabled={saving}>{saving ? 'Đang lưu...' : categoryForm.categoryId ? 'Lưu chuyên mục' : 'Tạo chuyên mục'}</Button>
-                <Button type="button" variant="secondary" onClick={handleDeleteSelectedCategory} disabled={saving || !categoryForm.categoryId}>Xoá</Button>
+            </div>
+            <div className="command-event">
+              <div className="command-event-rail" aria-hidden="true"><span /><i /></div>
+              <div className="command-event-body">
+                <div className="command-event-title"><h3>Catalog & partner surface</h3><time>Stable</time></div>
+                <p>{metrics.totalProducts} products, {metrics.totalRetailers} retailers and {metrics.totalPackages} service packages are visible to admin governance.</p>
+                <div className="command-event-chips"><span>Products: {metrics.totalProducts}</span><span>Retailers: {metrics.totalRetailers}</span></div>
               </div>
-            </form>
+            </div>
+          </div>
+
+          <div className="admin-live-module-grid">
+            {quickModules.slice(5).map((module) => (
+              <Link key={module.to} className="feature-card glass-card admin-control-action" to={module.to}>
+                <span className="feature-badge">{module.badge}</span>
+                <h3>{module.title}</h3>
+                <p>{module.description}</p>
+              </Link>
+            ))}
           </div>
         </article>
       </div>
+
+      <RoleCoveragePanel
+        eyebrow="Admin Web coverage"
+        title="Đủ chức năng Admin theo đề BICAP"
+        description="Admin có control center riêng cho user, farm, retailer, package, logistics, product/batch/QR, blockchain, content và analytics."
+        items={adminCoverageItems}
+      />
     </section>
   )
 }

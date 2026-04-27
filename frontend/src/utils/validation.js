@@ -16,6 +16,7 @@ export function validateRegisterForm(form) {
   }
   if (form.password !== form.confirmPassword) errors.confirmPassword = 'Passwords do not match.'
   if (form.phoneNumber && !phoneRegex.test(form.phoneNumber.trim())) errors.phoneNumber = 'Vietnamese phone number is invalid.'
+  if (!form.role) errors.role = 'Account type is required.'
 
   return errors
 }

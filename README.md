@@ -1,127 +1,113 @@
-# LỘ TRÌNH THỰC HIỆN DỰ ÁN BICAP
+# BICAP Workspace
 
-Tài liệu này mô tả lộ trình triển khai dự án **“Tích hợp Blockchain trong sản xuất nông sản sạch (BICAP)”** trong khuôn khổ học phần phát triển ứng dụng Web.
+Repository gốc của dự án **BICAP**.
 
-Mục tiêu của lộ trình là tổ chức công việc theo từng giai đoạn (**phase**) nhằm giúp nhóm phát triển xây dựng hệ thống một cách có kế hoạch, rõ ràng về nhiệm vụ, đồng thời đảm bảo tất cả thành viên đều tham gia đóng góp trong mỗi giai đoạn.
+## Cấu trúc
 
----
+```txt
+backend/      Spring Boot modular-monolith backend
+frontend/     React/Vite role-based frontend
+docs/         Architecture, business rules, API docs, module specs, operations, testing
+scripts/      Audit, backup, database, smoke, and load-test helper scripts
+deploy/       Production/deployment assets and observability config
+blockchain/   Smart-contract sandbox / local blockchain demo only
+_archive/     Recoverable archived reference/backup material
+.github/      CI and pull-request automation
+```
 
-## Phase 1 – Phân tích yêu cầu và thiết kế hệ thống
+## Ghi chú
 
-### Mục tiêu
-- Phân tích yêu cầu nghiệp vụ dựa trên đặc tả của dự án.
-- Xác định các tác nhân (**Actors**) và các chức năng chính của hệ thống.
-- Thiết kế kiến trúc tổng thể cho hệ thống.
+- Root chỉ giữ source folders chính, file cấu hình, và entrypoint docs.
+- Kiến trúc tổng quan: `docs/architecture/PROJECT_CONTEXT.md`.
+- Module map: `docs/architecture/MODULES.md`.
+- Business rules: `docs/business/BUSINESS_RULES.md`.
+- Module-level docs: `docs/modules/`.
+- Root Maven hiện quản lý `backend/` như module chính.
 
-### Công việc thực hiện
-- Phân tích nghiệp vụ và xác định các vai trò:
-  - Admin
-  - Farm
-  - Retailer
-  - Shipping Manager
-  - Ship Driver
-  - Guest
-- Xây dựng **Use Case Diagram** mô tả các chức năng của hệ thống.
-- Thiết kế kiến trúc hệ thống (**System Architecture**).
-- Thiết kế mô hình cơ sở dữ liệu (**ERD – Entity Relationship Diagram**).
-- Soạn thảo tài liệu mô tả dự án và cấu trúc hệ thống.
+## Reproducible local build
 
-### Kết quả đầu ra
-- Use Case Diagram
-- Architecture Diagram
-- Thiết kế cơ sở dữ liệu
-- Tài liệu phân tích yêu cầu hệ thống
+### Prerequisites
+- Java 21+
+- Node.js 20+
+- npm 10+
+- MySQL 8+ if you run backend outside Docker
+- Docker + Docker Compose if you want the one-command local stack
 
----
+### Environment variables
 
-## Phase 2 – Xây dựng hệ thống lõi (Core System)
+Backend local env: copy `.env.example` to `.env` and fill:
+- `VECHAIN_NETWORK`
+- `THOR_NODE_URL`
+- `VECHAIN_PRIVATE_KEY`
 
-### Mục tiêu
-- Xây dựng nền tảng hệ thống và các chức năng quản lý người dùng.
+Profile strategy:
+- `local` for developer machine defaults
+- `test` for CI and isolated verification
+- `staging` for pre-prod with env-only config
+- `prod` for live deployment with env-only config
 
-### Công việc thực hiện
-- Khởi tạo dự án Backend và Frontend.
-- Thiết kế và triển khai hệ thống đăng ký, đăng nhập.
-- Xây dựng cơ chế phân quyền người dùng (**Role-based Access Control**).
-- Phát triển chức năng quản lý hồ sơ người dùng.
-- Kết nối Backend với cơ sở dữ liệu.
+Production env: copy `.env.prod.example` to `.env.prod` and fill:
+- `APP_JWT_SECRET` (32+ chars)
+- `MYSQL_ROOT_PASSWORD`
+- `APP_CORS_ALLOWED_ORIGINS`
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
+- `SPRING_DATA_REDIS_HOST`
+- `APP_MEDIA_UPLOAD_DIR`
+- `SPRING_MAIL_HOST`
+- `SPRING_MAIL_USERNAME`
+- `SPRING_MAIL_PASSWORD`
 
-### Kết quả đầu ra
-- Hệ thống đăng ký / đăng nhập hoạt động
-- Cơ chế phân quyền người dùng
-- API quản lý người dùng
+### Startup order
 
----
+#### Option A, Docker (recommended for first run)
+```bash
+docker compose up --build
+```
+- Frontend: http://localhost:5173
+- Backend: http://localhost:8080
 
-## Phase 3 – Phát triển chức năng quản lý nông trại (Farm Management)
+#### Option B, manual clone-from-scratch
+1) Backend
+```bash
+cd backend
+./mvnw test
+```
 
-### Mục tiêu
-- Xây dựng các chức năng cho phép nông trại quản lý quá trình sản xuất nông sản.
+2) Frontend
+```bash
+cd frontend
+npm ci
+npm run build
+```
 
-### Công việc thực hiện
-- Xây dựng chức năng tạo mùa vụ (**Farming Season**).
-- Cập nhật các bước trong quy trình sản xuất.
-- Lưu trữ thông tin quy trình vào hệ thống và blockchain.
-- Phát triển chức năng xuất lô sản phẩm.
-- Tạo mã QR để truy xuất nguồn gốc sản phẩm.
+### Seed data
+- Seed data is created by Flyway migrations, especially:
+  - `backend/src/main/resources/db/migration/V2__seed_phase2_core_data.sql`
+  - `backend/src/main/resources/db/migration/V22__cleanup_demo_accounts_and_add_guest_seed.sql`
+  - `backend/src/main/resources/db/migration/V24__synchronize_demo_passwords.sql`
+- These migrations create the demo roles, users, farm, retailer, driver, vehicle, package, subscription, and guest account.
 
-### Kết quả đầu ra
-- Module quản lý mùa vụ
-- Chức năng cập nhật quy trình sản xuất
-- Hệ thống tạo mã QR truy xuất nguồn gốc
+### Demo accounts
+Password for all seeded demo accounts: set via seed migration or `.env.local` for local-only demo runs
 
----
+- `admin@bicap.com` , ADMIN
+- `farm@bicap.com` , FARM
+- `retailer@bicap.com` , RETAILER
+- `manager@bicap.com` , SHIPPING_MANAGER
+- `driver@bicap.com` , DRIVER
+- `guest@bicap.com` , GUEST
 
-## Phase 4 – Phát triển hệ thống giao dịch giữa Farm và Retailer
+If you rotate or replace the seed set, update this README alongside the migration scripts so reviewers can log in without rescue.
 
-### Mục tiêu
-- Xây dựng chức năng kết nối giữa nông trại và nhà bán lẻ.
+### CI
+- GitHub Actions workflow: `.github/workflows/ci.yml`
+- PR gate checklist: `.github/PR_CHECKLIST.md`
+- Checks: backend wrapper/version/test, frontend install/lint/build, migration presence, basic secret scan, README seed/demo alignment
+- Required merge rule: all CI checks green before merge
 
-### Công việc thực hiện
-- Phát triển chức năng đăng tải sản phẩm lên sàn giao dịch.
-- Xây dựng chức năng tìm kiếm và xem thông tin sản phẩm.
-- Tạo yêu cầu đặt hàng từ phía Retailer.
-- Quản lý trạng thái đơn hàng.
-- Xây dựng lịch sử giao dịch.
-
-### Kết quả đầu ra
-- Module quản lý sản phẩm
-- Module đặt hàng
-- Giao diện tìm kiếm và xem sản phẩm
-
----
-
-## Phase 5 – Phát triển hệ thống vận chuyển (Shipping System)
-
-### Mục tiêu
-- Xây dựng hệ thống quản lý vận chuyển sản phẩm từ nông trại đến nhà bán lẻ.
-
-### Công việc thực hiện
-- Phát triển chức năng tạo và quản lý đơn vận chuyển.
-- Quản lý phương tiện vận chuyển và tài xế.
-- Cho phép tài xế cập nhật trạng thái giao hàng.
-- Theo dõi tiến trình vận chuyển theo thời gian thực.
-- Gửi thông báo đến các bên liên quan.
-
-### Kết quả đầu ra
-- Module quản lý vận chuyển
-- Hệ thống theo dõi trạng thái giao hàng
-- Thông báo hệ thống
-
----
-
-## Phase 6 – Tích hợp Blockchain, kiểm thử và triển khai hệ thống
-
-### Mục tiêu
-- Hoàn thiện hệ thống, tích hợp blockchain và triển khai sản phẩm.
-
-### Công việc thực hiện
-- Tích hợp blockchain để lưu trữ dữ liệu truy xuất nguồn gốc.
-- Kiểm thử hệ thống (**Unit Test, Integration Test**).
-- Sửa lỗi và tối ưu hệ thống.
-- Đóng gói ứng dụng bằng Docker.
-- Triển khai hệ thống trên nền tảng Cloud.
-
-### Kết quả đầu ra
-- Hệ thống hoàn chỉnh có khả năng truy xuất nguồn gốc bằng blockchain
-- Bản demo hệ thống
+### Observability
+- http://localhost:8080/actuator/health
+- http://localhost:8080/actuator/metrics
+- http://localhost:8080/actuator/prometheus

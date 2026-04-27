@@ -31,6 +31,7 @@ public class SeasonService {
 
     private static final Set<String> ALLOWED_STATUSES = Set.of("PLANNED", "IN_PROGRESS", "HARVESTED", "COMPLETED");
     private static final Set<String> MUTABLE_STATUSES = Set.of("PLANNED", "IN_PROGRESS", "HARVESTED");
+    private static final Set<String> MUTABLE_HEADER_STATUSES = Set.of("PLANNED");
 
     private final FarmingSeasonRepository farmingSeasonRepository;
     private final FarmingProcessRepository farmingProcessRepository;
@@ -168,6 +169,7 @@ public class SeasonService {
                 .orElseThrow(() -> new BusinessException("Mùa vụ không tồn tại"));
         checkPermission(season.getFarm(), currentUserId);
         ensureSeasonMutable(season);
+        ensureSeasonHeaderMutable(season);
 
         String nextSeasonCode = request.getSeasonCode() != null
                 ? normalizeSeasonCode(request.getSeasonCode())
@@ -331,6 +333,13 @@ public class SeasonService {
         String status = normalizeStatus(season.getSeasonStatus());
         if (!MUTABLE_STATUSES.contains(status)) {
             throw new BusinessException("Mùa vụ ở trạng thái " + status + " không thể cập nhật nữa.");
+        }
+    }
+
+    private void ensureSeasonHeaderMutable(FarmingSeason season) {
+        String status = normalizeStatus(season.getSeasonStatus());
+        if (!MUTABLE_HEADER_STATUSES.contains(status)) {
+            throw new BusinessException("Header mùa vụ đã được khóa sau khi khởi tạo. Chỉ được cập nhật status/process. Nếu cần chỉnh header, hãy tạo mùa vụ mới.");
         }
     }
 

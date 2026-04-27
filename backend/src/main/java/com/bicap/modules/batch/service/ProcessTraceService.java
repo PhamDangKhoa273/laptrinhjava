@@ -1,6 +1,7 @@
 package com.bicap.modules.batch.service;
 
 import com.bicap.modules.batch.dto.ProcessTraceItemDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -9,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
+@Slf4j
 public class ProcessTraceService {
 
     private final JdbcTemplate jdbcTemplate;
@@ -37,8 +39,8 @@ public class ProcessTraceService {
                 if (!rows.isEmpty()) {
                     return rows;
                 }
-            } catch (Exception ignored) {
-                // TV2 schema cÃ³ thá»ƒ chÆ°a merge vÃ o repo nÃ y.
+            } catch (Exception ex) {
+                log.debug("Không thể đọc process trace bằng candidate query cho seasonId={}", seasonId, ex);
             }
         }
 

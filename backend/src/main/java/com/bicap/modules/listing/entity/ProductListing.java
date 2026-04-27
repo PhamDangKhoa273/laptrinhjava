@@ -17,6 +17,9 @@ public class ProductListing {
     @Column(name = "listing_id")
     private Long listingId;
 
+    @Version
+    private Long version;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_id", nullable = false)
     private ProductBatch batch;
@@ -32,6 +35,9 @@ public class ProductListing {
 
     @Column(name = "quantity_available", nullable = false, precision = 15, scale = 2)
     private BigDecimal quantityAvailable;
+
+    @Column(name = "quantity_reserved", nullable = false, precision = 15, scale = 2)
+    private BigDecimal quantityReserved = BigDecimal.ZERO;
 
     @Column(length = 50)
     private String unit;
@@ -52,28 +58,14 @@ public class ProductListing {
     private LocalDateTime updatedAt;
 
     @PrePersist
-    public void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        if (this.createdAt == null) this.createdAt = now;
-        this.updatedAt = now;
-
-        if (this.status == null || this.status.isBlank()) this.status = "DRAFT";
-        if (this.approvalStatus == null || this.approvalStatus.isBlank()) this.approvalStatus = "DRAFT";
-
-        if (this.status == null || this.status.isBlank()) this.status = ListingStatus.DRAFT.name();
-        if (this.approvalStatus == null || this.approvalStatus.isBlank()) this.approvalStatus = ApprovalStatus.DRAFT.name();
-
-        if (this.unit == null || this.unit.isBlank()) this.unit = "kg";
-    }
-
+    public void onCreate() { LocalDateTime now = LocalDateTime.now(); if (this.createdAt == null) this.createdAt = now; this.updatedAt = now; if (this.status == null || this.status.isBlank()) this.status = ListingStatus.DRAFT.name(); if (this.approvalStatus == null || this.approvalStatus.isBlank()) this.approvalStatus = ApprovalStatus.DRAFT.name(); if (this.unit == null || this.unit.isBlank()) this.unit = "kg"; }
     @PreUpdate
-    public void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    public void onUpdate() { this.updatedAt = LocalDateTime.now(); }
 
-    // Getters and Setters
     public Long getListingId() { return listingId; }
     public void setListingId(Long id) { this.listingId = id; }
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
     public ProductBatch getBatch() { return batch; }
     public void setBatch(ProductBatch batch) { this.batch = batch; }
     public String getTitle() { return title; }
@@ -84,6 +76,8 @@ public class ProductListing {
     public void setPrice(BigDecimal price) { this.price = price; }
     public BigDecimal getQuantityAvailable() { return quantityAvailable; }
     public void setQuantityAvailable(BigDecimal quantityAvailable) { this.quantityAvailable = quantityAvailable; }
+    public BigDecimal getQuantityReserved() { return quantityReserved; }
+    public void setQuantityReserved(BigDecimal quantityReserved) { this.quantityReserved = quantityReserved; }
     public String getUnit() { return unit; }
     public void setUnit(String unit) { this.unit = unit; }
     public String getImageUrl() { return imageUrl; }

@@ -8,6 +8,7 @@ public class UpdateOrderStatusRequest {
     private String status;
     
     private String reason;
+    private String idempotencyKey;
 
     public UpdateOrderStatusRequest() {
     }
@@ -31,5 +32,13 @@ public class UpdateOrderStatusRequest {
 
     public void setReason(String reason) {
         this.reason = reason;
+    }
+
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public void setIdempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
     }
 }

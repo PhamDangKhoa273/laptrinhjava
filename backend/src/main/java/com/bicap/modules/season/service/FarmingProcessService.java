@@ -178,6 +178,7 @@ public class FarmingProcessService {
 
         process.setStepNo(stepNo);
         FarmingProcess updated = farmingProcessRepository.save(process);
+        recordProcessBlockchain(updated, "REORDER_STEP");
         return ProcessStepResponse.fromEntity(updated, updated.getRecordedBy() != null ? updated.getRecordedBy().getFullName() : null);
     }
 
@@ -195,8 +196,21 @@ public class FarmingProcessService {
                 throw new BusinessException("Bước quy trình không thuộc mùa vụ cần sắp xếp.");
             }
             process.setStepNo(currentStep);
-            farmingProcessRepository.save(process);
+            FarmingProcess saved = farmingProcessRepository.save(process);
+            recordProcessBlockchain(saved, "REORDER_ALL");
         }
+    }
+
+    private void recordProcessBlockchain(FarmingProcess process, String actionType) {
+        ProcessBlockchainPayload payload = ProcessBlockchainPayload.builder()
+                .processId(process.getId())
+                .seasonId(process.getSeason().getSeasonId())
+                .stepNo(process.getStepNo())
+                .stepName(process.getStepName())
+                .performedAt(process.getPerformedAt())
+                .description(process.getDescription())
+                .build();
+        blockchainService.saveProcess(payload, actionType);
     }
 
     private String normalizeStepName(String stepName) {

@@ -88,6 +88,23 @@ public class DriverService {
         return toResponse(driverRepository.save(driver));
     }
 
+
+    @Transactional
+    public void delete(Long id, Long currentUserId) {
+        Driver driver = getEntityById(id);
+
+        if (!driver.getManagerUser().getUserId().equals(currentUserId)) {
+            User actingUser = userRepository.findById(currentUserId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
+            boolean isAdmin = userService.hasRole(actingUser, com.bicap.core.enums.RoleName.ADMIN);
+            if (!isAdmin) {
+                throw new BusinessException("Bạn không có quyền xóa driver này");
+            }
+        }
+
+        driverRepository.delete(driver);
+    }
+
     @Transactional
     public DriverResponse deactivate(Long id, Long currentUserId) {
         Driver driver = getEntityById(id);

@@ -83,6 +83,24 @@ public class VehicleService {
         return toResponse(saved);
     }
 
+
+    @Transactional
+    public void delete(Long id, Long currentUserId) {
+        Vehicle vehicle = getEntityById(id);
+
+        if (!vehicle.getManagerUser().getUserId().equals(currentUserId)) {
+            User actingUser = userRepository.findById(currentUserId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
+            boolean isAdmin = userService.hasRole(actingUser, RoleName.ADMIN);
+            if (!isAdmin) {
+                throw new BusinessException("Bạn không có quyền xóa vehicle này");
+            }
+        }
+
+        vehicleRepository.delete(vehicle);
+        auditLogService.log(currentUserId, "DELETE_VEHICLE", "VEHICLE", id);
+    }
+
     @Transactional
     public VehicleResponse deactivate(Long id, Long currentUserId) {
         Vehicle vehicle = getEntityById(id);

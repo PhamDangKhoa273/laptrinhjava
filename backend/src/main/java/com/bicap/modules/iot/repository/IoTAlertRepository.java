@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface IoTAlertRepository extends JpaRepository<IoTAlert, Long> {
-    List<IoTAlert> findTop50ByBatchIdOrderByCreatedAtDesc(Long batchId);
+    List<IoTAlert> findTop50ByBatchBatchIdOrderByCreatedAtDesc(Long batchId);
+    List<IoTAlert> findByFarmOwnerUserUserIdOrderByCreatedAtDesc(Long userId);
 }

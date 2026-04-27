@@ -21,11 +21,19 @@ export async function getMyReports() {
 }
 
 export async function getPublishedContent() {
-  return unwrap(await api.get('/content'))
+  return unwrap(await api.get('/content', { skipAuth: true }))
 }
 
 export async function createContent(payload) {
   return unwrap(await api.post('/content', payload))
+}
+
+export async function getActiveAnnouncement() {
+  return unwrap(await api.get('/announcements/active', { skipAuth: true }))
+}
+
+export async function updateActiveAnnouncement(payload) {
+  return unwrap(await api.put('/announcements/active', payload))
 }
 
 export async function submitListingRegistration(listingId, payload) {
@@ -73,6 +81,10 @@ export async function payOrderDeposit(orderId, payload) {
   return unwrap(await api.post(`/orders/${orderId}/deposit`, payload))
 }
 
+export async function farmReviewOrder(orderId, payload) {
+  return unwrap(await api.patch(`/orders/${orderId}/status`, payload))
+}
+
 export async function updateOrderStatus(orderId, payload) {
   return unwrap(await api.patch(`/orders/${orderId}/status`, payload))
 }
@@ -87,4 +99,60 @@ export async function cancelOrder(orderId, payload) {
 
 export async function uploadShippingProof(orderId, payload) {
   return unwrap(await api.post(`/orders/${orderId}/shipping-proof`, payload))
+}
+
+export async function getEligibleShipmentOrders() {
+  return unwrap(await api.get('/shipments/eligible-orders'))
+}
+
+export async function getShipments() {
+  return unwrap(await api.get('/shipments'))
+}
+
+export async function getShipmentReportsForReview() {
+  return unwrap(await api.get('/shipments/reports'))
+}
+
+export async function createShipment(payload) {
+  return unwrap(await api.post('/shipments', payload))
+}
+
+export async function updateShipmentStatus(shipmentId, payload) {
+  return unwrap(await api.patch(`/shipments/${shipmentId}/status`, payload))
+}
+
+export async function getMyShipments() {
+  return unwrap(await api.get('/shipments/mine'))
+}
+
+export async function getFarmShipments() {
+  return unwrap(await api.get('/shipments/farm'))
+}
+
+export async function getRetailerShipments() {
+  return unwrap(await api.get('/shipments/retailer'))
+}
+
+export async function getShipmentById(id) {
+  return unwrap(await api.get(`/shipments/${id}`))
+}
+
+export async function driverConfirmPickup(id, payload) {
+  return unwrap(await api.post(`/shipments/${id}/pickup`, payload))
+}
+
+export async function driverAddCheckpoint(id, payload) {
+  return unwrap(await api.post(`/shipments/${id}/checkpoints`, payload))
+}
+
+export async function driverConfirmHandover(id, payload) {
+  return unwrap(await api.post(`/shipments/${id}/handover`, payload))
+}
+
+export async function driverReportIssue(id, payload) {
+  return unwrap(await api.post(`/shipments/${id}/reports`, payload))
+}
+
+export async function getPublicAnnouncementFeed() {
+  return unwrap(await api.get('/announcements/feed', { skipAuth: true }))
 }

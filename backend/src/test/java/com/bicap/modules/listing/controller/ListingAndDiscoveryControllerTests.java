@@ -65,7 +65,7 @@ class ListingAndDiscoveryControllerTests {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
-                .andExpect(jsonPath("$.errors").isArray());
+                .andExpect(jsonPath("$.errors.fieldErrors").isArray());
     }
 
     @Test

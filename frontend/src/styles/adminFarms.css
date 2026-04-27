@@ -1,0 +1,193 @@
+.admin-farms-page {
+  display: grid;
+  gap: 18px;
+}
+
+.stats-grid.admin-farms-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-farms-shell {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.admin-farms-list,
+.admin-farms-detail {
+  padding: 22px;
+}
+
+.admin-farms-items {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  max-height: calc(100vh - 360px);
+  overflow: auto;
+  padding-right: 6px;
+}
+
+.admin-farm-item {
+  position: relative;
+  width: 100%;
+  display: grid;
+  gap: 7px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.94);
+  color: #0f172a;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.admin-farm-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(14, 165, 233, 0.32);
+}
+
+.admin-farm-item.is-selected {
+  border: 2px solid #0ea5e9;
+  background: linear-gradient(135deg, #ffffff 0%, #ecfeff 100%);
+  box-shadow: 0 12px 30px rgba(14, 165, 233, 0.22), 0 0 0 4px rgba(20, 184, 166, 0.12);
+}
+
+.admin-farm-item.is-selected::after {
+  content: 'ĐANG CHỌN';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0ea5e9, #22c55e);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.admin-farm-item > span {
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.admin-farm-item-meta,
+.admin-farm-profile-head,
+.admin-farm-review-panel,
+.admin-farm-license-card,
+.admin-farm-license-actions,
+.admin-farm-review-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-farm-item-meta,
+.admin-farm-profile-head,
+.admin-farm-review-panel,
+.admin-farm-license-card {
+  justify-content: space-between;
+}
+
+.admin-farm-profile-head h3,
+.admin-farm-review-panel h3,
+.admin-farm-license-card h3 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.admin-farm-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.admin-farm-info-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+.admin-farm-info-card span,
+.admin-farm-info-card small {
+  color: #64748b;
+}
+
+.admin-farm-info-card strong {
+  color: #0f172a;
+}
+
+.admin-farm-license-card,
+.admin-farm-review-panel {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.92), rgba(240, 253, 250, 0.92));
+  border: 1px solid rgba(14, 165, 233, 0.14);
+}
+
+.admin-farm-review-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.admin-farms-detail .admin-users-table-wrap {
+  margin-top: 18px;
+}
+
+.admin-table tr.is-selected {
+  background: rgba(14, 165, 233, 0.08);
+}
+
+.status-approved,
+.status-valid {
+  background: rgba(34, 197, 94, 0.12) !important;
+  color: #166534 !important;
+  border-color: rgba(34, 197, 94, 0.24) !important;
+}
+
+.status-pending {
+  background: rgba(245, 158, 11, 0.13) !important;
+  color: #92400e !important;
+  border-color: rgba(245, 158, 11, 0.24) !important;
+}
+
+.status-rejected,
+.status-invalid {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #991b1b !important;
+  border-color: rgba(239, 68, 68, 0.24) !important;
+}
+
+@media (max-width: 1180px) {
+  .stats-grid.admin-farms-stats,
+  .admin-farm-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-farms-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .stats-grid.admin-farms-stats,
+  .admin-farm-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-farm-profile-head,
+  .admin-farm-review-panel,
+  .admin-farm-license-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -2,6 +2,9 @@ package com.bicap.modules.batch.entity;
 
 import com.bicap.core.enums.BlockchainGovernanceStatus;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,11 +22,23 @@ public class BlockchainTransaction {
     private String txStatus;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "governance_status", length = 30)
     private BlockchainGovernanceStatus governanceStatus;
 
     @Column(name = "governance_note", length = 500)
     private String governanceNote;
+
+    @Column(name = "tx_origin", length = 80)
+    private String txOrigin;
+
+    @Column(name = "tx_seed", length = 255)
+    private String txSeed;
+
+    @Lob
+    @JdbcTypeCode(SqlTypes.LONGVARCHAR)
+    @Column(name = "data_payload")
+    private String dataPayload;
 
     @Column(name = "retry_count")
     private Integer retryCount;
@@ -65,6 +80,13 @@ public class BlockchainTransaction {
     public void setGovernanceStatus(BlockchainGovernanceStatus governanceStatus) { this.governanceStatus = governanceStatus; }
     public String getGovernanceNote() { return governanceNote; }
     public void setGovernanceNote(String governanceNote) { this.governanceNote = governanceNote; }
+    public String getTxOrigin() { return txOrigin; }
+    public void setTxOrigin(String txOrigin) { this.txOrigin = txOrigin; }
+    public String getTxSeed() { return txSeed; }
+    public void setTxSeed(String txSeed) { this.txSeed = txSeed; }
+
+    public String getDataPayload() { return dataPayload; }
+    public void setDataPayload(String dataPayload) { this.dataPayload = dataPayload; }
     public Integer getRetryCount() { return retryCount; }
     public void setRetryCount(Integer retryCount) { this.retryCount = retryCount; }
     public LocalDateTime getLastRetryAt() { return lastRetryAt; }

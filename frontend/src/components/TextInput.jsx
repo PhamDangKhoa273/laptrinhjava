@@ -1,6 +1,7 @@
 export function TextInput({
   label,
   name,
+  id,
   type = 'text',
   value,
   onChange,
@@ -17,6 +18,7 @@ export function TextInput({
       </span>
       <input
         className={`form-input ${error ? 'is-error' : ''}`}
+        id={id}
         name={name}
         type={type}
         value={value}

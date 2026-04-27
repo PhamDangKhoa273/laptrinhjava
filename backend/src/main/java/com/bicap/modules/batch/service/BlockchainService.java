@@ -1,6 +1,7 @@
 package com.bicap.modules.batch.service;
 
 import com.bicap.core.enums.BlockchainGovernanceStatus;
+import com.bicap.core.security.MetricsSecurityEvents;
 import com.bicap.modules.batch.config.BlockchainProperties;
 import com.bicap.modules.batch.dto.BatchBlockchainPayload;
 import com.bicap.modules.batch.dto.BlockchainResult;
@@ -37,11 +38,14 @@ public class BlockchainService {
 
     private final BlockchainTransactionRepository transactionRepository;
     private final BlockchainProperties properties;
+    private final MetricsSecurityEvents metrics;
 
     public BlockchainService(BlockchainTransactionRepository transactionRepository,
-                             BlockchainProperties properties) {
+                             BlockchainProperties properties,
+                             MetricsSecurityEvents metrics) {
         this.transactionRepository = transactionRepository;
         this.properties = properties;
+        this.metrics = metrics;
     }
 
     private Web3j web3j() {
@@ -77,6 +81,7 @@ public class BlockchainService {
         tx.setRelatedEntityType(relatedEntityType);
         tx.setRelatedEntityId(relatedEntityId);
         tx.setActionType(actionType);
+        tx.setDataPayload(dataPayload);
 
         if (!properties.isEnabled()) {
             tx.setTxHash("DISABLED-" + dataHash);
@@ -131,6 +136,7 @@ public class BlockchainService {
             tx.setGovernanceStatus(BlockchainGovernanceStatus.SUCCESS);
             tx.setGovernanceNote("On-chain transaction committed successfully");
             BlockchainTransaction saved = transactionRepository.save(tx);
+            metrics.blockchainTxSuccess.increment();
             return toResult(saved, "Ghi dữ liệu blockchain thành công.");
         } catch (Exception exception) {
             tx.setTxHash(null);
@@ -140,8 +146,28 @@ public class BlockchainService {
             tx.setRetryCount((tx.getRetryCount() == null ? 0 : tx.getRetryCount()) + 1);
             tx.setLastRetryAt(LocalDateTime.now());
             BlockchainTransaction saved = transactionRepository.save(tx);
+            metrics.blockchainTxFail.increment();
             return toResult(saved, "Không thể ghi blockchain, dữ liệu DB vẫn được giữ lại.");
         }
+    }
+
+    /**
+     * Replay an existing transaction using the stored canonical payload.
+     */
+    @Transactional
+    public BlockchainResult replayTransaction(BlockchainTransaction existing) {
+        if (existing == null) {
+            throw new RuntimeException("Transaction is null");
+        }
+        if (existing.getDataPayload() == null || existing.getDataPayload().isBlank()) {
+            throw new RuntimeException("Missing data_payload for transaction replay");
+        }
+        return saveTransaction(
+                existing.getRelatedEntityType(),
+                existing.getRelatedEntityId(),
+                existing.getActionType(),
+                existing.getDataPayload()
+        );
     }
 
     public String canonicalizeHash(String dataPayload) {

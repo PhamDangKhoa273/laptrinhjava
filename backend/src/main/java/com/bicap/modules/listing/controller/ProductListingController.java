@@ -1,10 +1,11 @@
 package com.bicap.modules.listing.controller;
 
 import com.bicap.core.dto.ApiResponse;
+import com.bicap.core.dto.PagedResponse;
 import com.bicap.modules.listing.dto.CreateListingRequest;
-import com.bicap.modules.listing.dto.ListingResponse;
 import com.bicap.modules.listing.dto.ListingRegistrationRequestDto;
 import com.bicap.modules.listing.dto.ListingRegistrationResponse;
+import com.bicap.modules.listing.dto.ListingResponse;
 import com.bicap.modules.listing.dto.ReviewListingRegistrationRequest;
 import com.bicap.modules.listing.dto.UpdateListingRequest;
 import com.bicap.modules.listing.service.ProductListingService;
@@ -12,14 +13,20 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedHashMap;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/v1/listings")
 public class ProductListingController {
 
@@ -29,68 +36,62 @@ public class ProductListingController {
         this.listingService = listingService;
     }
 
-    /**
-     * POST /api/v1/listings — Create a new listing (FARM only, from own batches)
-     */
     @PostMapping
     @PreAuthorize("hasRole('FARM')")
-    public ResponseEntity<ApiResponse<ListingResponse>> createListing(
-            @Valid @RequestBody CreateListingRequest request) {
+    public ResponseEntity<ApiResponse<ListingResponse>> createListing(@Valid @RequestBody CreateListingRequest request) {
         ListingResponse response = listingService.createListing(request);
-        return ResponseEntity.ok(ApiResponse.success("Tạo listing thành công", response));
+        return ResponseEntity.ok(ApiResponse.success("Tao listing thanh cong", response));
     }
 
-    /**
-     * GET /api/v1/listings — Public marketplace listings (ACTIVE only)
-     */
     @GetMapping
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getPublicListings(
+    public ResponseEntity<ApiResponse<PagedResponse<ListingResponse>>> getPublicListings(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort) {
         if (page < 0) {
-            throw new IllegalArgumentException("page không được nhỏ hơn 0");
+            throw new IllegalArgumentException("page khong duoc nho hon 0");
         }
         if (size < 1 || size > 100) {
-            throw new IllegalArgumentException("size phải nằm trong khoảng 1 đến 100");
+            throw new IllegalArgumentException("size phai nam trong khoang 1 den 100");
         }
 
         Page<ListingResponse> listings = listingService.getPublicListings(page, size, sort);
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("items", listings.getContent());
-        payload.put("page", listings.getNumber());
-        payload.put("size", listings.getSize());
-        payload.put("totalItems", listings.getTotalElements());
-        payload.put("totalPages", listings.getTotalPages());
-        payload.put("sort", sort);
-        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách listing thành công", payload));
+        return ResponseEntity.ok(ApiResponse.success("Lay danh sach listing thanh cong", PagedResponse.of(listings.getContent(), listings.getNumber(), listings.getSize(), listings.getTotalElements(), listings.getTotalPages(), sort)));
     }
 
-    /**
-     * GET /api/v1/listings/{id} — Get listing detail
-     */
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PagedResponse<ListingResponse>>> searchPublicListings(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String province,
+            @RequestParam(required = false) String certification,
+            @RequestParam(required = false) Boolean availableOnly,
+            @RequestParam(required = false) Boolean verifiedOnly,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate harvestFrom,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate harvestTo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        Page<ListingResponse> listings = listingService.searchPublicListings(keyword, province, certification, availableOnly, verifiedOnly, harvestFrom, harvestTo, page, size, sort);
+        return ResponseEntity.ok(ApiResponse.success("Tim listing cong khai thanh cong", PagedResponse.of(listings.getContent(), listings.getNumber(), listings.getSize(), listings.getTotalElements(), listings.getTotalPages(), sort)));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ListingResponse>> getListingById(@PathVariable Long id) {
         ListingResponse response = listingService.getListingById(id);
-        return ResponseEntity.ok(ApiResponse.success("Lấy chi tiết listing thành công", response));
+        return ResponseEntity.ok(ApiResponse.success("Lay chi tiet listing thanh cong", response));
     }
 
-    /**
-     * GET /api/v1/listings/my — Get listings owned by current farm user
-     */
     @GetMapping("/my")
     @PreAuthorize("hasRole('FARM')")
     public ResponseEntity<ApiResponse<List<ListingResponse>>> getMyListings() {
         List<ListingResponse> listings = listingService.getMyListings();
-        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách listing của tôi thành công", listings));
+        return ResponseEntity.ok(ApiResponse.success("Lay danh sach listing cua toi thanh cong", listings));
     }
 
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasRole('FARM')")
-    public ResponseEntity<ApiResponse<ListingRegistrationResponse>> submitListingRegistration(
-            @PathVariable Long id,
-            @Valid @RequestBody ListingRegistrationRequestDto request) {
-        return ResponseEntity.ok(ApiResponse.success("Gửi yêu cầu duyệt listing thành công", listingService.submitRegistration(id, request)));
+    public ResponseEntity<ApiResponse<ListingRegistrationResponse>> submitListingRegistration(@PathVariable Long id, @Valid @RequestBody ListingRegistrationRequestDto request) {
+        return ResponseEntity.ok(ApiResponse.success("Gui yeu cau duyet listing thanh cong", listingService.submitRegistration(id, request)));
     }
 
     @GetMapping("/registrations/my")
@@ -107,21 +108,14 @@ public class ProductListingController {
 
     @PatchMapping("/registrations/{registrationId}/review")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<ListingRegistrationResponse>> reviewRegistration(
-            @PathVariable Long registrationId,
-            @Valid @RequestBody ReviewListingRegistrationRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Duyệt listing thành công", listingService.reviewRegistration(registrationId, request)));
+    public ResponseEntity<ApiResponse<ListingRegistrationResponse>> reviewRegistration(@PathVariable Long registrationId, @Valid @RequestBody ReviewListingRegistrationRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Duyet listing thanh cong", listingService.reviewRegistration(registrationId, request)));
     }
 
-    /**
-     * PUT /api/v1/listings/{id} — Update listing (price, description, status)
-     */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('FARM')")
-    public ResponseEntity<ApiResponse<ListingResponse>> updateListing(
-            @PathVariable Long id,
-            @Valid @RequestBody UpdateListingRequest request) {
+    public ResponseEntity<ApiResponse<ListingResponse>> updateListing(@PathVariable Long id, @Valid @RequestBody UpdateListingRequest request) {
         ListingResponse response = listingService.updateListing(id, request);
-        return ResponseEntity.ok(ApiResponse.success("Cập nhật listing thành công", response));
+        return ResponseEntity.ok(ApiResponse.success("Cap nhat listing thanh cong", response));
     }
 }

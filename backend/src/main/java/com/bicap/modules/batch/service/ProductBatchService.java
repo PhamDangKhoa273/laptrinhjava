@@ -5,6 +5,7 @@ import com.bicap.core.security.SecurityUtils;
 import com.bicap.modules.batch.dto.*;
 import com.bicap.modules.batch.entity.ProductBatch;
 import com.bicap.modules.batch.entity.QrCode;
+import com.bicap.modules.batch.repository.BlockchainTransactionRepository;
 import com.bicap.modules.batch.repository.ProductBatchRepository;
 import com.bicap.modules.batch.repository.QrCodeRepository;
 import com.bicap.modules.batch.util.HashUtils;
@@ -15,6 +16,7 @@ import com.bicap.modules.season.entity.FarmingSeason;
 import com.bicap.modules.season.repository.FarmingProcessRepository;
 import com.bicap.modules.season.service.SeasonService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductBatchService {
 
     @Value("${app.frontend.url:http://localhost:5173}")
@@ -38,6 +41,7 @@ public class ProductBatchService {
     private final ProductRepository productRepository;
     private final FarmingProcessRepository farmingProcessRepository;
     private final QrCodeRepository qrCodeRepository;
+    private final BlockchainTransactionRepository blockchainTransactionRepository;
     private final BlockchainService blockchainService;
     private final QrCodeService qrCodeService;
     private final SeasonService seasonService;
@@ -244,14 +248,28 @@ public class ProductBatchService {
         String jsonPayload = HashUtils.toCanonicalJson(payload.toMap());
         String localHash = blockchainService.canonicalizeHash(jsonPayload);
 
-        String onChainHash;
-        boolean matched;
-        try {
-            onChainHash = blockchainService.getOnChainHash("BATCH", batchId, "UPSERT");
-            matched = onChainHash != null && localHash.equals(onChainHash);
-        } catch (Exception ignored) {
-            onChainHash = null;
-            matched = false;
+        String onChainHash = blockchainTransactionRepository
+                .findTopByRelatedEntityTypeAndRelatedEntityIdOrderByCreatedAtDesc("BATCH", batchId)
+                .map(tx -> {
+                    if (localHash.equals(tx.getTxHash())) {
+                        return tx.getTxHash();
+                    }
+                    String payloadJson = tx.getDataPayload();
+                    return payloadJson != null && localHash.equals(blockchainService.canonicalizeHash(payloadJson))
+                            ? localHash
+                            : null;
+                })
+                .orElse(null);
+        boolean matched = onChainHash != null;
+
+        if (!matched) {
+            try {
+                onChainHash = blockchainService.getOnChainHash("BATCH", batchId, "UPSERT");
+                matched = onChainHash != null && localHash.equals(onChainHash);
+            } catch (Exception ex) {
+                log.warn("Không thể đọc hash on-chain để verify batchId={}: {}", batchId, ex.getMessage(), ex);
+                onChainHash = null;
+            }
         }
 
         return new VerifyTraceResponse(batchId, localHash, onChainHash, matched);
@@ -264,7 +282,8 @@ public class ProductBatchService {
         QrCodeResponse qrResponse = null;
         try {
             qrResponse = getQrCode(batch.getBatchId());
-        } catch (Exception ignored) {
+        } catch (Exception ex) {
+            log.debug("Không tìm thấy QR khi dựng trace batchId={}", batch.getBatchId(), ex);
         }
 
         TraceSeasonInfoDto seasonDetails = TraceSeasonInfoDto.builder()
@@ -338,9 +357,6 @@ public class ProductBatchService {
         }
     }
 
-
-        return new VerifyTraceResponse(batchId, localHash, onChainHash, matched);
-
     private void validateBatchQuantities(BigDecimal quantity, BigDecimal availableQuantity) {
         if (quantity == null || availableQuantity == null) {
             throw new BusinessException("Số lượng batch không được để trống.");
@@ -367,14 +383,14 @@ public class ProductBatchService {
 
     private String buildQrSerial(ProductBatch batch) {
         return "QR-BATCH-" + batch.getBatchId();
-
     }
 
     private boolean canAccessBatch(ProductBatch batch, Long currentUserId) {
         try {
             seasonService.findSeasonAndCheckPermission(batch.getSeason().getSeasonId(), currentUserId);
             return true;
-        } catch (Exception ignored) {
+        } catch (Exception ex) {
+            log.debug("User {} không có quyền truy cập batch {}", currentUserId, batch.getBatchId(), ex);
             return false;
         }
     }

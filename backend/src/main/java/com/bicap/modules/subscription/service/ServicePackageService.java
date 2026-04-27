@@ -22,7 +22,7 @@ public class ServicePackageService {
     public ServicePackageResponse create(CreateServicePackageRequest request) {
         String packageCode = request.getPackageCode().trim();
         if (repository.existsByPackageCodeIgnoreCase(packageCode)) {
-            throw new BusinessException("packageCode Ä‘Ã£ tá»“n táº¡i");
+            throw new BusinessException("packageCode đã tồn tại");
         }
 
         ServicePackage entity = new ServicePackage();

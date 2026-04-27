@@ -11,13 +11,13 @@ export const ROLE_LABELS = {
   [ROLES.ADMIN]: 'Admin',
   [ROLES.FARM]: 'Farm',
   [ROLES.RETAILER]: 'Retailer',
-  [ROLES.SHIPPING_MANAGER]: 'Shipping Manager',
+  [ROLES.SHIPPING_MANAGER]: 'Vận chuyển Manager',
   [ROLES.DRIVER]: 'Driver',
   [ROLES.GUEST]: 'Guest',
 }
 
 export const ROLE_DASHBOARD_PATHS = {
-  [ROLES.ADMIN]: '/dashboard/admin',
+  [ROLES.ADMIN]: '/dashboard/admin/control-center',
   [ROLES.FARM]: '/dashboard/farm',
   [ROLES.RETAILER]: '/dashboard/retailer',
   [ROLES.SHIPPING_MANAGER]: '/dashboard/shipping-manager',

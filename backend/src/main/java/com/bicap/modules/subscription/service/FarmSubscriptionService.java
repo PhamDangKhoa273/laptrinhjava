@@ -56,7 +56,8 @@ public class FarmSubscriptionService {
         subscription.setEndDate(endDate);
         subscription.setSubscriptionStatus("PENDING");
 
-        return toResponse(farmSubscriptionRepository.save(subscription));
+        FarmSubscription saved = farmSubscriptionRepository.save(subscription);
+        return toResponse(saved);
     }
 
     public FarmSubscriptionResponse getById(Long subscriptionId, Long currentUserId) {
@@ -92,7 +93,11 @@ public class FarmSubscriptionService {
         }
 
         FarmSubscription subscription = getEntityById(subscriptionId);
-        subscription.setSubscriptionStatus(subscriptionStatus.trim().toUpperCase());
+        String normalized = subscriptionStatus.trim().toUpperCase();
+        if (!List.of("PENDING", "ACTIVE", "EXPIRED", "CANCELLED").contains(normalized)) {
+            throw new BusinessException("Trạng thái subscription không hợp lệ");
+        }
+        subscription.setSubscriptionStatus(normalized);
 
         return toResponse(farmSubscriptionRepository.save(subscription));
     }

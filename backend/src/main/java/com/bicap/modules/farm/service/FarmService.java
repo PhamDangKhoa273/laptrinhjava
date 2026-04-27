@@ -3,6 +3,7 @@ package com.bicap.modules.farm.service;
 import com.bicap.core.AuditLogService;
 import com.bicap.core.enums.RoleName;
 import com.bicap.core.exception.BusinessException;
+import com.bicap.core.security.SecurityUtils;
 import com.bicap.modules.farm.dto.CreateFarmRequest;
 import com.bicap.modules.farm.dto.FarmResponse;
 import com.bicap.modules.farm.dto.UpdateFarmRequest;
@@ -49,11 +50,20 @@ public class FarmService {
     }
 
     public List<FarmResponse> getAllFarms() {
-        return farmRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
+        boolean isAdmin = currentUserHasRole(RoleName.ADMIN, currentUserId);
+        return farmRepository.findAll().stream()
+                .filter(farm -> isAdmin || isApproved(farm) || isOwner(farm, currentUserId))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     public FarmResponse getFarmById(Long id) {
         Farm farm = farmRepository.findById(id).orElseThrow(() -> new BusinessException("Farm không tồn tại"));
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
+        if (!currentUserHasRole(RoleName.ADMIN, currentUserId) && !isOwner(farm, currentUserId) && !isApproved(farm)) {
+            throw new BusinessException("Bạn không có quyền xem hồ sơ nông trại này");
+        }
         return mapToResponse(farm);
     }
 
@@ -169,11 +179,9 @@ public class FarmService {
         if ("REJECTED".equals(normalizedStatus)) {
             farm.setCertificationStatus("PENDING_REVIEW");
         }
-
         if ("PENDING".equals(normalizedStatus)) {
             farm.setCertificationStatus("PENDING");
         }
-
         farm.setReviewComment(reviewComment == null ? null : reviewComment.trim());
         farm.setReviewedByUser(admin);
         farm.setReviewedAt(LocalDateTime.now());
@@ -290,6 +298,24 @@ public class FarmService {
             return "/" + normalized.substring(uploadsIndex);
         }
         return normalized;
+    }
+
+    private boolean isApproved(Farm farm) {
+        return farm.getApprovalStatus() != null && "APPROVED".equalsIgnoreCase(farm.getApprovalStatus());
+    }
+
+    private boolean isOwner(Farm farm, Long currentUserId) {
+        return currentUserId != null
+                && farm.getOwnerUser() != null
+                && currentUserId.equals(farm.getOwnerUser().getUserId());
+    }
+
+    private boolean currentUserHasRole(RoleName roleName, Long currentUserId) {
+        if (currentUserId == null) {
+            return false;
+        }
+        User currentUser = userRepository.findById(currentUserId).orElse(null);
+        return currentUser != null && userService.hasRole(currentUser, roleName);
     }
 
     private String normalizeFarmCode(String farmCode) {

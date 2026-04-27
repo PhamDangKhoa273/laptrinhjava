@@ -1,14 +1,11 @@
 package com.bicap.modules.iot.controller;
 
 import com.bicap.core.dto.ApiResponse;
-import com.bicap.core.security.RateLimitService;
-import com.bicap.core.security.SecurityUtils;
-import com.bicap.modules.iot.dto.CreateIoTReadingRequest;
-import com.bicap.modules.iot.dto.IoTAlertResponse;
-import com.bicap.modules.iot.dto.IoTReadingResponse;
+import com.bicap.modules.iot.dto.CreateSensorReadingRequest;
+import com.bicap.modules.iot.dto.SensorAlertResponse;
 import com.bicap.modules.iot.service.IoTService;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,33 +13,25 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/iot")
+@RequiredArgsConstructor
 public class IoTController {
-
-    private final IoTService ioTService;
-    private final RateLimitService rateLimitService;
-
-    public IoTController(IoTService ioTService, RateLimitService rateLimitService) {
-        this.ioTService = ioTService;
-        this.rateLimitService = rateLimitService;
-    }
+    private final IoTService iotService;
 
     @PostMapping("/readings")
-    @PreAuthorize("hasAnyRole('FARM','ADMIN','SHIPPING_MANAGER')")
-    public ResponseEntity<ApiResponse<IoTReadingResponse>> createReading(@Valid @RequestBody CreateIoTReadingRequest request) {
-        Long currentUserId = SecurityUtils.getCurrentUserId();
-        rateLimitService.check("iot:create:" + currentUserId);
-        return ResponseEntity.ok(ApiResponse.success("Ghi nhận IoT reading thành công", ioTService.createReading(request, currentUserId)));
+    @PreAuthorize("hasAnyRole('FARM','ADMIN')")
+    public ApiResponse<SensorAlertResponse> ingest(@Valid @RequestBody CreateSensorReadingRequest request) {
+        return ApiResponse.success(iotService.ingest(request));
     }
 
-    @GetMapping("/batches/{batchId}/readings")
-    @PreAuthorize("hasAnyRole('FARM','ADMIN','RETAILER','SHIPPING_MANAGER')")
-    public ResponseEntity<ApiResponse<List<IoTReadingResponse>>> getReadings(@PathVariable Long batchId) {
-        return ResponseEntity.ok(ApiResponse.success(ioTService.getReadings(batchId)));
+    @GetMapping("/alerts/me")
+    @PreAuthorize("hasRole('FARM')")
+    public ApiResponse<List<SensorAlertResponse>> getMyAlerts() {
+        return ApiResponse.success(iotService.getMyAlerts());
     }
 
-    @GetMapping("/batches/{batchId}/alerts")
-    @PreAuthorize("hasAnyRole('FARM','ADMIN','RETAILER','SHIPPING_MANAGER')")
-    public ResponseEntity<ApiResponse<List<IoTAlertResponse>>> getAlerts(@PathVariable Long batchId) {
-        return ResponseEntity.ok(ApiResponse.success(ioTService.getAlerts(batchId)));
+    @PatchMapping("/alerts/{id}/resolve")
+    @PreAuthorize("hasRole('FARM')")
+    public ApiResponse<SensorAlertResponse> resolve(@PathVariable Long id) {
+        return ApiResponse.success(iotService.resolve(id));
     }
 }

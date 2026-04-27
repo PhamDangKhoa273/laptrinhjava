@@ -4,8 +4,6 @@ import com.bicap.core.enums.ApprovalStatus;
 import com.bicap.core.enums.ListingStatus;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.SecurityUtils;
-import com.bicap.modules.common.notification.dto.CreateNotificationRequest;
-import com.bicap.modules.common.notification.service.NotificationService;
 import com.bicap.modules.batch.entity.ProductBatch;
 import com.bicap.modules.batch.entity.QrCode;
 import com.bicap.modules.batch.repository.ProductBatchRepository;
@@ -13,26 +11,18 @@ import com.bicap.modules.batch.repository.QrCodeRepository;
 import com.bicap.modules.common.notification.dto.CreateNotificationRequest;
 import com.bicap.modules.common.notification.service.NotificationService;
 import com.bicap.modules.farm.entity.Farm;
+import com.bicap.modules.subscription.repository.FarmSubscriptionRepository;
 import com.bicap.modules.listing.dto.CreateListingRequest;
 import com.bicap.modules.listing.dto.ListingRegistrationRequestDto;
 import com.bicap.modules.listing.dto.ListingRegistrationResponse;
 import com.bicap.modules.listing.dto.ListingResponse;
-
-import com.bicap.modules.listing.dto.ListingRegistrationRequestDto;
-import com.bicap.modules.listing.dto.ListingRegistrationResponse;
 import com.bicap.modules.listing.dto.ReviewListingRegistrationRequest;
-import com.bicap.modules.listing.entity.ListingRegistrationRequest;
-
-import com.bicap.modules.listing.dto.ReviewListingRegistrationRequest;
-
 import com.bicap.modules.listing.dto.UpdateListingRequest;
 import com.bicap.modules.listing.entity.ListingRegistrationRequest;
 import com.bicap.modules.listing.entity.ProductListing;
 import com.bicap.modules.listing.repository.ListingRegistrationRequestRepository;
 import com.bicap.modules.listing.repository.ProductListingRepository;
-
 import com.bicap.modules.product.entity.Product;
-
 import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
@@ -56,31 +46,23 @@ public class ProductListingService {
     private final ListingRegistrationRequestRepository listingRegistrationRequestRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
-
-
-    public ProductListingService(ProductListingRepository listingRepository,
-                                  ProductBatchRepository batchRepository,
-                                  ListingRegistrationRequestRepository listingRegistrationRequestRepository,
-                                  UserRepository userRepository,
-                                  NotificationService notificationService) {
-
     private final QrCodeRepository qrCodeRepository;
+    private final FarmSubscriptionRepository farmSubscriptionRepository;
 
     public ProductListingService(ProductListingRepository listingRepository,
                                  ProductBatchRepository batchRepository,
                                  ListingRegistrationRequestRepository listingRegistrationRequestRepository,
                                  UserRepository userRepository,
                                  NotificationService notificationService,
-                                 QrCodeRepository qrCodeRepository) {
-
+                                 QrCodeRepository qrCodeRepository,
+                                 FarmSubscriptionRepository farmSubscriptionRepository) {
         this.listingRepository = listingRepository;
         this.batchRepository = batchRepository;
         this.listingRegistrationRequestRepository = listingRegistrationRequestRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
-
         this.qrCodeRepository = qrCodeRepository;
-
+        this.farmSubscriptionRepository = farmSubscriptionRepository;
     }
 
     @Transactional
@@ -95,13 +77,9 @@ public class ProductListingService {
             throw new BusinessException("Bạn chỉ được tạo listing từ batch thuộc farm của mình");
         }
         validateBatchEligibility(batch);
+        ensureActivePackageEntitlement(batch.getSeason().getFarm().getOwnerUser().getUserId());
 
-        if (request.getQuantityAvailable().compareTo(batch.getAvailableQuantity()) > 0) {
-            throw new BusinessException(
-                    "Số lượng listing (" + request.getQuantityAvailable() +
-                            ") không được vượt quá số lượng còn lại trong batch (" + batch.getAvailableQuantity() + ")"
-            );
-        }
+        ensureListingQuantityWithinBatch(batch, request.getQuantityAvailable(), null);
 
         ProductListing listing = new ProductListing();
         listing.setBatch(batch);
@@ -111,13 +89,8 @@ public class ProductListingService {
         listing.setQuantityAvailable(request.getQuantityAvailable());
         listing.setUnit(trimToDefault(request.getUnit(), "kg"));
         listing.setImageUrl(trimToNull(request.getImageUrl()));
-
-        listing.setStatus("DRAFT");
-        listing.setApprovalStatus("DRAFT");
-
         listing.setStatus(ListingStatus.DRAFT);
         listing.setApprovalStatus(ApprovalStatus.DRAFT);
-
 
         ProductListing saved = listingRepository.save(listing);
         return toResponse(saved);
@@ -129,12 +102,8 @@ public class ProductListingService {
 
     public Page<ListingResponse> getPublicListings(int page, int size, String sort) {
         Pageable pageable = PageRequest.of(page, size, resolvePublicSort(sort));
-
-        return listingRepository.findByStatusAndApprovalStatus("ACTIVE", "APPROVED", pageable).map(this::toResponse);
-
         return listingRepository.findByStatusAndApprovalStatus(ListingStatus.ACTIVE.name(), ApprovalStatus.APPROVED.name(), pageable)
                 .map(this::toResponse);
-
     }
 
     public List<ListingResponse> getAllListings() {
@@ -188,13 +157,7 @@ public class ProductListingService {
             listing.setPrice(request.getPrice());
         }
         if (request.getQuantityAvailable() != null) {
-            BigDecimal batchAvailable = listing.getBatch().getAvailableQuantity();
-            if (request.getQuantityAvailable().compareTo(batchAvailable) > 0) {
-                throw new BusinessException(
-                        "Số lượng listing (" + request.getQuantityAvailable() +
-                                ") không được vượt quá số lượng còn lại trong batch (" + batchAvailable + ")"
-                );
-            }
+            ensureListingQuantityWithinBatch(listing.getBatch(), request.getQuantityAvailable(), listing.getListingId());
             listing.setQuantityAvailable(request.getQuantityAvailable());
         }
         if (request.getUnit() != null) {
@@ -205,19 +168,93 @@ public class ProductListingService {
         }
         if (request.getStatus() != null) {
             String normalizedStatus = request.getStatus().trim().toUpperCase();
-
-            if (!Set.of("DRAFT", "ACTIVE", "INACTIVE", "HIDDEN", "SOLD_OUT").contains(normalizedStatus)) {
-
             try {
                 listing.setStatus(ListingStatus.valueOf(normalizedStatus));
             } catch (IllegalArgumentException ex) {
-
                 throw new BusinessException("Trạng thái listing không hợp lệ.");
             }
         }
 
         ProductListing saved = listingRepository.save(listing);
         return toResponse(saved);
+    }
+
+
+    public Page<ListingResponse> searchPublicListings(String keyword, String province, String certification, Boolean availableOnly, Boolean verifiedOnly, LocalDate harvestFrom, LocalDate harvestTo, int page, int size, String sort) {
+        Pageable pageable = PageRequest.of(page, size, resolvePublicSort(sort));
+        List<ListingResponse> filtered = listingRepository.findByStatusAndApprovalStatus(ListingStatus.ACTIVE.name(), ApprovalStatus.APPROVED.name(), resolvePublicSort(sort))
+                .stream()
+                .map(this::toResponse)
+                .filter(listing -> matchesKeyword(listing, keyword))
+                .filter(listing -> matchesProvince(listing, province))
+                .filter(listing -> matchesCertification(listing, certification))
+                .filter(listing -> availableOnly == null || !availableOnly || Boolean.TRUE.equals(listing.getAvailableForRetailer()))
+                .filter(listing -> verifiedOnly == null || !verifiedOnly || isVerifiedCertification(listing.getCertificationStatus()))
+                .filter(listing -> matchesHarvestRange(listing, harvestFrom, harvestTo))
+                .toList();
+        int total = filtered.size();
+        int from = Math.min(page * size, total);
+        int to = Math.min(from + size, total);
+        return new org.springframework.data.domain.PageImpl<>(filtered.subList(from, to), pageable, total);
+    }
+
+    private boolean matchesKeyword(ListingResponse listing, String keyword) {
+        if (keyword == null || keyword.isBlank()) return true;
+        String n = keyword.trim().toLowerCase();
+        return contains(listing.getTitle(), n) || contains(listing.getProductName(), n) || contains(listing.getFarmName(), n) || contains(listing.getProvince(), n) || contains(listing.getProductCategory(), n);
+    }
+
+    private boolean matchesProvince(ListingResponse listing, String province) {
+        if (province == null || province.isBlank()) return true;
+        return normalizeRegion(listing.getProvince()).contains(normalizeRegion(province));
+    }
+
+    private boolean matchesCertification(ListingResponse listing, String certification) {
+        if (certification == null || certification.isBlank()) return true;
+        return normalizeRegion(listing.getCertificationStatus()).contains(normalizeRegion(certification));
+    }
+
+    private boolean isVerifiedCertification(String certificationStatus) {
+        return certificationStatus != null && Set.of("VIETGAP", "GLOBALGAP", "ORGANIC").contains(certificationStatus.trim().toUpperCase());
+    }
+
+    private boolean matchesHarvestRange(ListingResponse listing, LocalDate harvestFrom, LocalDate harvestTo) {
+        if (harvestFrom == null && harvestTo == null) return true;
+        LocalDate harvestDate = listing.getHarvestDate();
+        if (harvestDate == null) return false;
+        if (harvestFrom != null && harvestDate.isBefore(harvestFrom)) return false;
+        if (harvestTo != null && harvestDate.isAfter(harvestTo)) return false;
+        return true;
+    }
+
+    private boolean contains(String value, String needle) {
+        return value != null && value.toLowerCase().contains(needle);
+    }
+
+    private String normalizeRegion(String value) {
+        if (value == null) return "";
+        return value.trim().toLowerCase()
+                .replace("tp.", "")
+                .replace("thành phố", "")
+                .replace("tỉnh", "")
+                .replace("-", " ")
+                .replaceAll("\s+", " ");
+    }
+
+    private void ensureListingQuantityWithinBatch(ProductBatch batch, BigDecimal requestedQuantity, Long excludeListingId) {
+        if (requestedQuantity == null || requestedQuantity.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Số lượng listing phải lớn hơn 0");
+        }
+        BigDecimal batchCapacity = batch.getQuantity() != null ? batch.getQuantity() : batch.getAvailableQuantity();
+        if (batchCapacity == null) throw new BusinessException("Batch chưa có số lượng hợp lệ để tạo listing");
+        BigDecimal alreadyListed = listingRepository.sumListedQuantityByBatchId(batch.getBatchId(), excludeListingId);
+        if (alreadyListed == null) {
+            alreadyListed = BigDecimal.ZERO;
+        }
+        BigDecimal requestedTotal = alreadyListed.add(requestedQuantity);
+        if (requestedTotal.compareTo(batchCapacity) > 0) {
+            throw new BusinessException("Tổng số lượng listing của batch (" + requestedTotal + ") vượt quá sản lượng batch (" + batchCapacity + ")");
+        }
     }
 
     private Sort resolvePublicSort(String sort) {
@@ -310,26 +347,6 @@ public class ProductListingService {
         ListingRegistrationRequest registrationRequest = new ListingRegistrationRequest();
         registrationRequest.setListing(listing);
         registrationRequest.setRequestedByUser(requester);
-
-        registrationRequest.setStatus("PENDING");
-        registrationRequest.setNote(request.getNote().trim());
-        listing.setApprovalStatus("PENDING");
-        listing.setStatus("INACTIVE");
-
-        ListingRegistrationRequest saved = listingRegistrationRequestRepository.save(registrationRequest);
-        listingRepository.save(listing);
-
-        CreateNotificationRequest notification = new CreateNotificationRequest();
-        notification.setRecipientRole("ADMIN");
-        notification.setTitle("Yêu cầu duyệt listing mới");
-        notification.setMessage("Listing '" + listing.getTitle() + "' đang chờ duyệt từ farm " + listing.getBatch().getSeason().getFarm().getFarmName());
-        notification.setNotificationType("LISTING_REGISTRATION");
-        notification.setTargetType("LISTING");
-        notification.setTargetId(listingId);
-        notificationService.create(notification);
-
-        return toRegistrationResponse(saved);
-
         registrationRequest.setStatus(ApprovalStatus.PENDING.name());
         registrationRequest.setNote(request.getNote().trim());
         listing.setApprovalStatus(ApprovalStatus.PENDING);
@@ -339,6 +356,7 @@ public class ProductListingService {
         ListingRegistrationResponse response = toRegistrationResponse(listingRegistrationRequestRepository.save(registrationRequest));
 
         CreateNotificationRequest notification = new CreateNotificationRequest();
+        notification.setRecipientRole("ADMIN");
         notification.setTitle("Yêu cầu duyệt listing mới");
         notification.setMessage("Listing '" + listing.getTitle() + "' đang chờ admin duyệt.");
         notification.setNotificationType("LISTING_REGISTRATION");
@@ -347,32 +365,11 @@ public class ProductListingService {
         notificationService.create(notification);
 
         return response;
-
     }
 
     @Transactional
     public ListingRegistrationResponse reviewRegistration(Long registrationId, ReviewListingRegistrationRequest request) {
         ListingRegistrationRequest registrationRequest = listingRegistrationRequestRepository.findById(registrationId)
-
-                .orElseThrow(() -> new BusinessException("Không tìm thấy yêu cầu đăng ký listing"));
-
-        String status = request.getStatus().trim().toUpperCase();
-        if (!Set.of("APPROVED", "REJECTED").contains(status)) {
-            throw new BusinessException("Trạng thái duyệt không hợp lệ");
-        }
-
-        User reviewer = userRepository.findById(SecurityUtils.getCurrentUserId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy người duyệt"));
-
-        registrationRequest.setStatus(status);
-        registrationRequest.setNote(trimToNull(request.getNote()) != null ? request.getNote().trim() : registrationRequest.getNote());
-        registrationRequest.setReviewedByUser(reviewer);
-        registrationRequest.setReviewedAt(java.time.LocalDateTime.now());
-
-        ProductListing listing = registrationRequest.getListing();
-        listing.setApprovalStatus(status);
-        listing.setStatus("APPROVED".equals(status) ? "ACTIVE" : "INACTIVE");
-
                 .orElseThrow(() -> new BusinessException("Không tìm thấy yêu cầu duyệt listing với ID: " + registrationId));
 
         if (!ApprovalStatus.PENDING.name().equals(registrationRequest.getStatus())) {
@@ -396,17 +393,12 @@ public class ProductListingService {
         ProductListing listing = registrationRequest.getListing();
         listing.setApprovalStatus(ApprovalStatus.valueOf(status));
         listing.setStatus(ApprovalStatus.APPROVED.name().equals(status) ? ListingStatus.ACTIVE : ListingStatus.INACTIVE);
-
         listingRepository.save(listing);
 
         CreateNotificationRequest notification = new CreateNotificationRequest();
         notification.setRecipientUserId(registrationRequest.getRequestedByUser().getUserId());
         notification.setTitle("Kết quả duyệt listing");
-
-        notification.setMessage("Listing '" + listing.getTitle() + "' đã được " + ("APPROVED".equals(status) ? "phê duyệt" : "từ chối"));
-
         notification.setMessage("Listing '" + listing.getTitle() + "' đã được " + (ApprovalStatus.APPROVED.name().equals(status) ? "phê duyệt" : "từ chối"));
-
         notification.setNotificationType("LISTING_REVIEW");
         notification.setTargetType("LISTING");
         notification.setTargetId(listing.getListingId());
@@ -424,11 +416,7 @@ public class ProductListingService {
     }
 
     public List<ListingRegistrationResponse> getPendingRegistrationRequests() {
-
-        return listingRegistrationRequestRepository.findByStatusOrderByCreatedAtDesc("PENDING")
-
         return listingRegistrationRequestRepository.findByStatusOrderByCreatedAtDesc(ApprovalStatus.PENDING.name())
-
                 .stream()
                 .map(this::toRegistrationResponse)
                 .toList();
@@ -474,6 +462,20 @@ public class ProductListingService {
         }
         if (!qrCodeRepository.existsByBatchBatchIdAndStatus(batch.getBatchId(), "ACTIVE")) {
             throw new BusinessException("Batch chưa có QR active, chưa đủ điều kiện đưa lên sàn.");
+        }
+    }
+
+    private void ensureActivePackageEntitlement(Long ownerUserId) {
+        if (farmSubscriptionRepository == null) {
+            return;
+        }
+        boolean hasActive = farmSubscriptionRepository.findByFarmOwnerUserUserIdAndSubscriptionStatusIgnoreCase(ownerUserId, "ACTIVE").stream()
+                .anyMatch(subscription -> subscription.getStartDate() != null
+                        && subscription.getEndDate() != null
+                        && !subscription.getStartDate().isAfter(LocalDate.now())
+                        && !subscription.getEndDate().isBefore(LocalDate.now()));
+        if (!hasActive) {
+            throw new BusinessException("Farm chưa có gói ACTIVE để tạo listing");
         }
     }
 

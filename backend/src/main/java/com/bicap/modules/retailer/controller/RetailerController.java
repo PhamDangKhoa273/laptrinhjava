@@ -2,6 +2,8 @@ package com.bicap.modules.retailer.controller;
 
 import com.bicap.core.dto.ApiResponse;
 import com.bicap.modules.retailer.dto.CreateRetailerRequest;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 import com.bicap.modules.retailer.dto.RetailerResponse;
 import com.bicap.modules.retailer.dto.UpdateRetailerRequest;
 import com.bicap.core.security.SecurityUtils;
@@ -40,6 +42,18 @@ public class RetailerController {
     @PreAuthorize("hasAnyRole('ADMIN','RETAILER')")
     public ApiResponse<RetailerResponse> getById(@PathVariable Long id) {
         return ApiResponse.success(retailerService.getById(id, SecurityUtils.getCurrentUserId()));
+    }
+
+    @GetMapping("/{id}/business-license")
+    @PreAuthorize("hasAnyRole('ADMIN','RETAILER')")
+    public ApiResponse<RetailerResponse> previewBusinessLicense(@PathVariable Long id) {
+        return ApiResponse.success(retailerService.previewBusinessLicense(id, SecurityUtils.getCurrentUserId()));
+    }
+
+    @PostMapping(value = "/{id}/business-license", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN','RETAILER')")
+    public ApiResponse<RetailerResponse> uploadBusinessLicense(@PathVariable Long id, @RequestPart("file") MultipartFile file) {
+        return ApiResponse.success("Upload giấy phép retailer thành công", retailerService.uploadBusinessLicense(id, file, SecurityUtils.getCurrentUserId()));
     }
 
     @GetMapping("/me")

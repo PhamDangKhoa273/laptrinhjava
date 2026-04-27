@@ -1,8 +1,11 @@
 package com.bicap.core.exception;
 
 import com.bicap.core.dto.ApiErrorDetail;
+import com.bicap.core.dto.ApiErrorResponse;
 import com.bicap.core.dto.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,86 +19,75 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-        private static final boolean MOCK_DEV = true;
+
+    @Value("${app.errors.include-stacktrace:false}")
+    private boolean includeStacktrace;
+
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ApiResponse<Object>> handleBusiness(BusinessException ex) {
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error("BUSINESS_ERROR", ex.getMessage(), null));
+    public ResponseEntity<ApiResponse<Object>> handleBusiness(BusinessException ex, HttpServletRequest request) {
+        return ResponseEntity.badRequest().body(ApiResponse.error("BUSINESS_ERROR", ex.getMessage(), errorPayload(null, request)));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse<Object>> handleNotFound(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error("NOT_FOUND", ex.getMessage(), null));
+    public ResponseEntity<ApiResponse<Object>> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("NOT_FOUND", ex.getMessage(), errorPayload(null, request)));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Object>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<Object>> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         List<ApiErrorDetail> errors = new ArrayList<>();
-
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
-            errors.add(new ApiErrorDetail(
-                    fieldError.getField(),
-                    fieldError.getCode(),
-                    fieldError.getDefaultMessage()
-            ));
+            errors.add(new ApiErrorDetail(fieldError.getField(), fieldError.getCode(), fieldError.getDefaultMessage()));
         }
-
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error("VALIDATION_ERROR", "Dữ liệu không hợp lệ", errors));
+        return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", "Dữ liệu không hợp lệ", errorPayload(errors, request)));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse<Object>> handleConstraintViolation(ConstraintViolationException ex) {
+    public ResponseEntity<ApiResponse<Object>> handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
         List<ApiErrorDetail> errors = ex.getConstraintViolations().stream()
-                .map(v -> new ApiErrorDetail(
-                        v.getPropertyPath().toString(),
-                        "CONSTRAINT_VIOLATION",
-                        v.getMessage()
-                ))
+                .map(v -> new ApiErrorDetail(v.getPropertyPath().toString(), "CONSTRAINT_VIOLATION", v.getMessage()))
                 .toList();
-
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error("VALIDATION_ERROR", "Dữ liệu không hợp lệ", errors));
+        return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", "Dữ liệu không hợp lệ", errorPayload(errors, request)));
     }
 
     @ExceptionHandler({AuthenticationException.class, UsernameNotFoundException.class})
-    public ResponseEntity<ApiResponse<Object>> handleAuthentication(Exception ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error("UNAUTHORIZED", "Email hoặc mật khẩu không đúng", null));
+    public ResponseEntity<ApiResponse<Object>> handleAuthentication(Exception ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("UNAUTHORIZED", "Email hoặc mật khẩu không đúng", errorPayload(null, request)));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiResponse<Object>> handleAccessDenied(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error("FORBIDDEN", "Bạn không có quyền truy cập", null));
+    public ResponseEntity<ApiResponse<Object>> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error("FORBIDDEN", "Bạn không có quyền truy cập", errorPayload(null, request)));
     }
 
     @ExceptionHandler({IllegalArgumentException.class, MethodArgumentTypeMismatchException.class})
-    public ResponseEntity<ApiResponse<Object>> handleBadRequest(Exception ex) {
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error("VALIDATION_ERROR", ex.getMessage(), null));
+    public ResponseEntity<ApiResponse<Object>> handleBadRequest(Exception ex, HttpServletRequest request) {
+        return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", ex.getMessage(), errorPayload(null, request)));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Object>> handleOther(Exception ex) {
-        if (MOCK_DEV) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error(
-                            "INTERNAL_SERVER_ERROR",
-                            ex.getMessage(),
-                            List.of(new ApiErrorDetail(
-                                    "exception",
-                                    ex.getClass().getSimpleName(),
-                                    buildStackTrace(ex)
-                            ))
-                    ));
+    public ResponseEntity<ApiResponse<Object>> handleOther(Exception ex, HttpServletRequest request) {
+        ex.printStackTrace();
+        if (includeStacktrace) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(
+                    "INTERNAL_SERVER_ERROR",
+                    ex.getMessage(),
+                    errorPayload(List.of(new ApiErrorDetail("exception", ex.getClass().getSimpleName(), buildStackTrace(ex))), request)
+            ));
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("INTERNAL_SERVER_ERROR", "Đã có lỗi hệ thống xảy ra", null));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("INTERNAL_SERVER_ERROR", "Đã có lỗi hệ thống xảy ra", errorPayload(null, request)));
+    }
+
+    private ApiErrorResponse errorPayload(List<ApiErrorDetail> fieldErrors, HttpServletRequest request) {
+        String traceId = request != null ? request.getHeader("X-Trace-Id") : null;
+        if (traceId == null || traceId.isBlank()) {
+            traceId = UUID.randomUUID().toString();
+        }
+        return ApiErrorResponse.of(null, null, traceId, fieldErrors);
     }
 
     private String buildStackTrace(Exception ex) {

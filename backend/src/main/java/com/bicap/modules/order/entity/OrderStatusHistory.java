@@ -24,6 +24,9 @@ public class OrderStatusHistory {
     @Column(name = "reason", length = 500)
     private String reason;
 
+    @Column(name = "idempotency_key", length = 120)
+    private String idempotencyKey;
+
     @Column(name = "blockchain_tx_hash", length = 255)
     private String blockchainTxHash;
 
@@ -75,6 +78,14 @@ public class OrderStatusHistory {
 
     public void setReason(String reason) {
         this.reason = reason;
+    }
+
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public void setIdempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
     }
 
     public String getBlockchainTxHash() {

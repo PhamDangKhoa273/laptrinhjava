@@ -1,5 +1,6 @@
 package com.bicap.modules.auth.dto;
 
+import com.bicap.core.enums.RoleName;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -25,6 +26,8 @@ public class RegisterRequest {
 
     private String avatarUrl;
 
+    private RoleName role;
+
     // Manual Getters/Setters for Lombok fallback
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
@@ -36,4 +39,6 @@ public class RegisterRequest {
     public void setPhone(String phone) { this.phone = phone; }
     public String getAvatarUrl() { return avatarUrl; }
     public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+    public RoleName getRole() { return role; }
+    public void setRole(RoleName role) { this.role = role; }
 }

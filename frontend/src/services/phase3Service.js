@@ -100,15 +100,15 @@ export async function generateBatchQr(id) {
 
 export async function traceBatch(id, isPublic = false) {
   const path = isPublic ? `/public/trace/batches/${id}` : `/trace/batches/${id}`
-  return normalizeTraceResponse(unwrap(await api.get(path)))
+  return normalizeTraceResponse(unwrap(await api.get(path, isPublic ? { skipAuth: true } : undefined)))
 }
 
 export async function traceBatchByCode(traceCode) {
-  return normalizeTraceResponse(unwrap(await api.get('/public/trace', { params: { traceCode } })))
+  return normalizeTraceResponse(unwrap(await api.get('/public/trace', { params: { traceCode }, skipAuth: true })))
 }
 
 export async function verifyBatch(id) {
-  return unwrap(await api.get(`/batches/${id}/verify`))
+  return unwrap(await api.get(`/batches/${id}/verify`, { skipAuth: true }))
 }
 
 export async function getPhase3FarmContext() {

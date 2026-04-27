@@ -21,7 +21,7 @@ export async function searchListings(params = {}) {
     Object.entries(mappedParams).filter(([, value]) => shouldKeepValue(value)),
   )
 
-  const payload = unwrap(await api.get('/search', { params: cleanParams }))
+  const payload = unwrap(await api.get('/listings/search', { params: cleanParams }))
   return {
     items: payload.items || [],
     page: payload.page || 0,

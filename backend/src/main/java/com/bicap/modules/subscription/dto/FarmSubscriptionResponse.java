@@ -13,6 +13,8 @@ public class FarmSubscriptionResponse {
     private String status;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    private LocalDateTime activeFrom;
+    private LocalDateTime activeTo;
 
     public Long getSubscriptionId() { return subscriptionId; }
     public void setSubscriptionId(Long id) { this.subscriptionId = id; }
@@ -32,6 +34,10 @@ public class FarmSubscriptionResponse {
     public void setStartDate(LocalDateTime t) { this.startDate = t; }
     public LocalDateTime getEndDate() { return endDate; }
     public void setEndDate(LocalDateTime t) { this.endDate = t; }
+    public LocalDateTime getActiveFrom() { return activeFrom; }
+    public void setActiveFrom(LocalDateTime t) { this.activeFrom = t; }
+    public LocalDateTime getActiveTo() { return activeTo; }
+    public void setActiveTo(LocalDateTime t) { this.activeTo = t; }
 
     public static Builder builder() { return new Builder(); }
     public static class Builder {
@@ -44,10 +50,10 @@ public class FarmSubscriptionResponse {
         public Builder packageName(String s) { r.setPackageName(s); return this; }
         public Builder status(String s) { r.setStatus(s); return this; }
         public Builder subscriptionStatus(String s) { r.setStatus(s); return this; }
-        public Builder startDate(LocalDateTime t) { r.setStartDate(t); return this; }
-        public Builder startDate(LocalDate d) { r.setStartDate(d != null ? d.atStartOfDay() : null); return this; }
-        public Builder endDate(LocalDateTime t) { r.setEndDate(t); return this; }
-        public Builder endDate(LocalDate d) { r.setEndDate(d != null ? d.atStartOfDay() : null); return this; }
+        public Builder startDate(LocalDateTime t) { r.setStartDate(t); r.setActiveFrom(t); return this; }
+        public Builder startDate(LocalDate d) { LocalDateTime t = d != null ? d.atStartOfDay() : null; r.setStartDate(t); r.setActiveFrom(t); return this; }
+        public Builder endDate(LocalDateTime t) { r.setEndDate(t); r.setActiveTo(t); return this; }
+        public Builder endDate(LocalDate d) { LocalDateTime t = d != null ? d.atStartOfDay() : null; r.setEndDate(t); r.setActiveTo(t); return this; }
         public Builder subscribedByUserId(Long l) { return this; }
         public Builder subscribedByFullName(String s) { return this; }
         public FarmSubscriptionResponse build() { return r; }

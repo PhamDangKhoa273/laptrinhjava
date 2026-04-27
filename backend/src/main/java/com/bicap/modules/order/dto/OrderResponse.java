@@ -15,30 +15,25 @@ public class OrderResponse {
     private String status;
     private String paymentStatus;
     private BigDecimal depositAmount;
-
-    private LocalDateTime depositPaidAt;
-
     private BigDecimal minimumDepositAmount;
     private LocalDateTime depositPaidAt;
     private LocalDateTime depositReleasedAt;
     private Long depositReleasedByUserId;
     private String depositReleaseNote;
-
     private String cancellationReason;
     private LocalDateTime cancelledAt;
     private LocalDateTime deliveryConfirmedAt;
     private Long deliveryConfirmedByUserId;
     private String deliveryProofImageUrl;
     private String shippingProofImageUrl;
-
-
+    private String farmDecisionNote;
     private Boolean canPayDeposit;
+    private Boolean canFarmReview;
     private Boolean canCancel;
     private Boolean canConfirmDelivery;
     private Boolean canUploadDeliveryProof;
     private Boolean canUpdateShippingProof;
     private List<String> allowedActions;
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<OrderItemResponse> items;
@@ -50,166 +45,7 @@ public class OrderResponse {
     public static class Builder {
         private final OrderResponse response = new OrderResponse();
 
-
-        public Builder orderId(Long orderId) {
-            response.orderId = orderId;
-            return this;
-        }
-
-        public Builder retailerId(Long retailerId) {
-            response.retailerId = retailerId;
-            return this;
-        }
-
-        public Builder farmId(Long farmId) {
-            response.farmId = farmId;
-            return this;
-        }
-
-        public Builder totalAmount(BigDecimal totalAmount) {
-            response.totalAmount = totalAmount;
-            return this;
-        }
-
-        public Builder status(String status) {
-            response.status = status;
-            return this;
-        }
-
-        public Builder paymentStatus(String paymentStatus) {
-            response.paymentStatus = paymentStatus;
-            return this;
-        }
-
-        public Builder depositAmount(BigDecimal depositAmount) {
-            response.depositAmount = depositAmount;
-            return this;
-        }
-
-        public Builder depositPaidAt(LocalDateTime depositPaidAt) {
-            response.depositPaidAt = depositPaidAt;
-            return this;
-        }
-
-        public Builder cancellationReason(String cancellationReason) {
-            response.cancellationReason = cancellationReason;
-            return this;
-        }
-
-        public Builder cancelledAt(LocalDateTime cancelledAt) {
-            response.cancelledAt = cancelledAt;
-            return this;
-        }
-
-        public Builder deliveryConfirmedAt(LocalDateTime deliveryConfirmedAt) {
-            response.deliveryConfirmedAt = deliveryConfirmedAt;
-            return this;
-        }
-
-        public Builder deliveryConfirmedByUserId(Long deliveryConfirmedByUserId) {
-            response.deliveryConfirmedByUserId = deliveryConfirmedByUserId;
-            return this;
-        }
-
-        public Builder deliveryProofImageUrl(String deliveryProofImageUrl) {
-            response.deliveryProofImageUrl = deliveryProofImageUrl;
-            return this;
-        }
-
-        public Builder shippingProofImageUrl(String shippingProofImageUrl) {
-            response.shippingProofImageUrl = shippingProofImageUrl;
-            return this;
-        }
-
-        public Builder createdAt(LocalDateTime createdAt) {
-            response.createdAt = createdAt;
-            return this;
-        }
-
-        public Builder updatedAt(LocalDateTime updatedAt) {
-            response.updatedAt = updatedAt;
-            return this;
-        }
-
-        public Builder items(List<OrderItemResponse> items) {
-            response.items = items;
-            return this;
-        }
-
-        public OrderResponse build() {
-            return response;
-        }
-    }
-
-    public Long getOrderId() {
-        return orderId;
-    }
-
-    public Long getRetailerId() {
-        return retailerId;
-    }
-
-    public Long getFarmId() {
-        return farmId;
-    }
-
-    public BigDecimal getTotalAmount() {
-        return totalAmount;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public String getPaymentStatus() {
-        return paymentStatus;
-    }
-
-    public BigDecimal getDepositAmount() {
-        return depositAmount;
-    }
-
-    public LocalDateTime getDepositPaidAt() {
-        return depositPaidAt;
-    }
-
-    public String getCancellationReason() {
-        return cancellationReason;
-    }
-
-    public LocalDateTime getCancelledAt() {
-        return cancelledAt;
-    }
-
-    public LocalDateTime getDeliveryConfirmedAt() {
-        return deliveryConfirmedAt;
-    }
-
-    public Long getDeliveryConfirmedByUserId() {
-        return deliveryConfirmedByUserId;
-    }
-
-    public String getDeliveryProofImageUrl() {
-        return deliveryProofImageUrl;
-    }
-
-    public String getShippingProofImageUrl() {
-        return shippingProofImageUrl;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public List<OrderItemResponse> getItems() {
-        return items;
-    }
-
-      public Builder orderId(Long orderId) { response.orderId = orderId; return this; }
+        public Builder orderId(Long orderId) { response.orderId = orderId; return this; }
         public Builder retailerId(Long retailerId) { response.retailerId = retailerId; return this; }
         public Builder farmId(Long farmId) { response.farmId = farmId; return this; }
         public Builder retailerName(String retailerName) { response.retailerName = retailerName; return this; }
@@ -229,7 +65,9 @@ public class OrderResponse {
         public Builder deliveryConfirmedByUserId(Long deliveryConfirmedByUserId) { response.deliveryConfirmedByUserId = deliveryConfirmedByUserId; return this; }
         public Builder deliveryProofImageUrl(String deliveryProofImageUrl) { response.deliveryProofImageUrl = deliveryProofImageUrl; return this; }
         public Builder shippingProofImageUrl(String shippingProofImageUrl) { response.shippingProofImageUrl = shippingProofImageUrl; return this; }
+        public Builder farmDecisionNote(String farmDecisionNote) { response.farmDecisionNote = farmDecisionNote; return this; }
         public Builder canPayDeposit(Boolean canPayDeposit) { response.canPayDeposit = canPayDeposit; return this; }
+        public Builder canFarmReview(Boolean canFarmReview) { response.canFarmReview = canFarmReview; return this; }
         public Builder canCancel(Boolean canCancel) { response.canCancel = canCancel; return this; }
         public Builder canConfirmDelivery(Boolean canConfirmDelivery) { response.canConfirmDelivery = canConfirmDelivery; return this; }
         public Builder canUploadDeliveryProof(Boolean canUploadDeliveryProof) { response.canUploadDeliveryProof = canUploadDeliveryProof; return this; }
@@ -261,7 +99,9 @@ public class OrderResponse {
     public Long getDeliveryConfirmedByUserId() { return deliveryConfirmedByUserId; }
     public String getDeliveryProofImageUrl() { return deliveryProofImageUrl; }
     public String getShippingProofImageUrl() { return shippingProofImageUrl; }
+    public String getFarmDecisionNote() { return farmDecisionNote; }
     public Boolean getCanPayDeposit() { return canPayDeposit; }
+    public Boolean getCanFarmReview() { return canFarmReview; }
     public Boolean getCanCancel() { return canCancel; }
     public Boolean getCanConfirmDelivery() { return canConfirmDelivery; }
     public Boolean getCanUploadDeliveryProof() { return canUploadDeliveryProof; }
@@ -270,5 +110,4 @@ public class OrderResponse {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public List<OrderItemResponse> getItems() { return items; }
-
 }
