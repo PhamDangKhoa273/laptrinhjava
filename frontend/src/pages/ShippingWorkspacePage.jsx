@@ -9,7 +9,6 @@ const initialDriverForm = { driverCode: '', licenseNo: '', userId: '', status: '
 const initialVehicleForm = { plateNo: '', vehicleType: '', capacity: '', status: 'ACTIVE' }
 const initialShipmentForm = { orderId: '', driverId: '', vehicleId: '', note: '' }
 const initialShipmentStatusForm = { status: 'ASSIGNED', note: '' }
-const shipmentStatuses = ['ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED', 'REJECTED', 'DISPUTED', 'ESCALATED', 'CANCELLED']
 
 function Icon({ children, fill = false }) { return <span className={`material-symbols-outlined${fill ? ' fill' : ''}`}>{children}</span> }
 function safeList(list) { return Array.isArray(list) ? list : [] }
