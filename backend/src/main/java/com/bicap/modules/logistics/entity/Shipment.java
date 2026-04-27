@@ -1,12 +1,20 @@
 package com.bicap.modules.logistics.entity;
 
-
-
 import com.bicap.modules.order.entity.Order;
 import com.bicap.modules.user.entity.User;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 
-
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,11 +23,12 @@ public class Shipment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "shipment_id")
+    private Long shipmentId;
 
-    private Long id;
-
-    @Column(name = "order_id", nullable = false)
-    private Long orderId;
+    @OneToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false, unique = true)
+    private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "driver_id")
@@ -29,8 +38,12 @@ public class Shipment {
     @JoinColumn(name = "vehicle_id")
     private Vehicle vehicle;
 
-    @Column(name = "status", length = 50)
-    private String status;
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "shipping_manager_id", nullable = false)
+    private User shippingManager;
+
+    @Column(name = "status", nullable = false, length = 30)
+    private String status = "ASSIGNED";
 
     @Column(name = "tracking_code", length = 50)
     private String trackingCode;
@@ -40,35 +53,6 @@ public class Shipment {
 
     @Column(name = "delivery_date")
     private LocalDateTime deliveryDate;
-
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Long getOrderId() { return orderId; }
-    public void setOrderId(Long orderId) { this.orderId = orderId; }
-
-    @Column(name = "shipment_id")
-    private Long shipmentId;
-
-    @OneToOne(optional = false)
-    @JoinColumn(name = "order_id", nullable = false, unique = true)
-    private Order order;
-
-    @ManyToOne
-    @JoinColumn(name = "driver_id")
-    private Driver driver;
-
-    @ManyToOne
-    @JoinColumn(name = "vehicle_id")
-    private Vehicle vehicle;
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "shipping_manager_id", nullable = false)
-    private User shippingManager;
-
-    @Column(name = "status", nullable = false, length = 30)
-    private String status = "ASSIGNED";
 
     @Column(name = "assigned_at")
     private LocalDateTime assignedAt;
@@ -90,7 +74,9 @@ public class Shipment {
         LocalDateTime now = LocalDateTime.now();
         this.createdAt = now;
         this.updatedAt = now;
-        this.assignedAt = now;
+        if (this.assignedAt == null) {
+            this.assignedAt = now;
+        }
     }
 
     @PreUpdate
@@ -101,6 +87,11 @@ public class Shipment {
     public Long getShipmentId() { return shipmentId; }
     public void setShipmentId(Long shipmentId) { this.shipmentId = shipmentId; }
 
+    public Long getId() { return shipmentId; }
+    public void setId(Long id) { this.shipmentId = id; }
+
+    public Long getOrderId() { return order != null ? order.getOrderId() : null; }
+
     public Order getOrder() { return order; }
     public void setOrder(Order order) { this.order = order; }
 
@@ -110,6 +101,8 @@ public class Shipment {
     public Vehicle getVehicle() { return vehicle; }
     public void setVehicle(Vehicle vehicle) { this.vehicle = vehicle; }
 
+    public User getShippingManager() { return shippingManager; }
+    public void setShippingManager(User shippingManager) { this.shippingManager = shippingManager; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
@@ -122,12 +115,6 @@ public class Shipment {
 
     public LocalDateTime getDeliveryDate() { return deliveryDate; }
     public void setDeliveryDate(LocalDateTime deliveryDate) { this.deliveryDate = deliveryDate; }
-
-    public User getShippingManager() { return shippingManager; }
-    public void setShippingManager(User shippingManager) { this.shippingManager = shippingManager; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
 
     public LocalDateTime getAssignedAt() { return assignedAt; }
     public void setAssignedAt(LocalDateTime assignedAt) { this.assignedAt = assignedAt; }
@@ -143,5 +130,4 @@ public class Shipment {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-
 }
