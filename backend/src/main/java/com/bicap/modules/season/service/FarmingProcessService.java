@@ -3,7 +3,7 @@ package com.bicap.modules.season.service;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.SecurityUtils;
 import com.bicap.modules.batch.dto.ProcessBlockchainPayload;
-import com.bicap.modules.batch.service.BlockchainService;
+import com.bicap.modules.batch.service.BatchBlockchainService;
 import com.bicap.modules.season.dto.CreateProcessStepRequest;
 import com.bicap.modules.season.dto.ProcessStepResponse;
 import com.bicap.modules.season.dto.ProcessTimelineResponse;
@@ -30,7 +30,7 @@ public class FarmingProcessService {
     private final FarmingProcessRepository farmingProcessRepository;
     private final FarmingSeasonRepository farmingSeasonRepository;
     private final UserRepository userRepository;
-    private final BlockchainService blockchainService;
+    private final BatchBlockchainService blockchainService;
     private final SeasonService seasonService;
 
     @Transactional

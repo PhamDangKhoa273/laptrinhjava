@@ -22,7 +22,7 @@ class BlockchainServiceAcceptanceTests {
     @Mock BlockchainTransactionRepository transactionRepository;
     @Mock BlockchainProperties properties;
 
-    @InjectMocks BlockchainService service;
+    @InjectMocks BatchBlockchainService service;
 
     @Test
     void saveTransaction_shouldPersistInternalHashWhenBlockchainDisabled() {

@@ -4,7 +4,7 @@ import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.MetricsSecurityEvents;
 import com.bicap.core.security.CustomUserPrincipal;
 import com.bicap.modules.batch.entity.ProductBatch;
-import com.bicap.modules.batch.service.BlockchainService;
+import com.bicap.modules.batch.service.BatchBlockchainService;
 import com.bicap.modules.farm.entity.Farm;
 import com.bicap.modules.listing.entity.ProductListing;
 import com.bicap.modules.listing.repository.ProductListingRepository;
@@ -62,7 +62,7 @@ class OrderServiceTests {
     @Mock private RetailerRepository retailerRepository;
     @Mock private ProductListingRepository listingRepository;
     @Mock private OrderStatusHistoryRepository statusHistoryRepository;
-    @Mock private BlockchainService blockchainService;
+    @Mock private BatchBlockchainService blockchainService;
     @Mock private FarmRepository farmRepository;
     @Mock private com.bicap.modules.shipment.repository.ShipmentRepository shipmentRepository;
     @Mock private NotificationService notificationService;

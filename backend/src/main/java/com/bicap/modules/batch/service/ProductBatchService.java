@@ -42,7 +42,7 @@ public class ProductBatchService {
     private final FarmingProcessRepository farmingProcessRepository;
     private final QrCodeRepository qrCodeRepository;
     private final BlockchainTransactionRepository blockchainTransactionRepository;
-    private final BlockchainService blockchainService;
+    private final BatchBlockchainService blockchainService;
     private final QrCodeService qrCodeService;
     private final SeasonService seasonService;
 
