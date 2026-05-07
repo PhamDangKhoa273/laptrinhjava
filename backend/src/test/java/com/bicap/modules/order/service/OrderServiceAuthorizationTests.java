@@ -1,7 +1,7 @@
 package com.bicap.modules.order.service;
 
 import com.bicap.core.exception.BusinessException;
-import com.bicap.modules.batch.service.BlockchainService;
+import com.bicap.modules.batch.service.BatchBlockchainService;
 import com.bicap.modules.common.notification.service.NotificationService;
 import com.bicap.modules.contract.service.FarmRetailerContractService;
 import com.bicap.modules.farm.repository.FarmRepository;
@@ -34,7 +34,7 @@ class OrderServiceAuthorizationTests {
     @Mock FarmRepository farmRepository;
     @Mock ProductListingRepository listingRepository;
     @Mock OrderStatusHistoryRepository statusHistoryRepository;
-    @Mock BlockchainService blockchainService;
+    @Mock BatchBlockchainService blockchainService;
     @Mock NotificationService notificationService;
     @Mock MediaStorageService mediaStorageService;
     @Mock ShipmentRepository shipmentRepository;

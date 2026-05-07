@@ -41,7 +41,7 @@ class ProductBatchServiceTests {
     @Mock
     private QrCodeRepository qrCodeRepository;
     @Mock
-    private BlockchainService blockchainService;
+    private BatchBlockchainService blockchainService;
     @Mock
     private QrCodeService qrCodeService;
     @Mock

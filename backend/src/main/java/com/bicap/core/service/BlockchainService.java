@@ -1,19 +1,23 @@
 package com.bicap.core.service;
+// Trigger re-save for IDE sync
 
+
+import com.bicap.modules.season.entity.FarmingSeason;
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class BlockchainService {
 
     /**
-     * Giai đoạn 4: Hàm chờ giả lập đẩy dữ liệu lên lưới VeChain (Blockchain).
-     * @param data Dữ liệu cần đẩy lên mạng lưới.
-     * @return Mã Transaction Hash giả lập.
+     * Mock implementation for sending season data to VeChain Thor.
+     * In a real implementation, this would use VeChainThorClient or similar.
      */
-    public String sendToVeChain(Object data) {
-        System.out.println("🔄 [BLOCKCHAIN] Đang giả lập đẩy dữ liệu lên Blockchain... Data: " + data.getClass().getSimpleName());
-        // Giả lập một tx_hash trả về từ Blockchain sau khi ghi giao dịch
-        return "0x-fake-hash-" + UUID.randomUUID().toString().substring(0, 8);
+    public String sendToVeChain(FarmingSeason season) {
+        log.info("Sending season {} to VeChain...", season.getSeasonCode());
+        // Return a dummy transaction hash
+        return "0x" + UUID.randomUUID().toString().replace("-", "");
     }
 }

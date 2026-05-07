@@ -6,7 +6,7 @@ import com.bicap.core.enums.OrderPaymentStatus;
 import com.bicap.core.enums.OrderStatus;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.SecurityUtils;
-import com.bicap.modules.batch.service.BlockchainService;
+import com.bicap.modules.batch.service.BatchBlockchainService;
 import com.bicap.modules.common.notification.dto.CreateNotificationRequest;
 import com.bicap.modules.common.notification.service.NotificationService;
 import com.bicap.modules.contract.service.FarmRetailerContractService;
@@ -59,7 +59,7 @@ public class OrderService {
     private final ProductListingRepository listingRepository;
     private final OrderStatusHistoryRepository statusHistoryRepository;
     private final AuditLogService auditLogService;
-    private final BlockchainService blockchainService;
+    private final BatchBlockchainService blockchainService;
     private final NotificationService notificationService;
     private final MediaStorageService mediaStorageService;
     private final ShipmentRepository shipmentRepository;
@@ -88,7 +88,7 @@ public class OrderService {
                         FarmRepository farmRepository,
                         ProductListingRepository listingRepository,
                         OrderStatusHistoryRepository statusHistoryRepository,
-                        BlockchainService blockchainService,
+                        BatchBlockchainService blockchainService,
                         NotificationService notificationService,
                         MediaStorageService mediaStorageService,
                         ShipmentRepository shipmentRepository,

@@ -34,15 +34,15 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class BlockchainService {
+public class BatchBlockchainService {
 
     private final BlockchainTransactionRepository transactionRepository;
     private final BlockchainProperties properties;
     private final MetricsSecurityEvents metrics;
 
-    public BlockchainService(BlockchainTransactionRepository transactionRepository,
-                             BlockchainProperties properties,
-                             MetricsSecurityEvents metrics) {
+    public BatchBlockchainService(BlockchainTransactionRepository transactionRepository,
+                                  BlockchainProperties properties,
+                                  MetricsSecurityEvents metrics) {
         this.transactionRepository = transactionRepository;
         this.properties = properties;
         this.metrics = metrics;

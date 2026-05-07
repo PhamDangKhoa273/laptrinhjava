@@ -18,14 +18,14 @@ import java.util.List;
 public class BlockchainTxWorker {
 
     private final BlockchainTransactionRepository transactionRepository;
-    private final BlockchainService blockchainService;
+    private final BatchBlockchainService blockchainService;
     private final SecurityAuditService securityAuditService;
 
     @Value("${blockchain.enabled:false}")
     private boolean blockchainEnabled;
 
     public BlockchainTxWorker(BlockchainTransactionRepository transactionRepository,
-                              BlockchainService blockchainService,
+                              BatchBlockchainService blockchainService,
                               SecurityAuditService securityAuditService) {
         this.transactionRepository = transactionRepository;
         this.blockchainService = blockchainService;

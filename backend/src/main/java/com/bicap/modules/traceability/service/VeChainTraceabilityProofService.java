@@ -1,16 +1,16 @@
 package com.bicap.modules.traceability.service;
 
 import com.bicap.modules.batch.entity.BlockchainTransaction;
-import com.bicap.modules.batch.service.BlockchainService;
+import com.bicap.modules.batch.service.BatchBlockchainService;
 import com.bicap.modules.vechain.service.VeChainProofService;
 import org.springframework.stereotype.Service;
 
 @Service
 public class VeChainTraceabilityProofService implements TraceabilityProofService {
-    private final BlockchainService blockchainService;
+    private final BatchBlockchainService blockchainService;
     private final VeChainProofService veChainProofService;
 
-    public VeChainTraceabilityProofService(BlockchainService blockchainService,
+    public VeChainTraceabilityProofService(BatchBlockchainService blockchainService,
                                            VeChainProofService veChainProofService) {
         this.blockchainService = blockchainService;
         this.veChainProofService = veChainProofService;

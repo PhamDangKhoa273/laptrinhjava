@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "qr_codes")
+@Table(name = "logistics_qr_codes")
 public class ShippingQRCode {
 
     @Id

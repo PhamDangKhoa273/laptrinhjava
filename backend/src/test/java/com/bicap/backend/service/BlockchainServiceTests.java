@@ -5,7 +5,7 @@ import com.bicap.modules.batch.config.BlockchainProperties;
 import com.bicap.modules.batch.dto.BlockchainResult;
 import com.bicap.modules.batch.entity.BlockchainTransaction;
 import com.bicap.modules.batch.repository.BlockchainTransactionRepository;
-import com.bicap.modules.batch.service.BlockchainService;
+import com.bicap.modules.batch.service.BatchBlockchainService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,7 +26,7 @@ class BlockchainServiceTests {
     @Mock private BlockchainProperties blockchainProperties;
 
     @InjectMocks
-    private BlockchainService blockchainService;
+    private BatchBlockchainService blockchainService;
 
     @Test
     void retryLatestFailedTransaction_shouldRejectNonFailedStatus() {

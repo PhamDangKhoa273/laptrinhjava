@@ -25,7 +25,7 @@ class BlockchainServiceTests {
     @Mock private BlockchainProperties blockchainProperties;
 
     @InjectMocks
-    private BlockchainService blockchainService;
+    private BatchBlockchainService blockchainService;
 
     @Test
     void retryLatestFailedTransaction_shouldRejectNonFailedStatus() {
