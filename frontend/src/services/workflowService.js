@@ -81,3 +81,90 @@ export async function cancelOrder(orderId, payload) {
 export async function uploadShippingProof(orderId, payload) {
   return unwrap(await api.post(`/orders/${orderId}/shipping-proof`, payload))
 }
+<<<<<<< Updated upstream
+=======
+
+export async function getEligibleShipmentOrders() {
+  return unwrap(await api.get('/shipments/eligible-orders'))
+}
+
+export async function getShipments() {
+  return unwrap(await api.get('/shipments'))
+}
+
+export async function getShipmentReportsForReview() {
+  return unwrap(await api.get('/shipments/reports'))
+}
+
+export async function createShipment(payload) {
+  return unwrap(await api.post('/shipments', payload))
+}
+
+export async function updateShipmentStatus(shipmentId, payload) {
+  return unwrap(await api.patch(`/shipments/${shipmentId}/status`, payload))
+}
+
+export async function getMyShipments() {
+  return unwrap(await api.get('/shipments/mine'))
+}
+
+export async function getFarmShipments() {
+  return unwrap(await api.get('/shipments/farm'))
+}
+
+export async function getRetailerShipments() {
+  return unwrap(await api.get('/shipments/retailer'))
+}
+
+export async function getShipmentById(id) {
+  return unwrap(await api.get(`/shipments/${id}`))
+}
+
+export async function driverConfirmPickup(id, payload) {
+  return unwrap(await api.post(`/shipments/${id}/pickup`, payload))
+}
+
+export async function driverAddCheckpoint(id, payload) {
+  return unwrap(await api.post(`/shipments/${id}/checkpoints`, payload))
+}
+
+export async function driverConfirmHandover(id, payload) {
+  return unwrap(await api.post(`/shipments/${id}/handover`, payload))
+}
+
+export async function driverReportIssue(id, payload) {
+  return unwrap(await api.post(`/shipments/${id}/reports`, payload))
+}
+
+export async function getPublicAnnouncementFeed() {
+  return unwrap(await api.get('/announcements/feed', { skipAuth: true }))
+}
+
+export async function getAdminAnnouncements() {
+  return unwrap(await api.get('/announcements/admin'))
+}
+
+export async function createAnnouncement(payload) {
+  return unwrap(await api.post('/announcements', payload))
+}
+
+export async function updateAnnouncement(id, payload) {
+  return unwrap(await api.put(`/announcements/${id}`, payload))
+}
+
+export async function deleteAnnouncement(id) {
+  return unwrap(await api.delete(`/announcements/${id}`))
+}
+
+export async function getAdminContents() {
+  return unwrap(await api.get('/content/admin/all'))
+}
+
+export async function updateContent(id, payload) {
+  return unwrap(await api.put(`/content/${id}`, payload))
+}
+
+export async function deleteContent(id) {
+  return unwrap(await api.delete(`/content/${id}`))
+}
+>>>>>>> Stashed changes

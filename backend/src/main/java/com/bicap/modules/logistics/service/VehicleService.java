@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import jakarta.persistence.EntityManager;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +28,7 @@ public class VehicleService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final AuditLogService auditLogService;
+    private final EntityManager entityManager;
 
     @Transactional
     public VehicleResponse createVehicle(CreateVehicleRequest request, Long currentUserId) {
@@ -68,8 +70,9 @@ public class VehicleService {
         if (!vehicle.getManagerUser().getUserId().equals(currentUserId)) {
             User actingUser = userRepository.findById(currentUserId)
                     .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
-            boolean isAdmin = userService.hasRole(actingUser, RoleName.ADMIN);
-            if (!isAdmin) {
+            boolean isAuthorized = userService.hasRole(actingUser, RoleName.ADMIN)
+                || userService.hasRole(actingUser, RoleName.SHIPPING_MANAGER);
+            if (!isAuthorized) {
                 throw new BusinessException("Bạn không có quyền cập nhật vehicle này");
             }
         }
@@ -83,6 +86,32 @@ public class VehicleService {
         return toResponse(saved);
     }
 
+<<<<<<< Updated upstream
+=======
+
+    @Transactional
+    public void delete(Long id, Long currentUserId) {
+        Vehicle vehicle = getEntityById(id);
+
+        if (!vehicle.getManagerUser().getUserId().equals(currentUserId)) {
+            User actingUser = userRepository.findById(currentUserId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
+            boolean isAuthorized = userService.hasRole(actingUser, RoleName.ADMIN)
+                || userService.hasRole(actingUser, RoleName.SHIPPING_MANAGER);
+            if (!isAuthorized) {
+                throw new BusinessException("Bạn không có quyền xóa vehicle này");
+            }
+        }
+
+        entityManager.createNativeQuery("UPDATE shipments SET vehicle_id = NULL WHERE vehicle_id = ?1")
+                .setParameter(1, id)
+                .executeUpdate();
+
+        vehicleRepository.delete(vehicle);
+        auditLogService.log(currentUserId, "DELETE_VEHICLE", "VEHICLE", id);
+    }
+
+>>>>>>> Stashed changes
     @Transactional
     public VehicleResponse deactivate(Long id, Long currentUserId) {
         Vehicle vehicle = getEntityById(id);
@@ -90,8 +119,9 @@ public class VehicleService {
         if (!vehicle.getManagerUser().getUserId().equals(currentUserId)) {
             User actingUser = userRepository.findById(currentUserId)
                     .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
-            boolean isAdmin = userService.hasRole(actingUser, RoleName.ADMIN);
-            if (!isAdmin) {
+            boolean isAuthorized = userService.hasRole(actingUser, RoleName.ADMIN)
+                || userService.hasRole(actingUser, RoleName.SHIPPING_MANAGER);
+            if (!isAuthorized) {
                 throw new BusinessException("Bạn không có quyền ngừng kích hoạt vehicle này");
             }
         }

@@ -119,6 +119,13 @@ public class UserService {
                 .toList();
     }
 
+    public List<UserResponse> getUsersByRole(String roleName) {
+        return userRepository.findAll().stream()
+                .filter(u -> u.getRoles().stream().anyMatch(r -> r.getRoleName().equalsIgnoreCase(roleName)))
+                .map(this::toResponse)
+                .toList();
+    }
+
     public UserResponse getUserById(Long userId) {
         return toResponse(getUserEntityById(userId));
     }

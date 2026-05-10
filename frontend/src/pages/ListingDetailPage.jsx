@@ -77,6 +77,7 @@ export function ListingDetailPage() {
           </div>
         </article>
 
+<<<<<<< Updated upstream
         <article className="mp-card">
           <div className="mp-card__body">
             <h3 className="mp-card__title" style={{ whiteSpace: 'normal' }}>Thông tin listing</h3>
@@ -90,6 +91,16 @@ export function ListingDetailPage() {
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
               <Link className="mp-retry-btn" to={`/public/trace?batchId=${listing.batchId}`}>Xem nguồn gốc lô hàng</Link>
               <Link className="mp-retry-btn" to="/dashboard/guest">Quay lại marketplace</Link>
+=======
+          <article className="detail-card">
+            <span className="proto-kicker"><span className="material-symbols-outlined fill">eco</span> Thông tin sản phẩm</span>
+            <h2 className="auth-title">{title}</h2>
+            <p className="public-muted">{listing.description || 'Sản phẩm nông nghiệp đã được công bố công khai trên BICAP, có thông tin nguồn gốc và mã truy xuất để người mua kiểm tra trước khi liên hệ giao dịch.'}</p>
+            <div className="public-grid detail-info-cards" style={{ marginTop: 20 }}>
+              <div className="proto-card" style={{ padding: 16 }}><small>Ngày thu hoạch</small><strong>{formatDate(listing.harvestDate || traceData?.batch?.harvestDate)}</strong></div>
+              <div className="proto-card" style={{ padding: 16 }}><small>Hạn sử dụng</small><strong>{formatDate(listing.expiryDate)}</strong></div>
+              <div className="proto-card" style={{ padding: 16 }}><small>Hạng chất lượng</small><strong>{listing.qualityGrade || traceData?.batch?.qualityGrade || 'Đang cập nhật'}</strong></div>
+>>>>>>> Stashed changes
             </div>
           </div>
         </article>

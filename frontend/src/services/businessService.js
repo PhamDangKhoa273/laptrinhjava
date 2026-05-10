@@ -74,6 +74,10 @@ export async function createDriver(payload) {
   return unwrap(await api.post('/drivers', payload))
 }
 
+export async function createDriverWithUser(payload) {
+  return unwrap(await api.post('/drivers/with-user', payload))
+}
+
 export async function updateDriver(id, payload) {
   return unwrap(await api.put(`/drivers/${id}`, payload))
 }
@@ -90,8 +94,32 @@ export async function updateVehicle(id, payload) {
   return unwrap(await api.put(`/vehicles/${id}`, payload))
 }
 
+<<<<<<< Updated upstream
 export async function getUsers() {
   return unwrap(await api.get('/users'))
+=======
+export async function deactivateVehicle(id) {
+  return unwrap(await api.patch(`/vehicles/${id}/deactivate`))
+}
+
+export async function deleteVehicle(id) {
+  return unwrap(await api.delete(`/vehicles/${id}`))
+}
+
+export async function getUsers(role) {
+  try {
+    const params = role ? `?role=${role}` : ''
+    const payload = unwrap(await api.get('/users' + params))
+    if (Array.isArray(payload)) return payload
+    if (Array.isArray(payload?.items)) return payload.items
+    if (Array.isArray(payload?.content)) return payload.content
+    if (Array.isArray(payload?.users)) return payload.users
+    return []
+  } catch (error) {
+    if (error?.response?.status === 403) return []
+    throw error
+  }
+>>>>>>> Stashed changes
 }
 
 export async function assignUserRole(id, roleName) {
