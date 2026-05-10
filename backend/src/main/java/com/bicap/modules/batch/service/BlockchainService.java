@@ -31,7 +31,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-@Service
+@Service("web3jBlockchainService")
 public class BlockchainService {
 
     private final BlockchainTransactionRepository transactionRepository;

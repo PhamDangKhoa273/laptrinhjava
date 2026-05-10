@@ -66,6 +66,22 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/product/trace/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/trace/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/listings", "/api/v1/listings/**").permitAll()
+<<<<<<< Updated upstream
+=======
+                .requestMatchers(HttpMethod.GET, "/api/v1/announcements/admin").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/v1/announcements").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/v1/announcements/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/announcements/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/v1/announcements/active", "/api/v1/announcements/feed").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/content/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/v1/content").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/v1/content/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/content/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/v1/content", "/api/v1/content/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/batches/*/verify").permitAll()
+                .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/notifications/**").authenticated()
+>>>>>>> Stashed changes
                 .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/products", "/api/v1/search").permitAll()
                 .anyRequest().authenticated()
             );

@@ -4,6 +4,7 @@ import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.SecurityUtils;
 import com.bicap.modules.content.dto.CreateEducationalContentRequest;
 import com.bicap.modules.content.dto.EducationalContentResponse;
+import com.bicap.modules.content.dto.UpdateEducationalContentRequest;
 import com.bicap.modules.content.entity.EducationalContent;
 import com.bicap.modules.content.repository.EducationalContentRepository;
 import com.bicap.modules.user.entity.User;
@@ -30,7 +31,7 @@ public class EducationalContentService {
     @Transactional
     public EducationalContentResponse create(CreateEducationalContentRequest request) {
         User author = userRepository.findById(SecurityUtils.getCurrentUserId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy tác giả"));
+                .orElseThrow(() -> new BusinessException("Khong tim thay tac gia"));
 
         EducationalContent content = new EducationalContent();
         content.setTitle(request.getTitle().trim());
@@ -45,6 +46,38 @@ public class EducationalContentService {
         return toResponse(educationalContentRepository.save(content));
     }
 
+    @Transactional
+    public EducationalContentResponse update(Long id, UpdateEducationalContentRequest request) {
+        EducationalContent content = educationalContentRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Khong tim thay noi dung"));
+
+        if (request.getTitle() != null && !request.getTitle().isBlank()) {
+            content.setTitle(request.getTitle().trim());
+        }
+        if (request.getSummary() != null) {
+            content.setSummary(trimToNull(request.getSummary()));
+        }
+        if (request.getBody() != null && !request.getBody().isBlank()) {
+            content.setBody(request.getBody().trim());
+        }
+        if (request.getContentType() != null && !request.getContentType().isBlank()) {
+            content.setContentType(request.getContentType().trim().toUpperCase());
+        }
+        content.setMediaUrl(trimToNull(request.getMediaUrl()));
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            content.setStatus(request.getStatus().trim().toUpperCase());
+        }
+
+        return toResponse(educationalContentRepository.save(content));
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        EducationalContent content = educationalContentRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Khong tim thay noi dung"));
+        educationalContentRepository.delete(content);
+    }
+
     public List<EducationalContentResponse> getPublishedContents() {
         return educationalContentRepository.findByStatusOrderByCreatedAtDesc("PUBLISHED")
                 .stream()
@@ -52,10 +85,18 @@ public class EducationalContentService {
                 .toList();
     }
 
+    public List<EducationalContentResponse> getAllForAdmin() {
+        return educationalContentRepository.findAll()
+                .stream()
+                .sorted((a, b) -> b.getUpdatedAt().compareTo(a.getUpdatedAt()))
+                .map(this::toResponse)
+                .toList();
+    }
+
     public EducationalContentResponse getBySlug(String slug) {
         return educationalContentRepository.findBySlug(slug)
                 .map(this::toResponse)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy nội dung"));
+                .orElseThrow(() -> new BusinessException("Khong tim thay noi dung"));
     }
 
     private EducationalContentResponse toResponse(EducationalContent content) {

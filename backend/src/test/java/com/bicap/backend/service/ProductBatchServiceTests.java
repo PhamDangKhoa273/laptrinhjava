@@ -113,7 +113,11 @@ class ProductBatchServiceTests {
             QrCodeResponse response = productBatchService.generateQrCode(30L);
 
             assertEquals("QR-BATCH-30", response.getSerialNo());
+<<<<<<< Updated upstream
             assertEquals("/trace/batches/30", response.getQrUrl());
+=======
+            assertEquals("http://localhost:5173/public-trace?batchId=30", response.getQrUrl());
+>>>>>>> Stashed changes
             assertTrue(response.getQrCodeData().contains("batchId=30"));
         }
     }

@@ -31,6 +31,11 @@ import static com.bicap.core.enums.RoleName.GUEST;
 @Service
 public class AuthService {
 
+<<<<<<< Updated upstream
+=======
+    private static final Set<RoleName> SELF_REGISTER_ROLES = Set.of(RoleName.FARM, RoleName.RETAILER, RoleName.SHIPPING_MANAGER);
+
+>>>>>>> Stashed changes
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
@@ -64,7 +69,16 @@ public class AuthService {
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
+<<<<<<< Updated upstream
         User savedUser = userService.createUser(
+=======
+        RoleName requestedRole = request.getRole() != null ? request.getRole() : RoleName.FARM;
+        if (!SELF_REGISTER_ROLES.contains(requestedRole)) {
+            throw new BusinessException("Chỉ được tự đăng ký tài khoản Farm, Retailer hoặc Shipping Manager");
+        }
+
+        UserResponse savedUser = userService.createUser(
+>>>>>>> Stashed changes
                 request.getFullName(),
                 request.getEmail(),
                 request.getPassword(),

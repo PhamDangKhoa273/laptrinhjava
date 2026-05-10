@@ -56,6 +56,7 @@ public class ProductListingController {
         }
 
         Page<ListingResponse> listings = listingService.getPublicListings(page, size, sort);
+<<<<<<< Updated upstream
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("items", listings.getContent());
         payload.put("page", listings.getNumber());
@@ -69,6 +70,33 @@ public class ProductListingController {
     /**
      * GET /api/v1/listings/{id} — Get listing detail
      */
+=======
+        return ResponseEntity.ok(ApiResponse.success("Lay danh sach listing thanh cong", PagedResponse.of(listings.getContent(), listings.getNumber(), listings.getSize(), listings.getTotalElements(), listings.getTotalPages(), sort)));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PagedResponse<ListingResponse>>> searchPublicListings(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String province,
+            @RequestParam(required = false) String certification,
+            @RequestParam(required = false) String productCategory,
+            @RequestParam(required = false) Boolean availableOnly,
+            @RequestParam(required = false) Boolean verifiedOnly,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate harvestFrom,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate harvestTo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        Page<ListingResponse> listings = listingService.searchPublicListings(keyword, province, certification, productCategory, availableOnly, verifiedOnly, harvestFrom, harvestTo, page, size, sort);
+        return ResponseEntity.ok(ApiResponse.success("Tim listing cong khai thanh cong", PagedResponse.of(listings.getContent(), listings.getNumber(), listings.getSize(), listings.getTotalElements(), listings.getTotalPages(), sort)));
+    }
+
+    @GetMapping("/filter-options")
+    public ResponseEntity<ApiResponse<Map<String, List<String>>>> getFilterOptions() {
+        return ResponseEntity.ok(ApiResponse.success(listingService.getFilterOptions()));
+    }
+
+>>>>>>> Stashed changes
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ListingResponse>> getListingById(@PathVariable Long id) {
         ListingResponse response = listingService.getListingById(id);

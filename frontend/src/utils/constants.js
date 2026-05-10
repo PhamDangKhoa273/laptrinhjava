@@ -21,7 +21,7 @@ export const ROLE_DASHBOARD_PATHS = {
   [ROLES.FARM]: '/dashboard/farm',
   [ROLES.RETAILER]: '/dashboard/retailer',
   [ROLES.SHIPPING_MANAGER]: '/dashboard/shipping-manager',
-  [ROLES.DRIVER]: '/dashboard/driver',
+  [ROLES.DRIVER]: '/driver/mobile',
   [ROLES.GUEST]: '/dashboard/guest',
 }
 

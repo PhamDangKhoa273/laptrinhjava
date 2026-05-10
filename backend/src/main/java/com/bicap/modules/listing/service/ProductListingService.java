@@ -26,7 +26,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+<<<<<<< Updated upstream
 import java.util.List;
+=======
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+>>>>>>> Stashed changes
 import java.util.Set;
 
 @Service
@@ -167,6 +175,93 @@ public class ProductListingService {
         return toResponse(saved);
     }
 
+<<<<<<< Updated upstream
+=======
+
+    public Page<ListingResponse> searchPublicListings(String keyword, String province, String certification, String productCategory, Boolean availableOnly, Boolean verifiedOnly, LocalDate harvestFrom, LocalDate harvestTo, int page, int size, String sort) {
+        Pageable pageable = PageRequest.of(page, size, resolvePublicSort(sort));
+        List<ListingResponse> filtered = listingRepository.findByStatusAndApprovalStatus(ListingStatus.ACTIVE.name(), ApprovalStatus.APPROVED.name(), resolvePublicSort(sort))
+                .stream()
+                .map(this::toResponse)
+                .filter(listing -> matchesKeyword(listing, keyword))
+                .filter(listing -> matchesProvince(listing, province))
+                .filter(listing -> matchesCertification(listing, certification))
+                .filter(listing -> matchesProductCategory(listing, productCategory))
+                .filter(listing -> availableOnly == null || !availableOnly || Boolean.TRUE.equals(listing.getAvailableForRetailer()))
+                .filter(listing -> verifiedOnly == null || !verifiedOnly || isVerifiedCertification(listing.getCertificationStatus()))
+                .filter(listing -> matchesHarvestRange(listing, harvestFrom, harvestTo))
+                .toList();
+        int total = filtered.size();
+        int from = Math.min(page * size, total);
+        int to = Math.min(from + size, total);
+        return new org.springframework.data.domain.PageImpl<>(filtered.subList(from, to), pageable, total);
+    }
+
+    private boolean matchesKeyword(ListingResponse listing, String keyword) {
+        if (keyword == null || keyword.isBlank()) return true;
+        String n = keyword.trim().toLowerCase();
+        return contains(listing.getTitle(), n) || contains(listing.getProductName(), n) || contains(listing.getFarmName(), n) || contains(listing.getProvince(), n) || contains(listing.getProductCategory(), n);
+    }
+
+    private boolean matchesProvince(ListingResponse listing, String province) {
+        if (province == null || province.isBlank()) return true;
+        return normalizeRegion(listing.getProvince()).contains(normalizeRegion(province));
+    }
+
+    private boolean matchesCertification(ListingResponse listing, String certification) {
+        if (certification == null || certification.isBlank()) return true;
+        return normalizeRegion(listing.getCertificationStatus()).contains(normalizeRegion(certification));
+    }
+
+    private boolean matchesProductCategory(ListingResponse listing, String productCategory) {
+        if (productCategory == null || productCategory.isBlank()) return true;
+        return contains(listing.getProductCategory(), productCategory);
+    }
+
+    private boolean isVerifiedCertification(String certificationStatus) {
+        return certificationStatus != null && Set.of("VIETGAP", "GLOBALGAP", "ORGANIC").contains(certificationStatus.trim().toUpperCase());
+    }
+
+    private boolean matchesHarvestRange(ListingResponse listing, LocalDate harvestFrom, LocalDate harvestTo) {
+        if (harvestFrom == null && harvestTo == null) return true;
+        LocalDate harvestDate = listing.getHarvestDate();
+        if (harvestDate == null) return false;
+        if (harvestFrom != null && harvestDate.isBefore(harvestFrom)) return false;
+        if (harvestTo != null && harvestDate.isAfter(harvestTo)) return false;
+        return true;
+    }
+
+    private boolean contains(String value, String needle) {
+        return value != null && value.toLowerCase().contains(needle);
+    }
+
+    private String normalizeRegion(String value) {
+        if (value == null) return "";
+        return value.trim().toLowerCase()
+                .replace("tp.", "")
+                .replace("thành phố", "")
+                .replace("tỉnh", "")
+                .replace("-", " ")
+                .replaceAll("\s+", " ");
+    }
+
+    private void ensureListingQuantityWithinBatch(ProductBatch batch, BigDecimal requestedQuantity, Long excludeListingId) {
+        if (requestedQuantity == null || requestedQuantity.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("Số lượng listing phải lớn hơn 0");
+        }
+        BigDecimal batchCapacity = batch.getQuantity() != null ? batch.getQuantity() : batch.getAvailableQuantity();
+        if (batchCapacity == null) throw new BusinessException("Batch chưa có số lượng hợp lệ để tạo listing");
+        BigDecimal alreadyListed = listingRepository.sumListedQuantityByBatchId(batch.getBatchId(), excludeListingId);
+        if (alreadyListed == null) {
+            alreadyListed = BigDecimal.ZERO;
+        }
+        BigDecimal requestedTotal = alreadyListed.add(requestedQuantity);
+        if (requestedTotal.compareTo(batchCapacity) > 0) {
+            throw new BusinessException("Tổng số lượng listing của batch (" + requestedTotal + ") vượt quá sản lượng batch (" + batchCapacity + ")");
+        }
+    }
+
+>>>>>>> Stashed changes
     private Sort resolvePublicSort(String sort) {
         if (sort == null || sort.isBlank()) {
             return Sort.by(Sort.Direction.DESC, "createdAt");
@@ -329,6 +424,17 @@ public class ProductListingService {
         if (batch.getBatchStatus() != null && "SOLD_OUT".equalsIgnoreCase(batch.getBatchStatus())) {
             throw new BusinessException("Batch đã bán hết, không thể đưa lên sàn.");
         }
+    }
+
+    public Map<String, List<String>> getFilterOptions() {
+        String status = ListingStatus.ACTIVE.name();
+        String approval = ApprovalStatus.APPROVED.name();
+        List<String> provinces = listingRepository.findDistinctProvincesByStatusAndApprovalStatus(status, approval);
+        List<String> certifications = listingRepository.findDistinctCertificationsByStatusAndApprovalStatus(status, approval);
+        Map<String, List<String>> result = new HashMap<>();
+        result.put("provinces", provinces);
+        result.put("certifications", certifications);
+        return result;
     }
 
     private String trimToNull(String value) {

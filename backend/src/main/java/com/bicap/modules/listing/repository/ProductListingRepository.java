@@ -13,6 +13,12 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface ProductListingRepository extends JpaRepository<ProductListing, Long>, JpaSpecificationExecutor<ProductListing> {
 
+    @Query("SELECT DISTINCT f.province FROM ProductListing pl JOIN pl.batch b JOIN b.season s JOIN s.farm f WHERE pl.status = :status AND pl.approvalStatus = :approvalStatus AND f.province IS NOT NULL AND f.province <> '' ORDER BY f.province")
+    List<String> findDistinctProvincesByStatusAndApprovalStatus(@Param("status") String status, @Param("approvalStatus") String approvalStatus);
+
+    @Query("SELECT DISTINCT f.certificationStatus FROM ProductListing pl JOIN pl.batch b JOIN b.season s JOIN s.farm f WHERE pl.status = :status AND pl.approvalStatus = :approvalStatus AND f.certificationStatus IS NOT NULL AND f.certificationStatus <> '' ORDER BY f.certificationStatus")
+    List<String> findDistinctCertificationsByStatusAndApprovalStatus(@Param("status") String status, @Param("approvalStatus") String approvalStatus);
+
     List<ProductListing> findByStatus(String status);
 
     Page<ProductListing> findByStatus(String status, Pageable pageable);

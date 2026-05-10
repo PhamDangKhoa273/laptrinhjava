@@ -26,6 +26,7 @@ public class NotificationService {
     }
 
     @Transactional
+<<<<<<< Updated upstream
     public NotificationResponse create(CreateNotificationRequest request) {
         if ((request.getRecipientUserId() == null && (request.getRecipientRole() == null || request.getRecipientRole().isBlank()))
                 || (request.getRecipientUserId() != null && request.getRecipientRole() != null && !request.getRecipientRole().isBlank())) {
@@ -43,18 +44,176 @@ public class NotificationService {
             notification.setRecipientUser(recipient);
         } else {
             notification.setRecipientRole(request.getRecipientRole().trim().toUpperCase());
+=======
+    public List<NotificationResponse> create(CreateNotificationRequest request) {
+        User sender = userRepository.findById(SecurityUtils.getCurrentUserId())
+                .orElseThrow(() -> new BusinessException("Không tìm thấy người gửi"));
+        rateLimitService.checkPerUser("notification:" + sender.getUserId());
+        enforceSendRateLimit(sender.getUserId());
+
+        String normalizedRecipientRole = request.getRecipientRole() != null ? request.getRecipientRole().trim() : null;
+        if (normalizedRecipientRole != null && normalizedRecipientRole.isBlank()) {
+            normalizedRecipientRole = null;
+        }
+        if ((request.getRecipientUserId() == null && normalizedRecipientRole == null)
+                || (request.getRecipientUserId() != null && normalizedRecipientRole != null)) {
+            throw new BusinessException("Phải chỉ định đúng một đích nhận: recipientUserId hoặc recipientRole");
         }
 
+        List<String> roles = new ArrayList<>();
+        if (normalizedRecipientRole != null) {
+            String[] parts = normalizedRecipientRole.split(",");
+            for (String part : parts) {
+                String trimmed = part.trim().toUpperCase();
+                if (!trimmed.isEmpty()) roles.add(trimmed);
+            }
+        }
+
+        if (request.getTargetType() != null && request.getTargetId() != null) {
+            enforceThreadPermission(sender, roles, request.getTargetType(), request.getTargetId(), request.getRecipientUserId());
+        } else {
+            enforceBroadcastPermission(sender, roles, request.getRecipientUserId());
+        }
+
+        List<NotificationResponse> results = new ArrayList<>();
+        if (request.getRecipientUserId() != null) {
+            User recipient = userRepository.findById(request.getRecipientUserId())
+                    .orElseThrow(() -> new BusinessException("Không tìm thấy người nhận"));
+            Notification notification = buildNotification(sender, recipient, null, request);
+            results.add(toResponse(notificationRepository.save(notification)));
+        } else {
+            for (String role : roles) {
+                Notification notification = buildNotification(sender, null, role, request);
+                results.add(toResponse(notificationRepository.save(notification)));
+            }
+>>>>>>> Stashed changes
+        }
+
+        return results;
+    }
+
+    private Notification buildNotification(User sender, User recipient, String role, CreateNotificationRequest request) {
+        Notification notification = new Notification();
+        notification.setSenderUser(sender);
+        notification.setRecipientUser(recipient);
+        notification.setRecipientRole(role);
         notification.setTitle(request.getTitle().trim());
         notification.setMessage(request.getMessage().trim());
         notification.setNotificationType(request.getNotificationType().trim().toUpperCase());
         notification.setTargetType(request.getTargetType() != null ? request.getTargetType().trim().toUpperCase() : null);
         notification.setTargetId(request.getTargetId());
         notification.setRead(false);
-
-        return toResponse(notificationRepository.save(notification));
+        return notification;
     }
 
+<<<<<<< Updated upstream
+=======
+    private void enforceSendRateLimit(Long senderUserId) {
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(10);
+        long sentRecently = notificationRepository.findAll().stream()
+                .filter(n -> n.getSenderUser() != null && senderUserId.equals(n.getSenderUser().getUserId()))
+                .filter(n -> n.getCreatedAt() != null && n.getCreatedAt().isAfter(cutoff))
+                .count();
+        if (sentRecently >= MAX_NOTIFICATIONS_PER_10_MINUTES) {
+            throw new BusinessException("Gửi notification quá nhanh, vui lòng thử lại sau");
+        }
+    }
+
+    private void enforceBroadcastPermission(User sender, List<String> roles, Long recipientUserId) {
+        boolean isAdmin = hasRole(sender, RoleName.ADMIN.name());
+        boolean isShipping = hasRole(sender, RoleName.SHIPPING_MANAGER.name());
+
+        if (recipientUserId != null) {
+            if (!(isAdmin || isShipping)) {
+                throw new BusinessException("Chỉ admin hoặc shipping manager được gửi trực tiếp cho user");
+            }
+            return;
+        }
+
+        if (roles == null || roles.isEmpty()) {
+            throw new BusinessException("Đích nhận không hợp lệ");
+        }
+
+        for (String role : roles) {
+            boolean allowed = false;
+            if (isAdmin && ("PUBLIC".equalsIgnoreCase(role) || "SYSTEM".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role))) {
+                allowed = true;
+            }
+            if (isShipping && ("FARM".equalsIgnoreCase(role) || "RETAILER".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role))) {
+                allowed = true;
+            }
+            if (!allowed) {
+                throw new BusinessException("Không có quyền gửi notification đến vai trò " + role);
+            }
+        }
+    }
+
+    private void enforceThreadPermission(User sender, List<String> roles, String targetType, Long targetId, Long recipientUserId) {
+        String normalizedTargetType = targetType.trim().toUpperCase();
+        String recipientRole = (roles != null && roles.size() == 1) ? roles.get(0) : null;
+        if ("ORDER".equals(normalizedTargetType)) {
+            OrderContext ctx = resolveOrderContext(targetId);
+            if (hasRole(sender, RoleName.ADMIN.name()) || hasRole(sender, RoleName.SHIPPING_MANAGER.name())) return;
+            if (hasRole(sender, RoleName.RETAILER.name()) && ctx.retailerUserId != null && ctx.retailerUserId.equals(sender.getUserId())) {
+                if (recipientRole != null && !"FARM".equalsIgnoreCase(recipientRole)) throw new BusinessException("Retailer chỉ được nhắn cho farm trong thread order");
+                if (recipientUserId != null && !recipientUserId.equals(ctx.farmUserId)) throw new BusinessException("Người nhận không hợp lệ");
+                return;
+            }
+            if (hasRole(sender, RoleName.FARM.name()) && ctx.farmUserId != null && ctx.farmUserId.equals(sender.getUserId())) {
+                if (recipientRole != null && !"RETAILER".equalsIgnoreCase(recipientRole)) throw new BusinessException("Farm chỉ được nhắn cho retailer trong thread order");
+                if (recipientUserId != null && !recipientUserId.equals(ctx.retailerUserId)) throw new BusinessException("Người nhận không hợp lệ");
+                return;
+            }
+            throw new BusinessException("Không có quyền gửi trong thread order này");
+        }
+
+        if ("CONTRACT".equals(normalizedTargetType)) {
+            ContractContext ctx = resolveContractContext(targetId);
+            if (hasRole(sender, RoleName.ADMIN.name())) return;
+            if (hasRole(sender, RoleName.RETAILER.name()) && ctx.retailerUserId != null && ctx.retailerUserId.equals(sender.getUserId())) {
+                if (recipientRole != null && !"FARM".equalsIgnoreCase(recipientRole)) throw new BusinessException("Retailer chỉ được nhắn cho farm trong thread contract");
+                if (recipientUserId != null && !recipientUserId.equals(ctx.farmUserId)) throw new BusinessException("Người nhận không hợp lệ");
+                return;
+            }
+            if (hasRole(sender, RoleName.FARM.name()) && ctx.farmUserId != null && ctx.farmUserId.equals(sender.getUserId())) {
+                if (recipientRole != null && !"RETAILER".equalsIgnoreCase(recipientRole)) throw new BusinessException("Farm chỉ được nhắn cho retailer trong thread contract");
+                if (recipientUserId != null && !recipientUserId.equals(ctx.retailerUserId)) throw new BusinessException("Người nhận không hợp lệ");
+                return;
+            }
+            throw new BusinessException("Không có quyền gửi trong thread contract này");
+        }
+
+        throw new BusinessException("targetType không hợp lệ cho thread message");
+    }
+
+    private boolean hasRole(User user, String role) {
+        return user.getRoles().stream().anyMatch(r -> r.getRoleName().equalsIgnoreCase(role));
+    }
+
+    private OrderContext resolveOrderContext(Long orderId) {
+        var order = orderRepository.findById(orderId).orElseThrow(() -> new BusinessException("Không tìm thấy order"));
+        var retailer = retailerRepository.findById(order.getRetailerId()).orElse(null);
+        var farm = farmRepository.findById(order.getFarmId()).orElse(null);
+        return new OrderContext(
+                retailer != null && retailer.getUser() != null ? retailer.getUser().getUserId() : null,
+                farm != null && farm.getOwnerUser() != null ? farm.getOwnerUser().getUserId() : null
+        );
+    }
+
+    private ContractContext resolveContractContext(Long contractId) {
+        var contract = contractRepository.findById(contractId).orElseThrow(() -> new BusinessException("Không tìm thấy contract"));
+        var retailer = retailerRepository.findById(contract.getRetailerId()).orElse(null);
+        var farm = farmRepository.findById(contract.getFarmId()).orElse(null);
+        return new ContractContext(
+                retailer != null && retailer.getUser() != null ? retailer.getUser().getUserId() : null,
+                farm != null && farm.getOwnerUser() != null ? farm.getOwnerUser().getUserId() : null
+        );
+    }
+
+    private record OrderContext(Long retailerUserId, Long farmUserId) {}
+    private record ContractContext(Long retailerUserId, Long farmUserId) {}
+
+>>>>>>> Stashed changes
     public List<NotificationResponse> getMyNotifications() {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         User currentUser = userRepository.findById(currentUserId)
