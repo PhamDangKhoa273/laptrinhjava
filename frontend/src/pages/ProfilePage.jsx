@@ -1,151 +1,122 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Button } from '../components/Button.jsx'
-import { RoleBadge } from '../components/RoleBadge.jsx'
-import { TextAreaField } from '../components/TextAreaField.jsx'
-import { TextInput } from '../components/TextInput.jsx'
+import { useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
-import { getErrorMessage, getPrimaryRole, mapBackendValidationErrors } from '../utils/helpers'
-import { ROLES } from '../utils/constants'
-import { validateProfileForm } from '../utils/validation'
-
-function buildInitialForm(user) {
-  return {
-    fullName: user?.fullName || user?.name || '',
-    email: user?.email || '',
-    phoneNumber: user?.phoneNumber || user?.phone || '',
-    avatarUrl: user?.avatarUrl || '',
-    notes: '',
-  }
-}
+import { changePassword } from '../services/authService.js'
+import { getErrorMessage } from '../utils/helpers.js'
 
 export function ProfilePage() {
-  const { user, refreshProfile, updateProfile } = useAuth()
-  const role = getPrimaryRole(user)
-  const [form, setForm] = useState(buildInitialForm(user))
-  const [errors, setErrors] = useState({})
+  const { user, updateProfile } = useAuth()
+  const [profileForm, setProfileForm] = useState({
+    fullName: user?.fullName || user?.name || '',
+    phone: user?.phoneNumber || user?.phone || '',
+    avatarUrl: user?.avatarUrl || '',
+  })
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [savingPassword, setSavingPassword] = useState(false)
+  const [status, setStatus] = useState('')
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [refreshing, setRefreshing] = useState(false)
 
-  useEffect(() => {
-    setForm(buildInitialForm(user))
-  }, [user])
+  const initials = useMemo(() => (profileForm.fullName || user?.email || 'B').trim().slice(0, 1).toUpperCase(), [profileForm.fullName, user?.email])
+  const roleLabel = user?.role || user?.roles?.[0] || user?.roleName || 'Authenticated User'
 
-  const roleSummary = useMemo(() => {
-    if (role === ROLES.FARM) return 'Farm role is assigned, but business profile modules are not yet connected to the current backend.'
-    if (role === ROLES.RETAILER) return 'Retailer role is assigned, but extended business profile modules are still placeholder-only.'
-    if (role === ROLES.SHIPPING_MANAGER) return 'Shipping manager role is available for navigation, waiting for deeper backend modules.'
-    if (role === ROLES.DRIVER) return 'Driver role is available for navigation, waiting for profile and logistics tables.'
-    return 'Basic account profile connected to the current backend user model.'
-  }, [role])
-
-  function handleChange(event) {
-    const { name, value } = event.target
-    setForm((prev) => ({ ...prev, [name]: value }))
-    setErrors((prev) => ({ ...prev, [name]: '' }))
-  }
-
-  async function handleRefresh() {
-    if (refreshing) return
-
+  async function submitProfile(event) {
+    event.preventDefault()
+    setSavingProfile(true)
     setError('')
-    setSuccess('')
-    setRefreshing(true)
+    setStatus('')
     try {
-      await refreshProfile()
-      setSuccess('Profile refreshed from backend.')
+      await updateProfile(profileForm)
+      setStatus('Hồ sơ đã được cập nhật từ backend.')
     } catch (err) {
-      setError(getErrorMessage(err, 'Unable to refresh profile.'))
+      setError(getErrorMessage(err, 'Không thể cập nhật hồ sơ.'))
     } finally {
-      setRefreshing(false)
+      setSavingProfile(false)
     }
   }
 
-  async function handleSubmit(event) {
+  async function submitPassword(event) {
     event.preventDefault()
-    if (loading) return
-
-    const nextErrors = validateProfileForm(form, role)
-    setErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) return
-
-    setLoading(true)
     setError('')
-    setSuccess('')
-
+    setStatus('')
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setError('Mật khẩu xác nhận không khớp.')
+      return
+    }
+    setSavingPassword(true)
     try {
-      await updateProfile({
-        fullName: form.fullName.trim(),
-        phoneNumber: form.phoneNumber.trim(),
-        avatarUrl: form.avatarUrl.trim(),
-      })
-      setSuccess('Profile updated successfully.')
+      const message = await changePassword(passwordForm)
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      setStatus(message || 'Mật khẩu đã được cập nhật.')
     } catch (err) {
-      const fieldErrors = mapBackendValidationErrors(err)
-      if (Object.keys(fieldErrors).length > 0) {
-        setErrors((prev) => ({ ...prev, ...fieldErrors }))
-      }
-      setError(getErrorMessage(err, 'Unable to update profile.'))
+      setError(getErrorMessage(err, 'Không thể đổi mật khẩu.'))
     } finally {
-      setLoading(false)
+      setSavingPassword(false)
     }
   }
 
   return (
-    <section className="page-section">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">Profile center</p>
-          <h2>Manage account profile</h2>
-          <p>{roleSummary}</p>
+    <section className="bicap-profile-prototype strict-profile-prototype" aria-labelledby="profile-prototype-title">
+      <section className="profile-prototype-header strict-profile-header">
+        <div className="profile-prototype-cover" aria-hidden="true" />
+        <div className="profile-prototype-avatar-wrap">
+          <div className="profile-prototype-avatar"><span>{initials}</span></div>
         </div>
-        <div className="section-actions">
-          <RoleBadge role={role} />
-          <Button variant="secondary" onClick={handleRefresh} disabled={refreshing}>{refreshing ? 'Refreshing...' : 'Refresh profile'}</Button>
+        <div className="profile-prototype-identity">
+          <div className="profile-prototype-name-row">
+            <h1 id="profile-prototype-title">{profileForm.fullName || user?.email || 'BICAP User'}</h1>
+            <span className="profile-prototype-verified"><span className="material-symbols-outlined" aria-hidden="true">verified</span>Verified Account</span>
+          </div>
+          <p><span className="material-symbols-outlined" aria-hidden="true">mail</span>{user?.email || 'No email on file'}</p>
         </div>
-      </div>
+        <div className="profile-prototype-status"><span>Account Status</span><strong><i /> {user?.status || 'ACTIVE'}</strong></div>
+      </section>
 
-      <div className="profile-summary-grid">
-        <article className="glass-card">
-          <span className="summary-label">Current email</span>
-          <strong>{user?.email || 'Not available'}</strong>
-        </article>
-        <article className="glass-card">
-          <span className="summary-label">Assigned roles</span>
-          <strong>{Array.isArray(user?.roles) ? user.roles.map((item) => item.name || item).join(', ') : role}</strong>
-        </article>
-        <article className="glass-card">
-          <span className="summary-label">Account status</span>
-          <strong>{user?.status || 'ACTIVE'}</strong>
-        </article>
-      </div>
+      {error ? <div className="driver-alert error">{error}</div> : null}
+      {status ? <div className="driver-alert success">{status}</div> : null}
 
-      <form className="form-grid glass-card" onSubmit={handleSubmit}>
-        <div className="grid-two">
-          <TextInput label="Full name" name="fullName" value={form.fullName} onChange={handleChange} error={errors.fullName} required />
-          <TextInput label="Email" name="email" type="email" value={form.email} onChange={handleChange} error={errors.email} required disabled />
+      <form className="strict-profile-grid" onSubmit={submitProfile}>
+        <div className="strict-profile-left">
+          <article className="profile-prototype-card strict-profile-card">
+            <div className="profile-prototype-card-head"><h2>Personal Information</h2><button type="submit" disabled={savingProfile}><span className="material-symbols-outlined" aria-hidden="true">save</span>{savingProfile ? 'Saving...' : 'Save Details'}</button></div>
+            <div className="strict-info-grid">
+              <label className="strict-readonly-field editable"><span>Full Name</span><input value={profileForm.fullName} onChange={e => setProfileForm({ ...profileForm, fullName: e.target.value })} required /></label>
+              <label className="strict-readonly-field"><span>Email Address</span><input value={user?.email || ''} readOnly /></label>
+              <label className="strict-readonly-field editable"><span>Phone Number</span><input value={profileForm.phone} onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} /></label>
+              <label className="strict-readonly-field"><span>Account Role</span><input value={roleLabel} readOnly /></label>
+            </div>
+          </article>
+
+          <article className="profile-prototype-card strict-profile-card">
+            <div className="profile-prototype-card-title"><span className="material-symbols-outlined" aria-hidden="true">business</span><h2>Business Information</h2></div>
+            <div className="strict-business-form">
+              <div className="strict-info-grid two">
+                <label className="strict-readonly-field"><span>User ID</span><input value={user?.userId || user?.id || 'N/A'} readOnly /></label>
+                <label className="strict-readonly-field certificate"><span>Certification Status</span><div><span className="material-symbols-outlined" aria-hidden="true">shield_person</span>{user?.certificationStatus || 'Managed by role module'}</div></label>
+              </div>
+              <label className="strict-readonly-field textarea-field"><span>Profile Source</span><textarea value="Thông tin tài khoản được lấy từ /auth/me và cập nhật qua /users/me/profile." readOnly rows={2} /></label>
+            </div>
+          </article>
         </div>
 
-        <div className="grid-two">
-          <TextInput label="Phone number" name="phoneNumber" value={form.phoneNumber} onChange={handleChange} error={errors.phoneNumber} />
-          <TextInput label="Avatar URL" name="avatarUrl" value={form.avatarUrl} onChange={handleChange} error={errors.avatarUrl} />
-        </div>
+        <aside className="strict-profile-right">
+          <article className="profile-prototype-card strict-profile-card strict-security-card">
+            <div className="profile-prototype-card-title"><span className="material-symbols-outlined" aria-hidden="true">lock</span><h2>Security</h2></div>
+            <div className="strict-2fa-row"><div><span className="material-symbols-outlined" aria-hidden="true">security</span><p><strong>Password Protected</strong><small>Strong password policy enforced by backend</small></p></div><button type="button" aria-label="Password protection enabled"><span /></button></div>
+            <div className="strict-password-form" onSubmit={submitPassword} as="form">
+              <label>Current Password<input placeholder="••••••••" type="password" value={passwordForm.currentPassword} onChange={e => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} /></label>
+              <label>New Password<input placeholder="At least 8 chars, upper/lower/number" type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} /></label>
+              <label>Confirm Password<input placeholder="••••••••" type="password" value={passwordForm.confirmPassword} onChange={e => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} /></label>
+              <button type="button" onClick={submitPassword} disabled={savingPassword}>{savingPassword ? 'Updating...' : 'Update Password'}</button>
+            </div>
+          </article>
 
-        <TextAreaField
-          label="Notes"
-          name="notes"
-          value={form.notes}
-          onChange={handleChange}
-          error={errors.notes}
-          placeholder="Optional personal note. Not sent to backend in current Phase 2 core scope."
-          disabled
-        />
-
-        {error ? <div className="alert alert-error">{error}</div> : null}
-        {success ? <div className="alert alert-success">{success}</div> : null}
-
-        <Button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Save profile changes'}</Button>
+          <article className="strict-blockchain-card">
+            <span className="blockchain-watermark material-symbols-outlined" aria-hidden="true">account_tree</span>
+            <h3><span className="material-symbols-outlined" aria-hidden="true">verified_user</span>Account Integrity</h3>
+            <div className="strict-chain-row"><span className="material-symbols-outlined" aria-hidden="true">data_object</span><p><small>Email</small><strong>{user?.email || 'N/A'}</strong></p></div>
+            <div className="strict-chain-row"><span className="material-symbols-outlined" aria-hidden="true">history</span><p><small>Last Sync</small><strong>Current session</strong></p></div>
+          </article>
+        </aside>
       </form>
     </section>
   )

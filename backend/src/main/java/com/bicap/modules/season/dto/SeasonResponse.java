@@ -16,6 +16,8 @@ public class SeasonResponse {
     private LocalDate actualHarvestDate;
     private String farmingMethod;
     private String seasonStatus;
+    private Integer processCount;
+    private LocalDateTime latestProcessAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -44,6 +46,10 @@ public class SeasonResponse {
     public void setFarmingMethod(String s) { this.farmingMethod = s; }
     public String getSeasonStatus() { return seasonStatus; }
     public void setSeasonStatus(String s) { this.seasonStatus = s; }
+    public Integer getProcessCount() { return processCount; }
+    public void setProcessCount(Integer i) { this.processCount = i; }
+    public LocalDateTime getLatestProcessAt() { return latestProcessAt; }
+    public void setLatestProcessAt(LocalDateTime t) { this.latestProcessAt = t; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime t) { this.createdAt = t; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
@@ -64,6 +70,8 @@ public class SeasonResponse {
         public Builder actualHarvestDate(LocalDate d) { r.setActualHarvestDate(d); return this; }
         public Builder farmingMethod(String s) { r.setFarmingMethod(s); return this; }
         public Builder seasonStatus(String s) { r.setSeasonStatus(s); return this; }
+        public Builder processCount(Integer i) { r.setProcessCount(i); return this; }
+        public Builder latestProcessAt(LocalDateTime t) { r.setLatestProcessAt(t); return this; }
         public Builder createdAt(LocalDateTime t) { r.setCreatedAt(t); return this; }
         public Builder updatedAt(LocalDateTime t) { r.setUpdatedAt(t); return this; }
         public SeasonResponse build() { return r; }

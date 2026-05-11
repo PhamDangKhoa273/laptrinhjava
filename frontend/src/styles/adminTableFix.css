@@ -1,0 +1,146 @@
+/* ============================================================
+ * Admin Users / Admin table hardening
+ * - Stretch the right-hand detail panel so status + action pills
+ *   never get clipped on narrow columns.
+ * - Make tables horizontally scrollable instead of overflowing.
+ * - Keep pills on a single line and always render in full.
+ * ============================================================ */
+
+.dashboard-shell .admin-users-shell,
+.dashboard-shell.role-admin .admin-users-shell,
+.admin-users-page .admin-users-shell {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr) !important;
+  gap: 20px;
+  align-items: start;
+  width: 100%;
+}
+
+.dashboard-shell .admin-users-detail,
+.dashboard-shell.role-admin .admin-users-detail,
+.admin-users-page .admin-users-detail {
+  min-width: 0;
+  width: 100%;
+}
+
+.dashboard-shell .admin-users-table-wrap,
+.dashboard-shell.role-admin .admin-users-table-wrap,
+.admin-users-page .admin-users-table-wrap,
+.admin-users-page .admin-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+
+.dashboard-shell .admin-users-table-wrap table,
+.dashboard-shell.role-admin .admin-users-table-wrap table,
+.admin-users-page .admin-users-table-wrap table,
+.admin-users-page .admin-table-wrap table {
+  width: 100%;
+  min-width: 920px;
+  table-layout: auto;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-users-page .admin-users-table-wrap thead th,
+.admin-users-page .admin-table-wrap thead th {
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.admin-users-page .admin-users-table-wrap tbody td,
+.admin-users-page .admin-table-wrap tbody td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.admin-users-page .admin-users-table-wrap tbody tr:hover,
+.admin-users-page .admin-table-wrap tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* Keep pill-shaped status / role / action buttons in one line */
+.admin-users-page .status-pill,
+.admin-users-page .role-pill,
+.admin-users-page .admin-table td .button,
+.admin-users-page .admin-table td .pill,
+.admin-users-page .admin-users-table-wrap td .status-pill,
+.admin-users-page .admin-users-table-wrap td .role-pill,
+.admin-users-page .admin-users-table-wrap td .pill,
+.admin-users-page .admin-users-table-wrap td .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.admin-users-page .admin-table td .button,
+.admin-users-page .admin-users-table-wrap td .button {
+  padding: 8px 14px;
+  font-size: 12.5px;
+}
+
+/* Status / role tone tokens */
+.admin-users-page .status-pill.status-active,
+.admin-users-page .status-pill.active {
+  background: #dcfce7;
+  color: #14532d;
+  border: 1px solid #86efac;
+}
+
+.admin-users-page .status-pill.status-inactive,
+.admin-users-page .status-pill.inactive {
+  background: #fee2e2;
+  color: #7f1d1d;
+  border: 1px solid #fca5a5;
+}
+
+.admin-users-page .status-pill.status-blocked {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+.admin-users-page .role-pill {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+/* Let list panel scroll independently without pushing the table */
+.admin-users-page .admin-users-list {
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Responsive collapse */
+@media (max-width: 1180px) {
+  .dashboard-shell .admin-users-shell,
+  .dashboard-shell.role-admin .admin-users-shell,
+  .admin-users-page .admin-users-shell {
+    grid-template-columns: 1fr !important;
+  }
+  .admin-users-page .admin-users-list {
+    max-height: 360px;
+  }
+}

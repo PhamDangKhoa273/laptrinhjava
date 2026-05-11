@@ -1,0 +1,49 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------------< com.bicap:backend >--------------------------
+[INFO] Building backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ backend ---
+[INFO] Deleting D:\monhoc\nam_3\java\project\laptrinhjava\backend\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ backend ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 17 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ backend ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 232 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ backend ---
+[INFO] skip non existing resourceDirectory D:\monhoc\nam_3\java\project\laptrinhjava\backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ backend ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 14 source files with javac [debug release 17] to target\test-classes
+[INFO] /D:/monhoc/nam_3/java/project/laptrinhjava/backend/src/test/java/com/bicap/backend/service/ProductListingAndDiscoveryServiceTests.java: D:\monhoc\nam_3\java\project\laptrinhjava\backend\src\test\java\com\bicap\backend\service\ProductListingAndDiscoveryServiceTests.java uses unchecked or unsafe operations.
+[INFO] /D:/monhoc/nam_3/java/project/laptrinhjava/backend/src/test/java/com/bicap/backend/service/ProductListingAndDiscoveryServiceTests.java: Recompile with -Xlint:unchecked for details.
+[INFO] Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /D:/monhoc/nam_3/java/project/laptrinhjava/backend/src/test/java/com/bicap/backend/service/VehicleServiceTests.java:[61,29] incompatible types: java.math.BigDecimal cannot be converted to java.lang.Integer
+[INFO] 1 error
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  21.247 s
+[INFO] Finished at: 2026-04-20T10:37:13+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:testCompile (default-testCompile) on project backend: Compilation failure
+[ERROR] /D:/monhoc/nam_3/java/project/laptrinhjava/backend/src/test/java/com/bicap/backend/service/VehicleServiceTests.java:[61,29] incompatible types: java.math.BigDecimal cannot be converted to java.lang.Integer
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

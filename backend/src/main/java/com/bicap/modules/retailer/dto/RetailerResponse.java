@@ -13,6 +13,10 @@ public class RetailerResponse {
     private String status;
     private String logoUrl;
     private List<String> certificateUrls;
+    private String businessLicenseFileUrl;
+    private String businessLicenseFileName;
+    private Long businessLicenseFileSize;
+    private java.time.LocalDateTime businessLicenseUploadedAt;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -35,6 +39,14 @@ public class RetailerResponse {
     public void setLogoUrl(String s) { this.logoUrl = s; }
     public List<String> getCertificateUrls() { return certificateUrls; }
     public void setCertificateUrls(List<String> l) { this.certificateUrls = l; }
+    public String getBusinessLicenseFileUrl() { return businessLicenseFileUrl; }
+    public void setBusinessLicenseFileUrl(String businessLicenseFileUrl) { this.businessLicenseFileUrl = businessLicenseFileUrl; }
+    public String getBusinessLicenseFileName() { return businessLicenseFileName; }
+    public void setBusinessLicenseFileName(String businessLicenseFileName) { this.businessLicenseFileName = businessLicenseFileName; }
+    public Long getBusinessLicenseFileSize() { return businessLicenseFileSize; }
+    public void setBusinessLicenseFileSize(Long businessLicenseFileSize) { this.businessLicenseFileSize = businessLicenseFileSize; }
+    public java.time.LocalDateTime getBusinessLicenseUploadedAt() { return businessLicenseUploadedAt; }
+    public void setBusinessLicenseUploadedAt(java.time.LocalDateTime businessLicenseUploadedAt) { this.businessLicenseUploadedAt = businessLicenseUploadedAt; }
 
     public static Builder builder() { return new Builder(); }
     public static class Builder {
@@ -53,6 +65,10 @@ public class RetailerResponse {
         public Builder status(String s) { r.setStatus(s); return this; }
         public Builder logoUrl(String s) { r.setLogoUrl(s); return this; }
         public Builder certificateUrls(List<String> l) { r.setCertificateUrls(l); return this; }
+        public Builder businessLicenseFileUrl(String s) { r.setBusinessLicenseFileUrl(s); return this; }
+        public Builder businessLicenseFileName(String s) { r.setBusinessLicenseFileName(s); return this; }
+        public Builder businessLicenseFileSize(Long l) { r.setBusinessLicenseFileSize(l); return this; }
+        public Builder businessLicenseUploadedAt(java.time.LocalDateTime t) { r.setBusinessLicenseUploadedAt(t); return this; }
         public RetailerResponse build() { return r; }
     }
 }

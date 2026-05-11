@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { api } from '../services/api.js'
 import { getCurrentUser, login as loginRequest, logout as logoutRequest, register as registerRequest, updateProfile as updateProfileRequest } from '../services/authService'
 import { clearAuthStorage, getAccessToken, getStoredUser, setAuthStorage } from '../utils/storage'
 import { getDashboardPathForUser } from '../utils/helpers'
@@ -12,8 +13,21 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     async function bootstrap() {
       if (!getAccessToken()) {
-        setLoading(false)
-        return
+        try {
+          const response = await api.post('/auth/refresh', {})
+          const refreshed = response.data?.data || response.data
+          if (refreshed?.accessToken) {
+            setAuthStorage({ accessToken: refreshed.accessToken })
+          } else {
+            setLoading(false)
+            return
+          }
+        } catch {
+          clearAuthStorage()
+          setUser(null)
+          setLoading(false)
+          return
+        }
       }
 
       try {
@@ -32,13 +46,15 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function login(payload) {
+    clearAuthStorage()
     const data = await loginRequest(payload)
-    const nextUser = data.user || data
+    const loginUser = data.user || data
     setAuthStorage({
       accessToken: data.accessToken,
-      refreshToken: data.refreshToken,
-      user: nextUser,
+      user: loginUser,
     })
+    const nextUser = await getCurrentUser().catch(() => loginUser)
+    setAuthStorage({ user: nextUser })
     setUser(nextUser)
     return nextUser
   }
@@ -50,7 +66,6 @@ export function AuthProvider({ children }) {
     if (data.accessToken) {
       setAuthStorage({
         accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
         user: nextUser,
       })
       setUser(nextUser)
@@ -84,6 +99,8 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const getPostLoginPath = useCallback((nextUser = user) => getDashboardPathForUser(nextUser), [user])
+
   const value = useMemo(
     () => ({
       user,
@@ -94,9 +111,9 @@ export function AuthProvider({ children }) {
       logout,
       refreshProfile,
       updateProfile,
-      getPostLoginPath: (nextUser = user) => getDashboardPathForUser(nextUser),
+      getPostLoginPath,
     }),
-    [user, loading],
+    [user, loading, getPostLoginPath],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -26,6 +26,7 @@ export async function register(payload) {
     phone: payload.phone ?? payload.phoneNumber ?? '',
     password: payload.password,
     avatarUrl: payload.avatarUrl ?? '',
+    role: payload.role ?? 'GUEST',
   }
 
   const response = await api.post('/auth/register', requestPayload)
@@ -46,6 +47,14 @@ export async function updateProfile(payload) {
 
   const response = await api.put('/users/me/profile', requestPayload)
   return normalizeUser(response.data?.data || response.data)
+}
+
+export async function changePassword(payload) {
+  const response = await api.post('/auth/change-password', {
+    currentPassword: payload.currentPassword,
+    newPassword: payload.newPassword,
+  })
+  return response.data?.data || response.data
 }
 
 export async function logout() {

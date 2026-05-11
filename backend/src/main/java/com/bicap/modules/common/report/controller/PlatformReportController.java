@@ -3,6 +3,7 @@ package com.bicap.modules.common.report.controller;
 import com.bicap.core.dto.ApiResponse;
 import com.bicap.modules.common.report.dto.CreatePlatformReportRequest;
 import com.bicap.modules.common.report.dto.PlatformReportResponse;
+import com.bicap.modules.common.report.dto.UpdatePlatformReportStatusRequest;
 import com.bicap.modules.common.report.service.PlatformReportService;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,5 +32,17 @@ public class PlatformReportController {
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<PlatformReportResponse>> getMyReports() {
         return ApiResponse.success(platformReportService.getMyReports());
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<PlatformReportResponse>> getAdminReports() {
+        return ApiResponse.success(platformReportService.getAdminReports());
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<PlatformReportResponse> updateStatus(@PathVariable Long id, @Valid @RequestBody UpdatePlatformReportStatusRequest request) {
+        return ApiResponse.success("Cập nhật trạng thái report thành công", platformReportService.updateStatus(id, request));
     }
 }

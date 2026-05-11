@@ -11,10 +11,15 @@ function shouldKeepValue(value) {
 }
 
 export async function getPublicListings(params = {}) {
+  const mappedParams = {
+    ...params,
+    productCategory: params.productCategory || params.type,
+    certification: params.certification,
+  }
   const cleanParams = Object.fromEntries(
-    Object.entries(params).filter(([, value]) => shouldKeepValue(value)),
+    Object.entries(mappedParams).filter(([, value]) => shouldKeepValue(value)),
   )
-  const payload = unwrap(await api.get('/listings', { params: cleanParams }))
+  const payload = unwrap(await api.get('/listings', { params: cleanParams, skipAuth: true }))
   return {
     items: payload.items || [],
     page: payload.page || 0,
@@ -26,7 +31,7 @@ export async function getPublicListings(params = {}) {
 }
 
 export async function getListingById(id) {
-  return unwrap(await api.get(`/listings/${id}`))
+  return unwrap(await api.get(`/listings/${id}`, { skipAuth: true }))
 }
 
 export async function getMyListings() {

@@ -13,7 +13,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
@@ -21,6 +20,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<?> getMyProfile() {
         return ApiResponse.success(
                 "Láº¥y há»“ sÆ¡ cÃ¡ nhÃ¢n thÃ nh cÃ´ng",
@@ -29,6 +29,7 @@ public class UserController {
     }
 
     @GetMapping("/me/profile")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<?> getMyProfileAlias() {
         return ApiResponse.success(
                 "Láº¥y há»“ sÆ¡ cÃ¡ nhÃ¢n thÃ nh cÃ´ng",
@@ -37,6 +38,7 @@ public class UserController {
     }
 
     @PutMapping("/me/profile")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<?> updateMyProfile(@Valid @RequestBody UpdateProfileRequest request) {
         return ApiResponse.success(
                 "Cáº­p nháº­t há»“ sÆ¡ cÃ¡ nhÃ¢n thÃ nh cÃ´ng",
@@ -126,5 +128,12 @@ public class UserController {
                 "Gỡ role thành công",
                 userService.removeRole(id, request.getRoleName())
         );
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<?> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ApiResponse.success("Xóa user thành công");
     }
 }

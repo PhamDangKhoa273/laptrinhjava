@@ -21,11 +21,19 @@ export async function getMyReports() {
 }
 
 export async function getPublishedContent() {
-  return unwrap(await api.get('/content'))
+  return unwrap(await api.get('/content', { skipAuth: true }))
 }
 
 export async function createContent(payload) {
   return unwrap(await api.post('/content', payload))
+}
+
+export async function getActiveAnnouncement() {
+  return unwrap(await api.get('/announcements/active', { skipAuth: true }))
+}
+
+export async function updateActiveAnnouncement(payload) {
+  return unwrap(await api.put('/announcements/active', payload))
 }
 
 export async function submitListingRegistration(listingId, payload) {
@@ -53,6 +61,13 @@ export async function getOrdersV2() {
   return Array.isArray(data?.items) ? data.items : []
 }
 
+
+export async function getOrderAllowedActions(orderId) {
+  const order = await getOrderById(orderId)
+  return Array.isArray(order?.allowedActions) ? order.allowedActions : []
+}
+
+
 export async function getOrderById(orderId) {
   return unwrap(await api.get(`/orders/${orderId}`))
 }
@@ -64,6 +79,10 @@ export async function getOrderStatusHistory(orderId) {
 
 export async function payOrderDeposit(orderId, payload) {
   return unwrap(await api.post(`/orders/${orderId}/deposit`, payload))
+}
+
+export async function farmReviewOrder(orderId, payload) {
+  return unwrap(await api.patch(`/orders/${orderId}/status`, payload))
 }
 
 export async function updateOrderStatus(orderId, payload) {
@@ -81,8 +100,6 @@ export async function cancelOrder(orderId, payload) {
 export async function uploadShippingProof(orderId, payload) {
   return unwrap(await api.post(`/orders/${orderId}/shipping-proof`, payload))
 }
-<<<<<<< Updated upstream
-=======
 
 export async function getEligibleShipmentOrders() {
   return unwrap(await api.get('/shipments/eligible-orders'))
@@ -167,4 +184,3 @@ export async function updateContent(id, payload) {
 export async function deleteContent(id) {
   return unwrap(await api.delete(`/content/${id}`))
 }
->>>>>>> Stashed changes

@@ -60,4 +60,12 @@ public class VehicleController {
                 vehicleService.deactivate(id, SecurityUtils.getCurrentUserId())
         );
     }
+
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('SHIPPING_MANAGER','ADMIN')")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        vehicleService.delete(id, SecurityUtils.getCurrentUserId());
+        return ApiResponse.success("Xóa vehicle thành công", null);
+    }
 }

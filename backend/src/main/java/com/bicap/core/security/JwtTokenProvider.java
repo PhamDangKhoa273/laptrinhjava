@@ -26,6 +26,12 @@ public class JwtTokenProvider {
 
     @PostConstruct
     public void init() {
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException("app.jwt.secret is required (set APP_JWT_SECRET)");
+        }
+        if (jwtSecret.length() < 32) {
+            throw new IllegalStateException("app.jwt.secret must be at least 32 characters");
+        }
         this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -41,8 +47,11 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMs);
 
+        String jti = java.util.UUID.randomUUID().toString();
+
         return Jwts.builder()
                 .subject(principal.getUsername())
+                .id(jti)
                 .claim("userId", principal.getUserId())
                 .claim("type", tokenType)
                 .claim("roles", principal.getAuthorities().stream()

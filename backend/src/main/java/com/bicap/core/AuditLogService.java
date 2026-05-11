@@ -15,11 +15,16 @@ public class AuditLogService {
     }
 
     public void log(Long userId, String action, String entityName, Long entityId) {
+        log(userId, action, entityName, entityId, null);
+    }
+
+    public void log(Long userId, String action, String entityName, Long entityId, String details) {
         AuditLog auditLog = new AuditLog();
         auditLog.setUserId(userId);
         auditLog.setAction(action);
         auditLog.setEntityName(entityName);
         auditLog.setEntityId(entityId);
+        auditLog.setDetails(details);
         auditLog.setCreatedAt(LocalDateTime.now());
 
         auditLogRepository.save(auditLog);

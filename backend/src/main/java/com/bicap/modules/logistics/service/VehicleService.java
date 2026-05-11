@@ -42,7 +42,7 @@ public class VehicleService {
         Vehicle vehicle = new Vehicle();
         vehicle.setPlateNo(request.getPlateNo().trim());
         vehicle.setVehicleType(request.getVehicleType().trim());
-        vehicle.setCapacity(request.getCapacity());
+        vehicle.setCapacity(request.getCapacity().intValue());
         vehicle.setStatus(resolveStatus(request.getStatus()));
         vehicle.setManagerUser(managerUser);
 
@@ -78,7 +78,7 @@ public class VehicleService {
         }
 
         vehicle.setVehicleType(request.getVehicleType().trim());
-        vehicle.setCapacity(request.getCapacity());
+        vehicle.setCapacity(request.getCapacity().intValue());
         vehicle.setStatus(resolveStatus(request.getStatus()));
 
         Vehicle saved = vehicleRepository.save(vehicle);
@@ -86,8 +86,6 @@ public class VehicleService {
         return toResponse(saved);
     }
 
-<<<<<<< Updated upstream
-=======
 
     @Transactional
     public void delete(Long id, Long currentUserId) {
@@ -111,7 +109,6 @@ public class VehicleService {
         auditLogService.log(currentUserId, "DELETE_VEHICLE", "VEHICLE", id);
     }
 
->>>>>>> Stashed changes
     @Transactional
     public VehicleResponse deactivate(Long id, Long currentUserId) {
         Vehicle vehicle = getEntityById(id);

@@ -38,6 +38,16 @@ export async function getMyRetailer() {
   return unwrap(await api.get('/retailers/me'))
 }
 
+export async function uploadRetailerBusinessLicense(id, file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return unwrap(await api.post(`/retailers/${id}/business-license`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }))
+}
+
 export async function createRetailer(payload) {
   return unwrap(await api.post('/retailers', payload))
 }
@@ -82,6 +92,14 @@ export async function updateDriver(id, payload) {
   return unwrap(await api.put(`/drivers/${id}`, payload))
 }
 
+export async function deactivateDriver(id) {
+  return unwrap(await api.patch(`/drivers/${id}/deactivate`))
+}
+
+export async function deleteDriver(id) {
+  return unwrap(await api.delete(`/drivers/${id}`))
+}
+
 export async function getVehicles() {
   return unwrap(await api.get('/vehicles'))
 }
@@ -94,10 +112,6 @@ export async function updateVehicle(id, payload) {
   return unwrap(await api.put(`/vehicles/${id}`, payload))
 }
 
-<<<<<<< Updated upstream
-export async function getUsers() {
-  return unwrap(await api.get('/users'))
-=======
 export async function deactivateVehicle(id) {
   return unwrap(await api.patch(`/vehicles/${id}/deactivate`))
 }
@@ -119,13 +133,49 @@ export async function getUsers(role) {
     if (error?.response?.status === 403) return []
     throw error
   }
->>>>>>> Stashed changes
 }
 
 export async function assignUserRole(id, roleName) {
   return unwrap(await api.post(`/users/${id}/roles`, { roleName }))
 }
 
+export async function removeUserRole(id, roleName) {
+  return unwrap(await api.delete(`/users/${id}/roles`, { data: { roleName } }))
+}
+
+export async function replaceUserRole(id, nextRoleName) {
+  const user = unwrap(await api.get(`/users/${id}`))
+  const currentRoles = Array.isArray(user?.roles) ? user.roles : []
+
+  if (!currentRoles.includes(nextRoleName)) {
+    await assignUserRole(id, nextRoleName)
+  }
+
+  for (const roleName of currentRoles) {
+    if (roleName !== nextRoleName) {
+      await removeUserRole(id, roleName)
+    }
+  }
+
+  return unwrap(await api.get(`/users/${id}`))
+}
+
 export async function updateUserStatus(id, status) {
   return unwrap(await api.patch(`/users/${id}/status`, { status }))
+}
+
+export async function getIoTAlerts() {
+  return unwrap(await api.get('/iot/alerts/me'))
+}
+
+export async function ingestSensorReading(payload) {
+  return unwrap(await api.post('/iot/readings', payload))
+}
+
+export async function resolveIoTAlert(id) {
+  return unwrap(await api.patch(`/iot/alerts/${id}/resolve`))
+}
+
+export async function createNotification(payload) {
+  return unwrap(await api.post('/notifications', payload))
 }

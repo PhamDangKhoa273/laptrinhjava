@@ -12,7 +12,7 @@ export default function Marketplace() {
 
   return (
     <div>
-      <h2>Marketplace</h2>
+      <h2>Chợ nông sản</h2>
 
       {list.map(p => (
         <div key={p.id} onClick={() => navigate(`/product/${p.id}`)}>

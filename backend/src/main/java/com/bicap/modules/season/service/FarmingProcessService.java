@@ -37,10 +37,13 @@ public class FarmingProcessService {
     public ProcessStepResponse createProcessStep(Long seasonId, CreateProcessStepRequest request) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         FarmingSeason season = seasonService.findSeasonAndCheckPermission(seasonId, currentUserId);
+        seasonService.ensureProcessMutationAllowed(season);
 
         if (farmingProcessRepository.existsBySeason_SeasonIdAndStepNo(seasonId, request.getStepNo())) {
             throw new BusinessException("Số thứ tự bước " + request.getStepNo() + " đã tồn tại trong mùa vụ này.");
         }
+
+        seasonService.validateProcessDateAgainstSeason(season, request.getPerformedAt());
 
         User recorder = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin người dùng hiện tại."));
@@ -48,16 +51,14 @@ public class FarmingProcessService {
         FarmingProcess process = FarmingProcess.builder()
                 .season(season)
                 .stepNo(request.getStepNo())
-                .stepName(request.getStepName())
+                .stepName(normalizeStepName(request.getStepName()))
                 .performedAt(request.getPerformedAt())
-                .description(request.getDescription())
-                .imageUrl(request.getImageUrl())
+                .description(normalizeOptionalText(request.getDescription()))
+                .imageUrl(normalizeOptionalText(request.getImageUrl()))
                 .recordedBy(recorder)
                 .build();
 
         FarmingProcess saved = farmingProcessRepository.save(process);
-
-        validateProcessTimeline(season, request.getPerformedAt());
 
         ProcessBlockchainPayload payload = ProcessBlockchainPayload.builder()
                 .processId(saved.getId())
@@ -84,10 +85,13 @@ public class FarmingProcessService {
 
         ProcessTimelineResponse.SeasonInfo seasonInfo = ProcessTimelineResponse.SeasonInfo.builder()
                 .seasonId(season.getSeasonId())
-                .seasonName(season.getSeasonCode()) 
+                .seasonName(season.getSeasonCode())
                 .startDate(season.getStartDate())
                 .expectedHarvestDate(season.getExpectedHarvestDate())
+                .actualHarvestDate(season.getActualHarvestDate())
+                .farmingMethod(season.getFarmingMethod())
                 .seasonStatus(season.getSeasonStatus())
+                .totalSteps(steps.size())
                 .build();
 
         return ProcessTimelineResponse.builder()
@@ -107,18 +111,25 @@ public class FarmingProcessService {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         FarmingProcess process = farmingProcessRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bước quy trình với ID: " + id));
-        seasonService.findSeasonAndCheckPermission(process.getSeason().getSeasonId(), currentUserId);
+        FarmingSeason season = seasonService.findSeasonAndCheckPermission(process.getSeason().getSeasonId(), currentUserId);
+        seasonService.ensureProcessMutationAllowed(season);
 
-        if (farmingProcessRepository.existsBySeason_SeasonIdAndStepNoAndIdNot(process.getSeason().getSeasonId(), request.getStepNo(), id)) {
-            throw new BusinessException("Số thứ tự bước " + request.getStepNo() + " đã tồn tại.");
+        Integer nextStepNo = request.getStepNo() != null ? request.getStepNo() : process.getStepNo();
+        String nextStepName = request.getStepName() != null ? normalizeStepName(request.getStepName()) : process.getStepName();
+        LocalDateTime nextPerformedAt = request.getPerformedAt() != null ? request.getPerformedAt() : process.getPerformedAt();
+        String nextDescription = request.getDescription() != null ? normalizeOptionalText(request.getDescription()) : process.getDescription();
+        String nextImageUrl = request.getImageUrl() != null ? normalizeOptionalText(request.getImageUrl()) : process.getImageUrl();
+
+        if (farmingProcessRepository.existsBySeason_SeasonIdAndStepNoAndIdNot(process.getSeason().getSeasonId(), nextStepNo, id)) {
+            throw new BusinessException("Số thứ tự bước " + nextStepNo + " đã tồn tại.");
         }
 
-        validateProcessTimeline(process.getSeason(), request.getPerformedAt());
-        process.setStepNo(request.getStepNo());
-        process.setStepName(request.getStepName());
-        process.setPerformedAt(request.getPerformedAt());
-        process.setDescription(request.getDescription());
-        process.setImageUrl(request.getImageUrl());
+        seasonService.validateProcessDateAgainstSeason(season, nextPerformedAt);
+        process.setStepNo(nextStepNo);
+        process.setStepName(nextStepName);
+        process.setPerformedAt(nextPerformedAt);
+        process.setDescription(nextDescription);
+        process.setImageUrl(nextImageUrl);
 
         FarmingProcess updated = farmingProcessRepository.save(process);
         ProcessBlockchainPayload payload = ProcessBlockchainPayload.builder()
@@ -139,7 +150,8 @@ public class FarmingProcessService {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         FarmingProcess process = farmingProcessRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bước quy trình với ID: " + id));
-        seasonService.findSeasonAndCheckPermission(process.getSeason().getSeasonId(), currentUserId);
+        FarmingSeason season = seasonService.findSeasonAndCheckPermission(process.getSeason().getSeasonId(), currentUserId);
+        seasonService.ensureProcessMutationAllowed(season);
 
         ProcessBlockchainPayload payload = ProcessBlockchainPayload.builder()
                 .processId(process.getId())
@@ -158,20 +170,23 @@ public class FarmingProcessService {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         FarmingProcess process = farmingProcessRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bước quy trình với ID: " + id));
-        seasonService.findSeasonAndCheckPermission(process.getSeason().getSeasonId(), currentUserId);
+        FarmingSeason season = seasonService.findSeasonAndCheckPermission(process.getSeason().getSeasonId(), currentUserId);
+        seasonService.ensureProcessMutationAllowed(season);
         if (farmingProcessRepository.existsBySeason_SeasonIdAndStepNoAndIdNot(process.getSeason().getSeasonId(), stepNo, id)) {
             throw new BusinessException("Số thứ tự bước đã tồn tại trong mùa vụ này.");
         }
 
         process.setStepNo(stepNo);
         FarmingProcess updated = farmingProcessRepository.save(process);
+        recordProcessBlockchain(updated, "REORDER_STEP");
         return ProcessStepResponse.fromEntity(updated, updated.getRecordedBy() != null ? updated.getRecordedBy().getFullName() : null);
     }
 
     @Transactional
     public void reorderProcesses(Long seasonId, ReorderProcessRequest request) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        seasonService.findSeasonAndCheckPermission(seasonId, currentUserId);
+        FarmingSeason season = seasonService.findSeasonAndCheckPermission(seasonId, currentUserId);
+        seasonService.ensureProcessMutationAllowed(season);
         int index = 1;
         for (Long processId : request.getProcessIds()) {
             int currentStep = index++;
@@ -181,22 +196,35 @@ public class FarmingProcessService {
                 throw new BusinessException("Bước quy trình không thuộc mùa vụ cần sắp xếp.");
             }
             process.setStepNo(currentStep);
-            farmingProcessRepository.save(process);
+            FarmingProcess saved = farmingProcessRepository.save(process);
+            recordProcessBlockchain(saved, "REORDER_ALL");
         }
     }
 
-    private void validateProcessTimeline(FarmingSeason season, LocalDateTime performedAt) {
-        if (performedAt == null) {
-            throw new BusinessException("Thời điểm thực hiện không được để trống.");
+    private void recordProcessBlockchain(FarmingProcess process, String actionType) {
+        ProcessBlockchainPayload payload = ProcessBlockchainPayload.builder()
+                .processId(process.getId())
+                .seasonId(process.getSeason().getSeasonId())
+                .stepNo(process.getStepNo())
+                .stepName(process.getStepName())
+                .performedAt(process.getPerformedAt())
+                .description(process.getDescription())
+                .build();
+        blockchainService.saveProcess(payload, actionType);
+    }
+
+    private String normalizeStepName(String stepName) {
+        if (stepName == null || stepName.trim().isBlank()) {
+            throw new BusinessException("Tên bước quy trình không được để trống.");
         }
-        if (season.getStartDate() != null && performedAt.toLocalDate().isBefore(season.getStartDate())) {
-            throw new BusinessException("Thời điểm thực hiện không được trước ngày bắt đầu mùa vụ.");
+        return stepName.trim().replaceAll("\\s+", " ");
+    }
+
+    private String normalizeOptionalText(String value) {
+        if (value == null) {
+            return null;
         }
-        if (season.getActualHarvestDate() != null && performedAt.toLocalDate().isAfter(season.getActualHarvestDate())) {
-            throw new BusinessException("Thời điểm thực hiện không được sau ngày thu hoạch thực tế.");
-        }
-        if ("COMPLETED".equalsIgnoreCase(season.getSeasonStatus()) || "CLOSED".equalsIgnoreCase(season.getSeasonStatus())) {
-            throw new BusinessException("Không thể cập nhật quy trình cho mùa vụ đã đóng.");
-        }
+        String normalized = value.trim().replaceAll("\\s+", " ");
+        return normalized.isBlank() ? null : normalized;
     }
 }

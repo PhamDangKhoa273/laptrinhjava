@@ -26,7 +26,7 @@ export function RoleDashboardPage({ title, description, highlights, checklist, m
 
       <div className="content-grid">
         <article className="glass-card">
-          <h3>Phase 2 deliverables</h3>
+          <h3>Chức năng chính</h3>
           <ul className="feature-list">
             {checklist.map((item) => (
               <li key={item}>{item}</li>
@@ -34,9 +34,9 @@ export function RoleDashboardPage({ title, description, highlights, checklist, m
           </ul>
         </article>
         <article className="glass-card">
-          <h3>Security note</h3>
+          <h3>Bảo mật</h3>
           <p>
-            This frontend protects routes and hides unauthorized pages, while the backend must still enforce JWT validation and role-based access control for every protected API.
+            Route được bảo vệ theo vai trò; backend vẫn là lớp kiểm soát quyền cuối cùng cho API.
           </p>
         </article>
       </div>

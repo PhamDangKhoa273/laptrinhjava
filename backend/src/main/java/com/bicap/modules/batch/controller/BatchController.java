@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class BatchController {
 
@@ -59,6 +58,11 @@ public class BatchController {
     @GetMapping("/api/v1/public/trace/batches/{id}")
     public ApiResponse<TraceBatchResponse> publicTraceBatch(@PathVariable Long id) {
         return ApiResponse.success(productBatchService.traceBatch(id));
+    }
+
+    @GetMapping("/api/v1/public/trace")
+    public ApiResponse<TraceBatchResponse> publicTraceByCode(@RequestParam String traceCode) {
+        return ApiResponse.success(productBatchService.traceBatchByTraceCode(traceCode));
     }
 
     @GetMapping("/api/v1/batches/{id}/verify")

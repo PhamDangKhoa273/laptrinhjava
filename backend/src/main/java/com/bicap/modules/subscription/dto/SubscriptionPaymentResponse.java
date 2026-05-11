@@ -9,6 +9,7 @@ public class SubscriptionPaymentResponse {
     private String farmName;
     private Long payerUserId;
     private String payerName;
+    private String payerFullName;
     private BigDecimal amount;
     private String method;
     private String paymentStatus;
@@ -24,7 +25,9 @@ public class SubscriptionPaymentResponse {
     public Long getPayerUserId() { return payerUserId; }
     public void setPayerUserId(Long id) { this.payerUserId = id; }
     public String getPayerName() { return payerName; }
-    public void setPayerName(String s) { this.payerName = s; }
+    public void setPayerName(String s) { this.payerName = s; this.payerFullName = s; }
+    public String getPayerFullName() { return payerFullName; }
+    public void setPayerFullName(String s) { this.payerFullName = s; this.payerName = s; }
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal d) { this.amount = d; }
     public String getMethod() { return method; }
@@ -44,7 +47,7 @@ public class SubscriptionPaymentResponse {
         public Builder subscriptionId(Long l) { r.setSubscriptionId(l); return this; }
         public Builder farmName(String s) { r.setFarmName(s); return this; }
         public Builder payerUserId(Long l) { r.setPayerUserId(l); return this; }
-        public Builder payerFullName(String s) { r.setPayerName(s); return this; }
+        public Builder payerFullName(String s) { r.setPayerFullName(s); return this; }
         public Builder amount(BigDecimal d) { r.setAmount(d); return this; }
         public Builder method(String s) { r.setMethod(s); return this; }
         public Builder paymentStatus(String s) { r.setPaymentStatus(s); return this; }

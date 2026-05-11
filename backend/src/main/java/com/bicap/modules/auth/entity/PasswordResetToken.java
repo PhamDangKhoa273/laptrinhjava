@@ -11,8 +11,8 @@ public class PasswordResetToken {
 
     public PasswordResetToken() {}
 
-    public PasswordResetToken(String token, User user, LocalDateTime expiryDate) {
-        this.token = token;
+    public PasswordResetToken(String tokenHash, User user, LocalDateTime expiryDate) {
+        this.tokenHash = tokenHash;
         this.user = user;
         this.expiryDate = expiryDate;
     }
@@ -22,8 +22,8 @@ public class PasswordResetToken {
     @Column(name = "token_id")
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String token;
+    @Column(nullable = false, unique = true, length = 128)
+    private String tokenHash;
 
     @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
     @JoinColumn(nullable = false, name = "user_id")
@@ -35,6 +35,12 @@ public class PasswordResetToken {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "revoked_at")
+    private LocalDateTime revokedAt;
+
+    @Column(name = "used_at")
+    private LocalDateTime usedAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -42,16 +48,32 @@ public class PasswordResetToken {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getToken() { return token; }
-    public void setToken(String token) { this.token = token; }
+    public String getTokenHash() { return tokenHash; }
+    public void setTokenHash(String tokenHash) { this.tokenHash = tokenHash; }
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
     public LocalDateTime getExpiryDate() { return expiryDate; }
     public void setExpiryDate(LocalDateTime expiryDate) { this.expiryDate = expiryDate; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getRevokedAt() { return revokedAt; }
+    public void setRevokedAt(LocalDateTime revokedAt) { this.revokedAt = revokedAt; }
+    public LocalDateTime getUsedAt() { return usedAt; }
+    public void setUsedAt(LocalDateTime usedAt) { this.usedAt = usedAt; }
 
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(this.expiryDate);
+    }
+
+    public boolean isConsumed() {
+        return usedAt != null || revokedAt != null;
+    }
+
+    public void revoke() {
+        this.revokedAt = LocalDateTime.now();
+    }
+
+    public void markUsed() {
+        this.usedAt = LocalDateTime.now();
     }
 }

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { getPrimaryRole } from '../utils/helpers'
 import { ROLES } from '../utils/constants'
 import '../driver-workspace.css'
+import { SupportButton } from '../components/SupportButton.jsx'
 import {
   driverAddCheckpoint,
   driverConfirmHandover,
@@ -183,6 +184,7 @@ export function DriverMobilePage({ module = 'shipments' }) {
               <small>{roleLabel}</small>
             </div>
           </div>
+          <SupportButton />
           <button className="mobile-header-refresh" onClick={loadShipments} disabled={loading} aria-label="Làm mới">
             <span className="material-symbols-outlined">refresh</span>
           </button>

@@ -1,8 +1,31 @@
-import { DEFAULT_ROLE, ROLE_DASHBOARD_PATHS } from './constants'
+import { DEFAULT_ROLE, ROLE_DASHBOARD_PATHS, ROLES } from './constants'
+
+const ROLE_PRIORITY = [ROLES.ADMIN, ROLES.SHIPPING_MANAGER, ROLES.DRIVER, ROLES.FARM, ROLES.RETAILER, ROLES.GUEST]
+
+function normalizeRole(value) {
+  return String(value || '').toUpperCase().replace(/^ROLE_/, '')
+}
+
+function normalizeRoles(user) {
+  if (!user) return []
+
+  const roles = []
+  const addRole = (value) => {
+    const normalized = normalizeRole(value?.name || value)
+    if (normalized && !roles.includes(normalized)) roles.push(normalized)
+  }
+
+  if (Array.isArray(user.roles)) user.roles.forEach(addRole)
+  addRole(user.primaryRole)
+  addRole(user.role)
+
+  return roles
+}
 
 export function getPrimaryRole(user) {
-  const role = user?.primaryRole || user?.role || user?.roles?.[0]?.name || user?.roles?.[0]
-  return role || DEFAULT_ROLE
+  const roles = normalizeRoles(user)
+  const prioritizedRole = ROLE_PRIORITY.find((role) => roles.includes(role))
+  return prioritizedRole || DEFAULT_ROLE
 }
 
 export function getDashboardPathForUser(user) {
@@ -10,10 +33,10 @@ export function getDashboardPathForUser(user) {
   return ROLE_DASHBOARD_PATHS[role] || ROLE_DASHBOARD_PATHS[DEFAULT_ROLE]
 }
 
-export function getErrorMessage(error, fallback = 'Something went wrong. Please try again.') {
+export function getErrorMessage(error, fallback = 'Đã xảy ra lỗi. Vui lòng thử lại.') {
   if (!error?.response) {
-    if (error?.code === 'ECONNABORTED') return 'The request timed out. Please try again.'
-    return 'Cannot connect to the server. Please check the backend connection.'
+    if (error?.code === 'ECONNABORTED') return 'Yêu cầu quá thời gian chờ. Vui lòng thử lại.'
+    return 'Không thể kết nối máy chủ. Vui lòng kiểm tra backend.'
   }
 
   const apiMessage = error?.response?.data?.message || error?.response?.data?.error

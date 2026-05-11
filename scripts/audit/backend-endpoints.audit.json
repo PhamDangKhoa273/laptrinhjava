@@ -1,0 +1,1220 @@
+﻿[
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\admin\\controller\\AdminGovernanceController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/admin/governance\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\analytics\\controller\\AnalyticsController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/analytics\"",
+        "Mapping":  "\"/dashboard\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\analytics\\controller\\AnalyticsController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/analytics\"",
+        "Mapping":  "\"/forecast/demand\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027,\u0027SHIPPING_MANAGER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\analytics\\controller\\AnalyticsController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/analytics\"",
+        "Mapping":  "\"/forecast/inventory\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\analytics\\controller\\AnalyticsController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/analytics\"",
+        "Mapping":  "\"/forecast/delivery\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\analytics\\controller\\AnalyticsController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/analytics\"",
+        "Mapping":  "\"/forecast/iot\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027SHIPPING_MANAGER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\auth\\controller\\AuthController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/auth\"",
+        "Mapping":  "\"/register\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\auth\\controller\\AuthController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/auth\"",
+        "Mapping":  "\"/login\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\auth\\controller\\AuthController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/auth\"",
+        "Mapping":  "\"/me\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\auth\\controller\\AuthController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/auth\"",
+        "Mapping":  "\"/refresh\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\auth\\controller\\AuthController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/auth\"",
+        "Mapping":  "\"/logout\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\auth\\controller\\AuthController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/auth\"",
+        "Mapping":  "\"/forgot-password\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\auth\\controller\\AuthController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/auth\"",
+        "Mapping":  "\"/reset-password\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BatchController.java",
+        "Method":  "POST",
+        "Base":  "",
+        "Mapping":  "\"/api/v1/batches\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BatchController.java",
+        "Method":  "GET",
+        "Base":  "",
+        "Mapping":  "\"/api/v1/batches\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BatchController.java",
+        "Method":  "GET",
+        "Base":  "",
+        "Mapping":  "\"/api/v1/batches/{id}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BatchController.java",
+        "Method":  "PUT",
+        "Base":  "",
+        "Mapping":  "\"/api/v1/batches/{id}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BatchController.java",
+        "Method":  "POST",
+        "Base":  "",
+        "Mapping":  "\"/api/v1/batches/{id}/qr\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BatchController.java",
+        "Method":  "GET",
+        "Base":  "",
+        "Mapping":  "\"/api/v1/batches/{id}/qr\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BatchController.java",
+        "Method":  "GET",
+        "Base":  "",
+        "Mapping":  "\"/api/v1/trace/batches/{id}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BatchController.java",
+        "Method":  "GET",
+        "Base":  "",
+        "Mapping":  "\"/api/v1/public/trace/batches/{id}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BatchController.java",
+        "Method":  "GET",
+        "Base":  "",
+        "Mapping":  "\"/api/v1/public/trace\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BatchController.java",
+        "Method":  "GET",
+        "Base":  "",
+        "Mapping":  "\"/api/v1/batches/{id}/verify\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BlockchainGovernanceController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/blockchain/governance\"",
+        "Mapping":  "\"/config\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BlockchainGovernanceController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/blockchain/governance\"",
+        "Mapping":  "\"/transactions\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BlockchainGovernanceController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/blockchain/governance\"",
+        "Mapping":  "\"/transactions/{entityType}/{entityId}\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\batch\\controller\\BlockchainGovernanceController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/blockchain/governance\"",
+        "Mapping":  "\"/deploy\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\common\\announcement\\controller\\SystemAnnouncementController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/announcements\"",
+        "Mapping":  "\"/feed\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\common\\announcement\\controller\\SystemAnnouncementController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/announcements\"",
+        "Mapping":  "\"/active\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\common\\announcement\\controller\\SystemAnnouncementController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1/announcements\"",
+        "Mapping":  "\"/active\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\common\\notification\\controller\\NotificationController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/notifications\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\common\\notification\\controller\\NotificationController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/notifications\"",
+        "Mapping":  "\"/me\"",
+        "Guard":  "\"isAuthenticated()\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\common\\notification\\controller\\NotificationController.java",
+        "Method":  "PATCH",
+        "Base":  "\"/api/v1/notifications\"",
+        "Mapping":  "\"/{id}/read\"",
+        "Guard":  "\"isAuthenticated()\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\common\\report\\controller\\PlatformReportController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/reports\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\common\\report\\controller\\PlatformReportController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/reports\"",
+        "Mapping":  "\"/me\"",
+        "Guard":  "\"isAuthenticated()\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\common\\report\\controller\\PlatformReportController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/reports\"",
+        "Mapping":  "\"/admin\"",
+        "Guard":  "\"isAuthenticated()\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\common\\report\\controller\\PlatformReportController.java",
+        "Method":  "PATCH",
+        "Base":  "\"/api/v1/reports\"",
+        "Mapping":  "\"/{id}/status\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\content\\controller\\EducationalContentController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/content\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\content\\controller\\EducationalContentController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/content\"",
+        "Mapping":  null,
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\content\\controller\\EducationalContentController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/content\"",
+        "Mapping":  "\"/{slug}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\contract\\controller\\FarmRetailerContractController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/contracts\"",
+        "Mapping":  "\"/farm/{farmId}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\contract\\controller\\FarmRetailerContractController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/contracts\"",
+        "Mapping":  "\"/retailer/{retailerId}\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\contract\\controller\\FarmRetailerContractController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/contracts\"",
+        "Mapping":  "\"/farm/{farmId}/active\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027RETAILER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\contract\\controller\\FarmRetailerContractController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/contracts\"",
+        "Mapping":  null,
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\contract\\controller\\FarmRetailerContractController.java",
+        "Method":  "PATCH",
+        "Base":  "\"/api/v1/contracts\"",
+        "Mapping":  "\"/{contractId}/review\"",
+        "Guard":  "\"hasAnyRole(\u0027FARM\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\contract\\controller\\FarmRetailerContractController.java",
+        "Method":  "PATCH",
+        "Base":  "\"/api/v1/contracts\"",
+        "Mapping":  "\"/{contractId}/cancel\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\discovery\\controller\\DiscoveryController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/search\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\farm\\controller\\FarmController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/farms\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\farm\\controller\\FarmController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/farms\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\farm\\controller\\FarmController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/farms\"",
+        "Mapping":  "\"/me\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\farm\\controller\\FarmController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/farms\"",
+        "Mapping":  null,
+        "Guard":  "\"hasRole(\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\farm\\controller\\FarmController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1/farms\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasRole(\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\farm\\controller\\FarmController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/farms\"",
+        "Mapping":  "\"/{id}/review\"",
+        "Guard":  "\"hasRole(\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\farm\\controller\\FarmController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1/farms\"",
+        "Mapping":  "\"/{id}/admin\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\farm\\controller\\FarmController.java",
+        "Method":  "DELETE",
+        "Base":  "\"/api/v1/farms\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\farm\\controller\\FarmController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/farms\"",
+        "Mapping":  "value = \"/{id}/business-license\", consumes = \"multipart/form-data\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\iot\\controller\\IoTController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/iot\"",
+        "Mapping":  "\"/readings\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\iot\\controller\\IoTController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/iot\"",
+        "Mapping":  "\"/alerts/me\"",
+        "Guard":  "\"hasAnyRole(\u0027FARM\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\iot\\controller\\IoTController.java",
+        "Method":  "PATCH",
+        "Base":  "\"/api/v1/iot\"",
+        "Mapping":  "\"/alerts/{id}/resolve\"",
+        "Guard":  "\"hasRole(\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\listing\\controller\\ProductListingController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/listings\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\listing\\controller\\ProductListingController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/listings\"",
+        "Mapping":  null,
+        "Guard":  "\"hasRole(\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\listing\\controller\\ProductListingController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/listings\"",
+        "Mapping":  "\"/search\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\listing\\controller\\ProductListingController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/listings\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\listing\\controller\\ProductListingController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/listings\"",
+        "Mapping":  "\"/my\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\listing\\controller\\ProductListingController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/listings\"",
+        "Mapping":  "\"/{id}/submit\"",
+        "Guard":  "\"hasRole(\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\listing\\controller\\ProductListingController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/listings\"",
+        "Mapping":  "\"/registrations/my\"",
+        "Guard":  "\"hasRole(\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\listing\\controller\\ProductListingController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/listings\"",
+        "Mapping":  "\"/registrations/pending\"",
+        "Guard":  "\"hasRole(\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\listing\\controller\\ProductListingController.java",
+        "Method":  "PATCH",
+        "Base":  "\"/api/v1/listings\"",
+        "Mapping":  "\"/registrations/{registrationId}/review\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\listing\\controller\\ProductListingController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1/listings\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\logistics\\controller\\DriverController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/drivers\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\logistics\\controller\\DriverController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/drivers\"",
+        "Mapping":  null,
+        "Guard":  "\"hasRole(\u0027SHIPPING_MANAGER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\logistics\\controller\\DriverController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/drivers\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasAnyRole(\u0027SHIPPING_MANAGER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\logistics\\controller\\DriverController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1/drivers\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasAnyRole(\u0027SHIPPING_MANAGER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\logistics\\controller\\DriverController.java",
+        "Method":  "PATCH",
+        "Base":  "\"/api/v1/drivers\"",
+        "Mapping":  "\"/{id}/deactivate\"",
+        "Guard":  "\"hasAnyRole(\u0027SHIPPING_MANAGER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\logistics\\controller\\DriverController.java",
+        "Method":  "DELETE",
+        "Base":  "\"/api/v1/drivers\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasAnyRole(\u0027SHIPPING_MANAGER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\logistics\\controller\\VehicleController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/vehicles\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\logistics\\controller\\VehicleController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/vehicles\"",
+        "Mapping":  null,
+        "Guard":  "\"hasRole(\u0027SHIPPING_MANAGER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\logistics\\controller\\VehicleController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/vehicles\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasAnyRole(\u0027SHIPPING_MANAGER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\logistics\\controller\\VehicleController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1/vehicles\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasAnyRole(\u0027SHIPPING_MANAGER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\logistics\\controller\\VehicleController.java",
+        "Method":  "PATCH",
+        "Base":  "\"/api/v1/vehicles\"",
+        "Mapping":  "\"/{id}/deactivate\"",
+        "Guard":  "\"hasAnyRole(\u0027SHIPPING_MANAGER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\logistics\\controller\\VehicleController.java",
+        "Method":  "DELETE",
+        "Base":  "\"/api/v1/vehicles\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasAnyRole(\u0027SHIPPING_MANAGER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\media\\controller\\MediaController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/media\"",
+        "Mapping":  "\"/{id}/download\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\order\\controller\\OrderController.java",
+        "Method":  "POST",
+        "Base":  "{\"/api/v1/orders\", \"/api/orders\"}",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\order\\controller\\OrderController.java",
+        "Method":  "GET",
+        "Base":  "{\"/api/v1/orders\", \"/api/orders\"}",
+        "Mapping":  null,
+        "Guard":  "\"hasRole(\u0027RETAILER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\order\\controller\\OrderController.java",
+        "Method":  "GET",
+        "Base":  "{\"/api/v1/orders\", \"/api/orders\"}",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasAnyRole(\u0027RETAILER\u0027,\u0027FARM\u0027,\u0027SHIPPING_MANAGER\u0027,\u0027DRIVER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\order\\controller\\OrderController.java",
+        "Method":  "POST",
+        "Base":  "{\"/api/v1/orders\", \"/api/orders\"}",
+        "Mapping":  "\"/{id}/deposit\"",
+        "Guard":  "\"hasAnyRole(\u0027RETAILER\u0027,\u0027FARM\u0027,\u0027SHIPPING_MANAGER\u0027,\u0027DRIVER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\order\\controller\\OrderController.java",
+        "Method":  "PATCH",
+        "Base":  "{\"/api/v1/orders\", \"/api/orders\"}",
+        "Mapping":  "\"/{id}/status\"",
+        "Guard":  "\"hasRole(\u0027RETAILER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\order\\controller\\OrderController.java",
+        "Method":  "GET",
+        "Base":  "{\"/api/v1/orders\", \"/api/orders\"}",
+        "Mapping":  "\"/{id}/status-history\"",
+        "Guard":  "\"hasRole(\u0027RETAILER\u0027) or hasRole(\u0027FARM\u0027) or hasRole(\u0027SHIPPING_MANAGER\u0027) or hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\order\\controller\\OrderController.java",
+        "Method":  "POST",
+        "Base":  "{\"/api/v1/orders\", \"/api/orders\"}",
+        "Mapping":  "\"/{id}/shipping-proof\"",
+        "Guard":  "\"hasAnyRole(\u0027RETAILER\u0027,\u0027FARM\u0027,\u0027SHIPPING_MANAGER\u0027,\u0027DRIVER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\order\\controller\\OrderController.java",
+        "Method":  "POST",
+        "Base":  "{\"/api/v1/orders\", \"/api/orders\"}",
+        "Mapping":  "value = \"/{id}/shipping-proof/upload\", consumes = \"multipart/form-data\"",
+        "Guard":  "\"hasRole(\u0027SHIPPING_MANAGER\u0027) or hasRole(\u0027DRIVER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\order\\controller\\OrderController.java",
+        "Method":  "POST",
+        "Base":  "{\"/api/v1/orders\", \"/api/orders\"}",
+        "Mapping":  "\"/{id}/confirm-delivery\"",
+        "Guard":  "\"hasRole(\u0027SHIPPING_MANAGER\u0027) or hasRole(\u0027DRIVER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\order\\controller\\OrderController.java",
+        "Method":  "POST",
+        "Base":  "{\"/api/v1/orders\", \"/api/orders\"}",
+        "Mapping":  "\"/{id}/settle\"",
+        "Guard":  "\"hasRole(\u0027RETAILER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\order\\controller\\OrderController.java",
+        "Method":  "POST",
+        "Base":  "{\"/api/v1/orders\", \"/api/orders\"}",
+        "Mapping":  "\"/{id}/cancel\"",
+        "Guard":  "\"hasAnyRole(\u0027FARM\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\order\\controller\\OrderController.java",
+        "Method":  "POST",
+        "Base":  "{\"/api/v1/orders\", \"/api/orders\"}",
+        "Mapping":  "value = \"/{id}/delivery-proof/upload\", consumes = \"multipart/form-data\"",
+        "Guard":  "\"hasRole(\u0027RETAILER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\product\\controller\\ProductManagementController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1\"",
+        "Mapping":  "\"/categories\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\product\\controller\\ProductManagementController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1\"",
+        "Mapping":  "\"/categories\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\product\\controller\\ProductManagementController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1\"",
+        "Mapping":  "\"/categories/{id}\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\product\\controller\\ProductManagementController.java",
+        "Method":  "DELETE",
+        "Base":  "\"/api/v1\"",
+        "Mapping":  "\"/categories/{id}\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\product\\controller\\ProductManagementController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1\"",
+        "Mapping":  "\"/products\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\product\\controller\\ProductManagementController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1\"",
+        "Mapping":  "\"/products\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\product\\controller\\ProductManagementController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1\"",
+        "Mapping":  "\"/products/{id}\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\product\\controller\\ProductManagementController.java",
+        "Method":  "DELETE",
+        "Base":  "\"/api/v1\"",
+        "Mapping":  "\"/products/{id}\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\retailer\\controller\\RetailerController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/retailers\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\retailer\\controller\\RetailerController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/retailers\"",
+        "Mapping":  null,
+        "Guard":  "\"hasRole(\u0027RETAILER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\retailer\\controller\\RetailerController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/retailers\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\retailer\\controller\\RetailerController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/retailers\"",
+        "Mapping":  "\"/{id}/business-license\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027RETAILER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\retailer\\controller\\RetailerController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/retailers\"",
+        "Mapping":  "value = \"/{id}/business-license\", consumes = MediaType.MULTIPART_FORM_DATA_VALUE",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027RETAILER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\retailer\\controller\\RetailerController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/retailers\"",
+        "Mapping":  "\"/me\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027RETAILER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\retailer\\controller\\RetailerController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1/retailers\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasRole(\u0027RETAILER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\retailer\\controller\\RetailerController.java",
+        "Method":  "PATCH",
+        "Base":  "\"/api/v1/retailers\"",
+        "Mapping":  "\"/{id}/deactivate\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027RETAILER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\FarmingProcessController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/processes\"",
+        "Mapping":  "\"/season/{seasonId}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\FarmingProcessController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/processes\"",
+        "Mapping":  "\"/seasons/{seasonId}\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\FarmingProcessController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/processes\"",
+        "Mapping":  "\"/season/{seasonId}\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\FarmingProcessController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/processes\"",
+        "Mapping":  "\"/seasons/{seasonId}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\FarmingProcessController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/processes\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\FarmingProcessController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1/processes\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\FarmingProcessController.java",
+        "Method":  "DELETE",
+        "Base":  "\"/api/v1/processes\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\FarmingProcessController.java",
+        "Method":  "PATCH",
+        "Base":  "\"/api/v1/processes\"",
+        "Mapping":  "\"/{id}/reorder\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\FarmingProcessController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/processes\"",
+        "Mapping":  "\"/season/{seasonId}/reorder\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\SeasonController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/seasons\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\SeasonController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1/seasons\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\SeasonController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/seasons\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\SeasonController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/seasons\"",
+        "Mapping":  "\"/farm/{farmId}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\SeasonController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/seasons\"",
+        "Mapping":  "\"/product/{productId}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\SeasonController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/seasons\"",
+        "Mapping":  "\"/by-farm/{farmId}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\SeasonController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/seasons\"",
+        "Mapping":  "\"/by-product/{productId}\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\SeasonController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/seasons\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\SeasonExportController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/seasons\"",
+        "Mapping":  "\"/{id}/export\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\SeasonExportController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/seasons\"",
+        "Mapping":  "\"/{id}/export/latest\"",
+        "Guard":  "\"hasAnyRole(\u0027ADMIN\u0027,\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\season\\controller\\SeasonExportController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/seasons\"",
+        "Mapping":  "\"/public/export\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  null,
+        "Guard":  "\"hasRole(\u0027SHIPPING_MANAGER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  "\"/mine\"",
+        "Guard":  "\"hasAnyRole(\u0027SHIPPING_MANAGER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  "\"/farm\"",
+        "Guard":  "\"hasRole(\u0027DRIVER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  "\"/retailer\"",
+        "Guard":  "\"hasRole(\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasRole(\u0027RETAILER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  "\"/eligible-orders\"",
+        "Guard":  "\"hasAnyRole(\u0027SHIPPING_MANAGER\u0027,\u0027DRIVER\u0027,\u0027FARM\u0027,\u0027RETAILER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "PATCH",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  "\"/{shipmentId}/status\"",
+        "Guard":  "\"hasRole(\u0027SHIPPING_MANAGER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  "\"/{id}/pickup\"",
+        "Guard":  "\"hasAnyRole(\u0027SHIPPING_MANAGER\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  "\"/{id}/checkpoints\"",
+        "Guard":  "\"hasRole(\u0027DRIVER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  "\"/{id}/handover\"",
+        "Guard":  "\"hasRole(\u0027DRIVER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  "\"/{id}/reports\"",
+        "Guard":  "\"hasRole(\u0027DRIVER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  "\"/{id}/reject\"",
+        "Guard":  "\"hasRole(\u0027DRIVER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\shipment\\controller\\ShipmentController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/shipments\"",
+        "Mapping":  "\"/{id}/escalate\"",
+        "Guard":  "\"hasRole(\u0027RETAILER\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\FarmSubscriptionController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/farm-subscriptions\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\FarmSubscriptionController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/farm-subscriptions\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasRole(\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\FarmSubscriptionController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/farm-subscriptions\"",
+        "Mapping":  "\"/me\"",
+        "Guard":  "\"hasAnyRole(\u0027FARM\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\FarmSubscriptionController.java",
+        "Method":  "PATCH",
+        "Base":  "\"/api/v1/farm-subscriptions\"",
+        "Mapping":  "\"/{id}/status\"",
+        "Guard":  "\"hasRole(\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\ServicePackageController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/packages\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\ServicePackageController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/packages\"",
+        "Mapping":  null,
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\ServicePackageController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/packages\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"isAuthenticated()\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\ServicePackageController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1/packages\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"isAuthenticated()\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\ServicePackageController.java",
+        "Method":  "DELETE",
+        "Base":  "\"/api/v1/packages\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\SubscriptionPaymentController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/subscription-payments\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\SubscriptionPaymentController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/subscription-payments\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasAnyRole(\u0027FARM\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\SubscriptionPaymentController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/subscription-payments\"",
+        "Mapping":  "\"/me\"",
+        "Guard":  "\"hasAnyRole(\u0027FARM\u0027,\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\SubscriptionPaymentController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/subscription-payments\"",
+        "Mapping":  "\"/gateway/callback\"",
+        "Guard":  "\"hasRole(\u0027FARM\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\subscription\\controller\\SubscriptionPaymentController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/subscription-payments\"",
+        "Mapping":  "\"/{id}/admin-override\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\PermissionController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/permissions\"",
+        "Mapping":  null,
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\PermissionController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/permissions\"",
+        "Mapping":  "\"/role-matrix\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\PermissionController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/permissions\"",
+        "Mapping":  null,
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\PermissionController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/permissions\"",
+        "Mapping":  "\"/seed\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\UserController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/users\"",
+        "Mapping":  "\"/me\"",
+        "Guard":  ""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\UserController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/users\"",
+        "Mapping":  "\"/me/profile\"",
+        "Guard":  "\"isAuthenticated()\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\UserController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1/users\"",
+        "Mapping":  "\"/me/profile\"",
+        "Guard":  "\"isAuthenticated()\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\UserController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/users\"",
+        "Mapping":  null,
+        "Guard":  "\"isAuthenticated()\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\UserController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/users\"",
+        "Mapping":  null,
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\UserController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/users\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\UserController.java",
+        "Method":  "GET",
+        "Base":  "\"/api/v1/users\"",
+        "Mapping":  "\"/{id}/profile\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\UserController.java",
+        "Method":  "PUT",
+        "Base":  "\"/api/v1/users\"",
+        "Mapping":  "\"/{id}/profile\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\UserController.java",
+        "Method":  "PATCH",
+        "Base":  "\"/api/v1/users\"",
+        "Mapping":  "\"/{id}/status\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\UserController.java",
+        "Method":  "POST",
+        "Base":  "\"/api/v1/users\"",
+        "Mapping":  "\"/{id}/roles\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\UserController.java",
+        "Method":  "DELETE",
+        "Base":  "\"/api/v1/users\"",
+        "Mapping":  "\"/{id}/roles\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    },
+    {
+        "File":  "backend\\src\\main\\java\\com\\bicap\\modules\\user\\controller\\UserController.java",
+        "Method":  "DELETE",
+        "Base":  "\"/api/v1/users\"",
+        "Mapping":  "\"/{id}\"",
+        "Guard":  "\"hasRole(\u0027ADMIN\u0027)\""
+    }
+]

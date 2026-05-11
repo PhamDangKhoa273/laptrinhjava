@@ -2,8 +2,10 @@ package com.bicap.modules.common.report.service;
 
 import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.SecurityUtils;
+import com.bicap.core.service.SecurityAuditService;
 import com.bicap.modules.common.report.dto.CreatePlatformReportRequest;
 import com.bicap.modules.common.report.dto.PlatformReportResponse;
+import com.bicap.modules.common.report.dto.UpdatePlatformReportStatusRequest;
 import com.bicap.modules.common.report.entity.PlatformReport;
 import com.bicap.modules.common.report.repository.PlatformReportRepository;
 import com.bicap.modules.user.entity.User;
@@ -19,10 +21,12 @@ public class PlatformReportService {
 
     private final PlatformReportRepository platformReportRepository;
     private final UserRepository userRepository;
+    private final SecurityAuditService securityAuditService;
 
-    public PlatformReportService(PlatformReportRepository platformReportRepository, UserRepository userRepository) {
+    public PlatformReportService(PlatformReportRepository platformReportRepository, UserRepository userRepository, SecurityAuditService securityAuditService) {
         this.platformReportRepository = platformReportRepository;
         this.userRepository = userRepository;
+        this.securityAuditService = securityAuditService;
     }
 
     @Transactional
@@ -51,7 +55,9 @@ public class PlatformReportService {
         report.setRelatedEntityType(request.getRelatedEntityType() != null ? request.getRelatedEntityType().trim().toUpperCase() : null);
         report.setRelatedEntityId(request.getRelatedEntityId());
 
-        return toResponse(platformReportRepository.save(report));
+        PlatformReportResponse response = toResponse(platformReportRepository.save(report));
+        securityAuditService.logAdminAction(SecurityUtils.getCurrentUserIdOrNull(), "REPORT_CREATE", String.valueOf(response.getReportId()), response.getStatus());
+        return response;
     }
 
     public List<PlatformReportResponse> getMyReports() {
@@ -72,6 +78,42 @@ public class PlatformReportService {
 
         responses.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
         return responses;
+    }
+
+    public List<PlatformReportResponse> getAdminReports() {
+        return platformReportRepository.findAll().stream().map(this::toResponse).toList();
+    }
+
+    @Transactional
+    public PlatformReportResponse updateStatus(Long reportId, UpdatePlatformReportStatusRequest request) {
+        PlatformReport report = platformReportRepository.findById(reportId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy report"));
+        String next = request.getStatus().trim().toUpperCase();
+        String current = report.getStatus() == null ? "OPEN" : report.getStatus().trim().toUpperCase();
+        if (!List.of("OPEN", "IN_REVIEW", "ESCALATED", "RESOLVED", "CLOSED").contains(next)) {
+            throw new BusinessException("Trạng thái report không hợp lệ");
+        }
+        if (!isReportTransitionAllowed(current, next)) {
+            throw new BusinessException(String.format("Không thể chuyển report từ '%s' sang '%s'", current, next));
+        }
+        report.setStatus(next);
+        PlatformReportResponse response = toResponse(platformReportRepository.save(report));
+        securityAuditService.logAdminAction(SecurityUtils.getCurrentUserIdOrNull(), "REPORT_STATUS_CHANGE", String.valueOf(reportId), next);
+        return response;
+    }
+
+    private boolean isReportTransitionAllowed(String current, String next) {
+        if (current.equals(next)) {
+            return true;
+        }
+        return switch (current) {
+            case "OPEN" -> next.equals("IN_REVIEW") || next.equals("ESCALATED") || next.equals("CLOSED");
+            case "IN_REVIEW" -> next.equals("RESOLVED") || next.equals("ESCALATED") || next.equals("CLOSED");
+            case "ESCALATED" -> next.equals("IN_REVIEW") || next.equals("RESOLVED") || next.equals("CLOSED");
+            case "RESOLVED" -> next.equals("CLOSED");
+            case "CLOSED" -> false;
+            default -> false;
+        };
     }
 
     private PlatformReportResponse toResponse(PlatformReport report) {

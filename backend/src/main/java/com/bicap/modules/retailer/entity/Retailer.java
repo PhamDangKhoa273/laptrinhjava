@@ -31,6 +31,18 @@ public class Retailer {
     @Column(name = "status", nullable = false, length = 30)
     private String status = "ACTIVE";
 
+    @Column(name = "business_license_file_url", length = 500)
+    private String businessLicenseFileUrl;
+
+    @Column(name = "business_license_file_name", length = 255)
+    private String businessLicenseFileName;
+
+    @Column(name = "business_license_file_size")
+    private Long businessLicenseFileSize;
+
+    @Column(name = "business_license_uploaded_at")
+    private java.time.LocalDateTime businessLicenseUploadedAt;
+
     public Long getRetailerId() {
         return retailerId;
     }
@@ -86,5 +98,14 @@ public class Retailer {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    public String getBusinessLicenseFileUrl() { return businessLicenseFileUrl; }
+    public void setBusinessLicenseFileUrl(String businessLicenseFileUrl) { this.businessLicenseFileUrl = businessLicenseFileUrl; }
+    public String getBusinessLicenseFileName() { return businessLicenseFileName; }
+    public void setBusinessLicenseFileName(String businessLicenseFileName) { this.businessLicenseFileName = businessLicenseFileName; }
+    public Long getBusinessLicenseFileSize() { return businessLicenseFileSize; }
+    public void setBusinessLicenseFileSize(Long businessLicenseFileSize) { this.businessLicenseFileSize = businessLicenseFileSize; }
+    public java.time.LocalDateTime getBusinessLicenseUploadedAt() { return businessLicenseUploadedAt; }
+    public void setBusinessLicenseUploadedAt(java.time.LocalDateTime businessLicenseUploadedAt) { this.businessLicenseUploadedAt = businessLicenseUploadedAt; }
 }
 

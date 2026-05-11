@@ -1,0 +1,11 @@
+{
+  "title": "BICAP Observability",
+  "panels": [
+    { "type": "timeseries", "title": "Auth Success/Fail", "targets": [{ "expr": "rate(bicap_auth_success_total[5m])" }, { "expr": "rate(bicap_auth_fail_total[5m])" }] },
+    { "type": "timeseries", "title": "Order Throughput", "targets": [{ "expr": "rate(bicap_order_throughput_total[5m])" }] },
+    { "type": "timeseries", "title": "Shipment Throughput", "targets": [{ "expr": "rate(bicap_shipment_throughput_total[5m])" }] },
+    { "type": "timeseries", "title": "IoT Alert Count", "targets": [{ "expr": "rate(bicap_iot_alert_count_total[5m])" }] },
+    { "type": "timeseries", "title": "Blockchain Tx Success/Fail", "targets": [{ "expr": "rate(bicap_blockchain_tx_success_total[5m])" }, { "expr": "rate(bicap_blockchain_tx_fail_total[5m])" }] },
+    { "type": "timeseries", "title": "Rate Limit Triggered", "targets": [{ "expr": "rate(bicap_rate_limit_triggered_total[5m])" }] }
+  ]
+}

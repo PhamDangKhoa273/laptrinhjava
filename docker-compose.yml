@@ -1,6 +1,4 @@
 services:
-<<<<<<< Updated upstream
-=======
   thor:
     image: ghcr.io/vechain/thor:v2.1.0
     container_name: bicap-thor
@@ -41,20 +39,19 @@ services:
       timeout: 5s
       retries: 10
 
->>>>>>> Stashed changes
   mysql:
     image: mysql:8.4
     container_name: bicap-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-1234}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env.local or your shell}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-bicap_db}
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD:-1234}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -69,16 +66,6 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-<<<<<<< Updated upstream
-    environment:
-      SERVER_PORT: 8080
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-bicap_db}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-1234}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:-change-this-secret-key-change-this-secret-key-123456}
-      APP_JWT_EXPIRATION_MS: ${APP_JWT_EXPIRATION_MS:-86400000}
-      APP_JWT_REFRESH_EXPIRATION_MS: ${APP_JWT_REFRESH_EXPIRATION_MS:-604800000}
-=======
       redis:
         condition: service_healthy
       thor:
@@ -113,7 +100,6 @@ services:
       SPRING_MAIL_SMTP_AUTH: ${SPRING_MAIL_SMTP_AUTH:-true}
       SPRING_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:-true}
       SPRING_MAIL_SMTP_SSL_TRUST: ${SPRING_MAIL_SMTP_SSL_TRUST:-smtp.gmail.com}
->>>>>>> Stashed changes
     ports:
       - "8080:8080"
     healthcheck:
@@ -144,3 +130,5 @@ services:
 
 volumes:
   mysql_data:
+  redis_data:
+  thor_data:

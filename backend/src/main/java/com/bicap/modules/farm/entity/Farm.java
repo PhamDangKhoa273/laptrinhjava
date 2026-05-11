@@ -16,25 +16,19 @@ public class Farm {
     private String farmName;
     private String description;
     
-    @Transient
     private String farmType;
     
     private String address;
     private String province;
     
-    @Transient
     private Double totalArea;
     
-    @Transient
     private String contactPerson;
     
-    @Transient
     private String phone;
     
-    @Transient
     private String email;
     
-    @Transient
     private String logoUrl;
     
     private String businessLicenseNo;

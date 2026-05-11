@@ -130,8 +130,6 @@ public class DriverService {
         return toResponse(driverRepository.save(driver));
     }
 
-<<<<<<< Updated upstream
-=======
 
     @Transactional
     public void delete(Long id, Long currentUserId) {
@@ -154,7 +152,6 @@ public class DriverService {
         driverRepository.delete(driver);
     }
 
->>>>>>> Stashed changes
     @Transactional
     public DriverResponse deactivate(Long id, Long currentUserId) {
         Driver driver = getEntityById(id);

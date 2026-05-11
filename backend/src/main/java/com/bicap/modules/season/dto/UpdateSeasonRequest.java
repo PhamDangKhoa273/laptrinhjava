@@ -5,16 +5,16 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 public class UpdateSeasonRequest {
-    @Size(max = 100, message = "season_code must be at most 100 characters")
+    @Size(max = 100, message = "Mã mùa vụ không được vượt quá 100 ký tự")
     private String seasonCode;
 
     private LocalDate startDate;
     private LocalDate expectedHarvestDate;
 
-    @Size(max = 255, message = "farming_method must be at most 255 characters")
+    @Size(max = 255, message = "Phương pháp canh tác không được vượt quá 255 ký tự")
     private String farmingMethod;
 
-    @Size(max = 50, message = "season_status must be at most 50 characters")
+    @Size(max = 50, message = "Trạng thái mùa vụ không được vượt quá 50 ký tự")
     private String seasonStatus;
 
     private LocalDate actualHarvestDate;

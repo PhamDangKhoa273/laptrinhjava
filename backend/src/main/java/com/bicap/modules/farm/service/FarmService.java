@@ -3,6 +3,7 @@ package com.bicap.modules.farm.service;
 import com.bicap.core.AuditLogService;
 import com.bicap.core.enums.RoleName;
 import com.bicap.core.exception.BusinessException;
+import com.bicap.core.security.SecurityUtils;
 import com.bicap.modules.farm.dto.CreateFarmRequest;
 import com.bicap.modules.farm.dto.FarmResponse;
 import com.bicap.modules.farm.dto.UpdateFarmRequest;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,27 +34,44 @@ public class FarmService {
     private final AuditLogService auditLogService;
     private final MediaStorageService mediaStorageService;
     private final MediaFileRepository mediaFileRepository;
+    private final com.bicap.modules.listing.repository.ProductListingRepository productListingRepository;
+    private final com.bicap.modules.subscription.repository.FarmSubscriptionRepository farmSubscriptionRepository;
 
     public FarmService(FarmRepository farmRepository,
                        UserRepository userRepository,
                        UserService userService,
                        AuditLogService auditLogService,
                        MediaStorageService mediaStorageService,
-                       MediaFileRepository mediaFileRepository) {
+                       MediaFileRepository mediaFileRepository,
+                       com.bicap.modules.listing.repository.ProductListingRepository productListingRepository,
+                       com.bicap.modules.subscription.repository.FarmSubscriptionRepository farmSubscriptionRepository) {
         this.farmRepository = farmRepository;
         this.userRepository = userRepository;
         this.userService = userService;
         this.auditLogService = auditLogService;
         this.mediaStorageService = mediaStorageService;
         this.mediaFileRepository = mediaFileRepository;
+        this.productListingRepository = productListingRepository;
+        this.farmSubscriptionRepository = farmSubscriptionRepository;
     }
 
     public List<FarmResponse> getAllFarms() {
-        return farmRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
+        boolean isAdmin = currentUserHasRole(RoleName.ADMIN, currentUserId);
+        if (isAdmin) {
+            return farmRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+        }
+        return farmRepository.findByApprovalStatusIgnoreCase("APPROVED").stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     public FarmResponse getFarmById(Long id) {
         Farm farm = farmRepository.findById(id).orElseThrow(() -> new BusinessException("Farm không tồn tại"));
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
+        if (!currentUserHasRole(RoleName.ADMIN, currentUserId) && !isOwner(farm, currentUserId) && !isApproved(farm)) {
+            throw new BusinessException("Bạn không có quyền xem hồ sơ nông trại này");
+        }
         return mapToResponse(farm);
     }
 
@@ -73,27 +92,32 @@ public class FarmService {
         if (farmRepository.findByOwnerUserUserId(currentUserId).isPresent()) {
             throw new BusinessException("Người dùng này đã có nông trại");
         }
-        if (farmRepository.existsByFarmCode(request.getFarmCode())) {
+
+        String normalizedFarmCode = normalizeFarmCode(request.getFarmCode());
+        String normalizedLicenseNo = normalizeLicenseNo(request.getBusinessLicenseNo());
+
+        if (farmRepository.existsByFarmCode(normalizedFarmCode)) {
             throw new BusinessException("Mã nông trại đã tồn tại");
         }
-        if (farmRepository.existsByBusinessLicenseNo(request.getBusinessLicenseNo())) {
+        if (farmRepository.existsByBusinessLicenseNo(normalizedLicenseNo)) {
             throw new BusinessException("Số giấy phép kinh doanh đã tồn tại");
         }
 
         Farm farm = new Farm();
-        farm.setFarmCode(request.getFarmCode());
-        farm.setFarmName(request.getFarmName());
-        farm.setFarmType(request.getFarmType());
-        farm.setBusinessLicenseNo(request.getBusinessLicenseNo());
-        farm.setAddress(request.getAddress());
-        farm.setProvince(request.getProvince());
+        farm.setFarmCode(normalizedFarmCode);
+        farm.setFarmName(normalizeText(request.getFarmName()));
+        farm.setFarmType(normalizeOptionalText(request.getFarmType()));
+        farm.setBusinessLicenseNo(normalizedLicenseNo);
+        farm.setAddress(normalizeText(request.getAddress()));
+        farm.setProvince(normalizeText(request.getProvince()));
         farm.setTotalArea(request.getTotalArea());
-        farm.setContactPerson(request.getContactPerson());
+        farm.setContactPerson(normalizeOptionalText(request.getContactPerson()));
         farm.setPhone(owner.getPhone());
         farm.setEmail(owner.getEmail());
-        farm.setDescription(request.getDescription());
+        farm.setDescription(normalizeOptionalText(request.getDescription()));
         farm.setCertificationStatus("PENDING");
         farm.setApprovalStatus("PENDING");
+        farm.setReviewComment("Hồ sơ đang chờ admin xét duyệt.");
         farm.setOwnerUser(owner);
 
         Farm saved = farmRepository.save(farm);
@@ -115,14 +139,21 @@ public class FarmService {
             }
         }
 
-        farm.setFarmName(request.getFarmName());
-        farm.setFarmType(request.getFarmType());
-        farm.setBusinessLicenseNo(request.getBusinessLicenseNo());
-        farm.setAddress(request.getAddress());
-        farm.setProvince(request.getProvince());
+        String normalizedLicenseNo = normalizeLicenseNo(request.getBusinessLicenseNo());
+        if (farm.getBusinessLicenseNo() != null
+                && !normalizedLicenseNo.equalsIgnoreCase(farm.getBusinessLicenseNo())
+                && farmRepository.existsByBusinessLicenseNo(normalizedLicenseNo)) {
+            throw new BusinessException("Số giấy phép kinh doanh đã tồn tại");
+        }
+
+        farm.setFarmName(normalizeText(request.getFarmName()));
+        farm.setFarmType(normalizeOptionalText(request.getFarmType()));
+        farm.setBusinessLicenseNo(normalizedLicenseNo);
+        farm.setAddress(normalizeText(request.getAddress()));
+        farm.setProvince(normalizeText(request.getProvince()));
         farm.setTotalArea(request.getTotalArea());
-        farm.setContactPerson(request.getContactPerson());
-        farm.setDescription(request.getDescription());
+        farm.setContactPerson(normalizeOptionalText(request.getContactPerson()));
+        farm.setDescription(normalizeOptionalText(request.getDescription()));
 
         Farm saved = farmRepository.save(farm);
         auditLogService.log(currentUserId, "UPDATE_FARM", "FARM", saved.getFarmId());
@@ -156,6 +187,9 @@ public class FarmService {
         if ("REJECTED".equals(normalizedStatus)) {
             farm.setCertificationStatus("PENDING_REVIEW");
         }
+        if ("PENDING".equals(normalizedStatus)) {
+            farm.setCertificationStatus("PENDING");
+        }
         farm.setReviewComment(reviewComment == null ? null : reviewComment.trim());
         farm.setReviewedByUser(admin);
         farm.setReviewedAt(LocalDateTime.now());
@@ -181,6 +215,26 @@ public class FarmService {
                 .orElseThrow(() -> new BusinessException("Farm không tồn tại"));
         farm.setApprovalStatus("DEACTIVATED");
         farmRepository.save(farm);
+
+        // Cascade: ngừng listing đang ACTIVE + hủy subscription chưa expire.
+        Long ownerUserId = farm.getOwnerUser() != null ? farm.getOwnerUser().getUserId() : null;
+        if (ownerUserId != null) {
+            productListingRepository.findByFarmOwnerId(ownerUserId).forEach(listing -> {
+                if (com.bicap.core.enums.ListingStatus.ACTIVE.name().equalsIgnoreCase(listing.getStatus())) {
+                    listing.setStatus(com.bicap.core.enums.ListingStatus.INACTIVE.name());
+                    productListingRepository.save(listing);
+                }
+            });
+        }
+        farmSubscriptionRepository.findByFarmOwnerUserUserId(farm.getOwnerUser() != null ? farm.getOwnerUser().getUserId() : -1L)
+                .forEach(subscription -> {
+                    if ("ACTIVE".equalsIgnoreCase(subscription.getSubscriptionStatus())
+                            || "PENDING".equalsIgnoreCase(subscription.getSubscriptionStatus())) {
+                        subscription.setSubscriptionStatus("CANCELLED");
+                        farmSubscriptionRepository.save(subscription);
+                    }
+                });
+
         auditLogService.log(adminId, "DEACTIVATE_FARM", "FARM", farmId);
     }
 
@@ -200,12 +254,20 @@ public class FarmService {
 
         MediaFileResponse media = mediaStorageService.storeProof(file, "FARM_LICENSE", farmId);
         farm.setBusinessLicenseFileUrl(media.getFileUrl());
+        if (!"PENDING".equalsIgnoreCase(farm.getApprovalStatus())) {
+            farm.setApprovalStatus("PENDING");
+            farm.setCertificationStatus("PENDING");
+            farm.setReviewComment("Hồ sơ giấy phép vừa được cập nhật, chờ admin duyệt lại.");
+            farm.setReviewedByUser(null);
+            farm.setReviewedAt(null);
+        }
         Farm saved = farmRepository.save(farm);
         auditLogService.log(currentUserId, "UPLOAD_BUSINESS_LICENSE", "FARM", saved.getFarmId());
         return mapToResponse(saved);
     }
 
     private FarmResponse mapToResponse(Farm farm) {
+        MediaFile latestLicense = resolveBusinessLicenseMedia(farm);
         return FarmResponse.builder()
                 .farmId(farm.getFarmId())
                 .farmCode(farm.getFarmCode())
@@ -218,7 +280,10 @@ public class FarmService {
                 .phone(farm.getPhone())
                 .email(farm.getEmail())
                 .businessLicenseNo(farm.getBusinessLicenseNo())
-                .businessLicenseFileUrl(resolveBusinessLicenseFileUrl(farm))
+                .businessLicenseFileUrl(resolveBusinessLicenseFileUrl(farm, latestLicense))
+                .businessLicenseFileName(latestLicense != null ? latestLicense.getOriginalFilename() : null)
+                .businessLicenseFileSize(latestLicense != null ? latestLicense.getFileSize() : null)
+                .businessLicenseUploadedAt(latestLicense != null ? latestLicense.getCreatedAt() : null)
                 .certificationStatus(farm.getCertificationStatus())
                 .approvalStatus(farm.getApprovalStatus())
                 .ownerId(farm.getOwnerUser() != null ? farm.getOwnerUser().getUserId() : null)
@@ -231,12 +296,18 @@ public class FarmService {
                 .build();
     }
 
-    private String resolveBusinessLicenseFileUrl(Farm farm) {
+    private String resolveBusinessLicenseFileUrl(Farm farm, MediaFile latestLicense) {
         if (farm.getBusinessLicenseFileUrl() != null && !farm.getBusinessLicenseFileUrl().isBlank()) {
             return farm.getBusinessLicenseFileUrl();
         }
+        return latestLicense != null ? toFileUrl(latestLicense) : null;
+    }
+
+    private MediaFile resolveBusinessLicenseMedia(Farm farm) {
+        if (mediaFileRepository == null || farm.getFarmId() == null) {
+            return null;
+        }
         return mediaFileRepository.findTopByEntityTypeAndEntityIdOrderByCreatedAtDesc("FARM_LICENSE", farm.getFarmId())
-                .map(this::toFileUrl)
                 .orElse(null);
     }
 
@@ -255,5 +326,50 @@ public class FarmService {
             return "/" + normalized.substring(uploadsIndex);
         }
         return normalized;
+    }
+
+    private boolean isApproved(Farm farm) {
+        return farm.getApprovalStatus() != null && "APPROVED".equalsIgnoreCase(farm.getApprovalStatus());
+    }
+
+    private boolean isOwner(Farm farm, Long currentUserId) {
+        return currentUserId != null
+                && farm.getOwnerUser() != null
+                && currentUserId.equals(farm.getOwnerUser().getUserId());
+    }
+
+    private boolean currentUserHasRole(RoleName roleName, Long currentUserId) {
+        if (currentUserId == null) {
+            return false;
+        }
+        User currentUser = userRepository.findById(currentUserId).orElse(null);
+        return currentUser != null && userService.hasRole(currentUser, roleName);
+    }
+
+    private String normalizeFarmCode(String farmCode) {
+        return normalizeText(farmCode).toUpperCase(Locale.ROOT).replaceAll("\\s+", "-");
+    }
+
+    private String normalizeLicenseNo(String licenseNo) {
+        return normalizeText(licenseNo).toUpperCase(Locale.ROOT);
+    }
+
+    private String normalizeText(String value) {
+        if (value == null) {
+            throw new BusinessException("Dữ liệu bắt buộc không được để trống");
+        }
+        String normalized = value.trim().replaceAll("\\s+", " ");
+        if (normalized.isBlank()) {
+            throw new BusinessException("Dữ liệu bắt buộc không được để trống");
+        }
+        return normalized;
+    }
+
+    private String normalizeOptionalText(String value) {
+        if (value == null) {
+            return null;
+        }
+        String normalized = value.trim().replaceAll("\\s+", " ");
+        return normalized.isBlank() ? null : normalized;
     }
 }

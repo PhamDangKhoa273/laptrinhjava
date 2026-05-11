@@ -1,0 +1,2 @@
+ALTER TABLE farm_retailer_contracts
+    ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;

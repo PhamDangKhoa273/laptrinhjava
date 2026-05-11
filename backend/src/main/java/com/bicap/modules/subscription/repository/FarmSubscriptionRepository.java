@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface FarmSubscriptionRepository extends JpaRepository<FarmSubscription, Long> {
     List<FarmSubscription> findByFarmOwnerUserUserId(Long ownerUserId);
+    List<FarmSubscription> findByFarmOwnerUserUserIdAndSubscriptionStatusIgnoreCase(Long ownerUserId, String status);
 }

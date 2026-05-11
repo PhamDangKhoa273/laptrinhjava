@@ -1,5 +1,6 @@
 package com.bicap.modules.batch.entity;
 
+import com.bicap.core.enums.QrCodeStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -11,7 +12,7 @@ public class QrCode {
     @Column(name = "qr_code_id")
     private Long qrCodeId;
 
-    @Transient
+    @Column(name = "serial_no", length = 60)
     private String serialNo;
     
     private String qrValue;
@@ -22,7 +23,7 @@ public class QrCode {
     private String status;
     private LocalDateTime generatedAt;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_id")
     private ProductBatch batch;
 
@@ -40,4 +41,6 @@ public class QrCode {
     public void setGeneratedAt(LocalDateTime t) { this.generatedAt = t; }
     public void setBatch(ProductBatch b) { this.batch = b; }
     public ProductBatch getBatch() { return batch; }
+    public QrCodeStatus getStatusEnum() { return status == null ? null : QrCodeStatus.valueOf(status); }
+    public void setStatus(QrCodeStatus status) { this.status = status != null ? status.name() : null; }
 }

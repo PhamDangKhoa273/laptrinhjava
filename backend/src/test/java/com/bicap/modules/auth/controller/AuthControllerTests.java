@@ -1,6 +1,7 @@
 package com.bicap.modules.auth.controller;
 
 import com.bicap.core.exception.GlobalExceptionHandler;
+import com.bicap.core.security.ClientIpResolver;
 import com.bicap.modules.auth.dto.LoginResponse;
 import com.bicap.modules.auth.dto.TokenRefreshResponse;
 import com.bicap.modules.auth.service.AuthService;
@@ -32,9 +33,12 @@ class AuthControllerTests {
     @Mock
     private AuthService authService;
 
+    @Mock
+    private ClientIpResolver clientIpResolver;
+
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new AuthController(authService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new AuthController(authService, clientIpResolver))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }

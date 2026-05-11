@@ -24,11 +24,17 @@ export async function getCategories() {
 }
 
 export async function searchListings(params = {}) {
+  const mappedParams = {
+    ...params,
+    productCategory: params.productCategory || params.type,
+    certification: params.certification,
+  }
+
   const cleanParams = Object.fromEntries(
-    Object.entries(params).filter(([, value]) => shouldKeepValue(value)),
+    Object.entries(mappedParams).filter(([, value]) => shouldKeepValue(value)),
   )
 
-  const payload = unwrap(await api.get('/search', { params: cleanParams }))
+  const payload = unwrap(await api.get('/listings/search', { params: cleanParams }))
   return {
     items: payload.items || [],
     page: payload.page || 0,

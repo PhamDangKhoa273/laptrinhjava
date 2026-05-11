@@ -65,7 +65,7 @@ class ListingAndDiscoveryControllerTests {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
-                .andExpect(jsonPath("$.errors").isArray());
+                .andExpect(jsonPath("$.errors.fieldErrors").isArray());
     }
 
     @Test
@@ -123,7 +123,7 @@ class ListingAndDiscoveryControllerTests {
                 .price(BigDecimal.valueOf(45000))
                 .build();
 
-        when(discoveryService.search(eq("rau"), eq(BigDecimal.valueOf(10000)), eq(BigDecimal.valueOf(50000)), eq("Lam Dong"), eq(1), eq(9), eq("price,asc")))
+        when(discoveryService.search(eq("rau"), eq(BigDecimal.valueOf(10000)), eq(BigDecimal.valueOf(50000)), eq("Lam Dong"), eq(null), eq(null), eq(1), eq(9), eq("price,asc")))
                 .thenReturn(new PageImpl<>(List.of(item), PageRequest.of(1, 9, Sort.by(Sort.Direction.ASC, "price")), 15));
 
         discoveryMockMvc.perform(get("/api/v1/search")

@@ -1,8 +1,9 @@
 package com.bicap.core.service;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -10,27 +11,37 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
-    @Value("${spring.mail.username}")
-    private String fromEmail;
+    @Value("${spring.mail.username:}")
+    private String fromAddress;
+
+    private final ObjectProvider<JavaMailSender> mailSenderProvider;
+
+    public EmailService(ObjectProvider<JavaMailSender> mailSenderProvider) {
+        this.mailSenderProvider = mailSenderProvider;
+    }
 
     public void sendEmail(@NonNull String to, @NonNull String subject, @NonNull String content) {
+        JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
+        if (mailSender == null) {
+            log.warn("SMTP chưa được cấu hình, bỏ qua email gửi tới {}", to);
+            return;
+        }
+
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            
-            helper.setFrom(fromEmail);
+            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(content, true); // true = isHtml
-            
+            helper.setText(content, true);
             mailSender.send(message);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Gửi mail thất bại: " + e.getMessage());
+            log.info("Đã gửi email '{}' tới {}", subject, to);
+        } catch (Exception ex) {
+            log.error("Không thể gửi email '{}' tới {}", subject, to, ex);
+            throw new IllegalStateException("Không thể gửi email. Vui lòng kiểm tra cấu hình SMTP.", ex);
         }
     }
 
@@ -54,6 +65,6 @@ public class EmailService {
             </div>
             """, resetLink);
         
-        sendEmail(to, "[BICAP] Yêu cầu khôi phục mật khẩu", content);
+        sendEmail(to, "[BICAP] Đặt lại mật khẩu", content);
     }
 }

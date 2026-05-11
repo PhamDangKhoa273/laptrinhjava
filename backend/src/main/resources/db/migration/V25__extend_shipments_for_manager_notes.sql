@@ -1,0 +1,2 @@
+ALTER TABLE shipments
+    ADD COLUMN note VARCHAR(500) NULL AFTER status;

@@ -1,50 +1,52 @@
 package com.bicap.modules.common.notification.service;
 
+import com.bicap.core.enums.RoleName;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.SecurityUtils;
 import com.bicap.modules.common.notification.dto.CreateNotificationRequest;
 import com.bicap.modules.common.notification.dto.NotificationResponse;
 import com.bicap.modules.common.notification.entity.Notification;
 import com.bicap.modules.common.notification.repository.NotificationRepository;
+import com.bicap.modules.contract.repository.FarmRetailerContractRepository;
+import com.bicap.modules.farm.repository.FarmRepository;
+import com.bicap.modules.order.repository.OrderRepository;
+import com.bicap.modules.retailer.repository.RetailerRepository;
 import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.bicap.core.security.RedisRateLimitService;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class NotificationService {
 
+    private static final int MAX_NOTIFICATIONS_PER_10_MINUTES = 20;
+
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final FarmRepository farmRepository;
+    private final RetailerRepository retailerRepository;
+    private final OrderRepository orderRepository;
+    private final FarmRetailerContractRepository contractRepository;
 
-    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository) {
+    private final RedisRateLimitService rateLimitService;
+
+    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository, FarmRepository farmRepository, RetailerRepository retailerRepository, OrderRepository orderRepository, FarmRetailerContractRepository contractRepository, RedisRateLimitService rateLimitService) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
+        this.farmRepository = farmRepository;
+        this.retailerRepository = retailerRepository;
+        this.orderRepository = orderRepository;
+        this.contractRepository = contractRepository;
+        this.rateLimitService = rateLimitService;
     }
 
     @Transactional
-<<<<<<< Updated upstream
-    public NotificationResponse create(CreateNotificationRequest request) {
-        if ((request.getRecipientUserId() == null && (request.getRecipientRole() == null || request.getRecipientRole().isBlank()))
-                || (request.getRecipientUserId() != null && request.getRecipientRole() != null && !request.getRecipientRole().isBlank())) {
-            throw new BusinessException("Phải chỉ định đúng một đích nhận: recipientUserId hoặc recipientRole");
-        }
-
-        Notification notification = new Notification();
-        User sender = userRepository.findById(SecurityUtils.getCurrentUserId())
-                .orElseThrow(() -> new BusinessException("Không tìm thấy người gửi"));
-        notification.setSenderUser(sender);
-
-        if (request.getRecipientUserId() != null) {
-            User recipient = userRepository.findById(request.getRecipientUserId())
-                    .orElseThrow(() -> new BusinessException("Không tìm thấy người nhận"));
-            notification.setRecipientUser(recipient);
-        } else {
-            notification.setRecipientRole(request.getRecipientRole().trim().toUpperCase());
-=======
     public List<NotificationResponse> create(CreateNotificationRequest request) {
         User sender = userRepository.findById(SecurityUtils.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy người gửi"));
@@ -86,7 +88,6 @@ public class NotificationService {
                 Notification notification = buildNotification(sender, null, role, request);
                 results.add(toResponse(notificationRepository.save(notification)));
             }
->>>>>>> Stashed changes
         }
 
         return results;
@@ -106,14 +107,9 @@ public class NotificationService {
         return notification;
     }
 
-<<<<<<< Updated upstream
-=======
     private void enforceSendRateLimit(Long senderUserId) {
         LocalDateTime cutoff = LocalDateTime.now().minusMinutes(10);
-        long sentRecently = notificationRepository.findAll().stream()
-                .filter(n -> n.getSenderUser() != null && senderUserId.equals(n.getSenderUser().getUserId()))
-                .filter(n -> n.getCreatedAt() != null && n.getCreatedAt().isAfter(cutoff))
-                .count();
+        long sentRecently = notificationRepository.countBySenderUserUserIdAndCreatedAtAfter(senderUserId, cutoff);
         if (sentRecently >= MAX_NOTIFICATIONS_PER_10_MINUTES) {
             throw new BusinessException("Gửi notification quá nhanh, vui lòng thử lại sau");
         }
@@ -213,7 +209,6 @@ public class NotificationService {
     private record OrderContext(Long retailerUserId, Long farmUserId) {}
     private record ContractContext(Long retailerUserId, Long farmUserId) {}
 
->>>>>>> Stashed changes
     public List<NotificationResponse> getMyNotifications() {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         User currentUser = userRepository.findById(currentUserId)
@@ -236,8 +231,16 @@ public class NotificationService {
 
     @Transactional
     public NotificationResponse markAsRead(Long notificationId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy người dùng hiện tại"));
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy notification"));
+        boolean ownedByUser = notification.getRecipientUser() != null && notification.getRecipientUser().getUserId().equals(currentUserId);
+        boolean roleScoped = notification.getRecipientRole() != null && currentUser.getRoles().stream().anyMatch(r -> r.getRoleName().equalsIgnoreCase(notification.getRecipientRole()));
+        if (!ownedByUser && !roleScoped) {
+            throw new BusinessException("Bạn không có quyền cập nhật notification này");
+        }
         notification.setRead(true);
         return toResponse(notificationRepository.save(notification));
     }

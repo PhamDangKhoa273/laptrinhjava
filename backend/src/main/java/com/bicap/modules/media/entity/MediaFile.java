@@ -33,6 +33,9 @@ public class MediaFile {
     @Column(name = "content_type", nullable = false, length = 100)
     private String contentType;
 
+    @Column(name = "visibility", nullable = false, length = 20)
+    private String visibility = "PRIVATE";
+
     @Column(name = "file_size", nullable = false)
     private Long fileSize;
 
@@ -58,6 +61,8 @@ public class MediaFile {
     public void setOriginalFilename(String originalFilename) { this.originalFilename = originalFilename; }
     public String getContentType() { return contentType; }
     public void setContentType(String contentType) { this.contentType = contentType; }
+    public String getVisibility() { return visibility; }
+    public void setVisibility(String visibility) { this.visibility = visibility; }
     public Long getFileSize() { return fileSize; }
     public void setFileSize(Long fileSize) { this.fileSize = fileSize; }
     public LocalDateTime getCreatedAt() { return createdAt; }

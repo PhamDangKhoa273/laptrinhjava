@@ -1,8 +1,13 @@
 import { useState } from 'react'
 import { NavLink, Link } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext.jsx'
+import { getDashboardPathForUser } from '../../utils/helpers'
 
 export function PublicShell({ children }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const { user, logout } = useAuth()
+  const dashboardPath = user ? getDashboardPathForUser(user) : '/dashboard'
+  const displayName = user?.fullName || user?.name || user?.email || ''
 
   return (
     <div className="public-shell">
@@ -16,8 +21,17 @@ export function PublicShell({ children }) {
             <NavLink to="/education">Kiến thức</NavLink>
           </div>
           <div className="public-actions">
-            <Link className="public-login" to="/login">Đăng nhập</Link>
-            <Link className="public-register" to="/register">Đăng ký</Link>
+            {user ? (
+              <>
+                <Link className="public-login" to={dashboardPath} title={displayName}>Quay lại workspace</Link>
+                <button className="public-register" onClick={() => logout()}>Đăng xuất</button>
+              </>
+            ) : (
+              <>
+                <Link className="public-login" to="/login">Đăng nhập</Link>
+                <Link className="public-register" to="/register">Đăng ký</Link>
+              </>
+            )}
             <button className="public-hamburger" onClick={() => setMenuOpen(true)} aria-label="Mở menu">
               <span className="material-symbols-outlined">menu</span>
             </button>
@@ -41,8 +55,17 @@ export function PublicShell({ children }) {
           <NavLink to="/education" onClick={() => setMenuOpen(false)}><span className="material-symbols-outlined">school</span>Kiến thức</NavLink>
         </nav>
         <div className="mobile-drawer-footer">
-          <Link className="public-login" to="/login" onClick={() => setMenuOpen(false)}>Đăng nhập</Link>
-          <Link className="public-register" to="/register" onClick={() => setMenuOpen(false)}>Đăng ký</Link>
+          {user ? (
+            <>
+              <Link className="public-login" to={dashboardPath} onClick={() => setMenuOpen(false)}>Quay lại workspace</Link>
+              <button className="public-register" onClick={() => { setMenuOpen(false); logout() }}>Đăng xuất</button>
+            </>
+          ) : (
+            <>
+              <Link className="public-login" to="/login" onClick={() => setMenuOpen(false)}>Đăng nhập</Link>
+              <Link className="public-register" to="/register" onClick={() => setMenuOpen(false)}>Đăng ký</Link>
+            </>
+          )}
         </div>
       </aside>
 

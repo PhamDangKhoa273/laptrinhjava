@@ -1,79 +1,46 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Button } from '../components/Button.jsx'
-import { TextInput } from '../components/TextInput.jsx'
 import { forgotPassword } from '../services/authService'
 import { getErrorMessage, mapBackendValidationErrors } from '../utils/helpers'
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
-  const [errors, setErrors] = useState({})
-  const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
+  const canSubmit = Boolean(email.trim()) && !loading
 
   async function handleSubmit(event) {
     event.preventDefault()
-    if (loading) return
-
-    setError('')
-    setMessage('')
-    setErrors({})
-    setLoading(true)
-
+    if (!canSubmit) return
+    setError(''); setSuccess(''); setErrors({}); setLoading(true)
     try {
-      const resp = await forgotPassword({ email: email.trim() })
-      setMessage(resp || 'Link khôi phục mật khẩu đã được gửi đến email của bạn.')
+      await forgotPassword({ email: email.trim() })
+      setSuccess('Nếu email này có tài khoản trên BICAP, hướng dẫn đặt lại mật khẩu đã được gửi.')
     } catch (err) {
       const fieldErrors = mapBackendValidationErrors(err)
-      if (Object.keys(fieldErrors).length > 0) {
-        setErrors(fieldErrors)
-      }
-      setError(getErrorMessage(err, 'Gửi yêu cầu thất bại. Vui lòng kiểm tra lại email.'))
-    } finally {
-      setLoading(false)
-    }
+      if (Object.keys(fieldErrors).length > 0) setErrors(fieldErrors)
+      setError(getErrorMessage(err, 'Không thể gửi yêu cầu đặt lại mật khẩu.'))
+    } finally { setLoading(false) }
   }
 
   return (
-    <div className="auth-card">
-      <div className="card-header auth-form-header">
-        <p className="eyebrow">Account Recovery</p>
-        <h2>Forgot your password?</h2>
-        <p>Enter your email address and we'll send you a link to reset your password and regain access to your account.</p>
-      </div>
-
-      {message ? (
-        <div className="alert alert-success">
-          {message}
-          <div style={{ marginTop: '1rem' }}>
-            <Link to="/login" className="btn btn-primary">Back to Login</Link>
-          </div>
+    <div className="auth-center-bg">
+      <div className="auth-glass-card">
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <h1 className="auth-title" style={{ color: 'var(--proto-primary)', fontSize: 24 }}><Link to="/marketplace">BICAP</Link></h1>
+          <h2 className="auth-title">Quên mật khẩu</h2>
+          <p className="auth-sub" style={{ marginBottom: 0 }}>Nhập email tài khoản để nhận hướng dẫn đặt lại mật khẩu an toàn.</p>
         </div>
-      ) : (
-        <form className="form-grid" onSubmit={handleSubmit}>
-          <TextInput 
-            label="Email Address" 
-            name="email" 
-            type="email" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            placeholder="you@example.com" 
-            error={errors.email} 
-            required 
-          />
-
-          {error ? <div className="alert alert-error">{error}</div> : null}
-
-          <Button type="submit" disabled={!email || loading}>
-            {loading ? 'Sending link...' : 'Send reset link'}
-          </Button>
-
-          <p className="muted-text">
-            Remember your password? <Link to="/login">Sign in here</Link>
-          </p>
+        {error ? <div className="alert alert-error"><span className="material-symbols-outlined fill">error</span>{error}</div> : null}
+        {success ? <div className="alert alert-success"><span className="material-symbols-outlined fill">check_circle</span>{success}</div> : null}
+        <form className="auth-grid" onSubmit={handleSubmit} style={{ marginTop: error || success ? 24 : 0 }}>
+          <div className="auth-field"><label htmlFor="forgot-email">Email</label><div style={{ position: 'relative' }}><span className="material-symbols-outlined" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--proto-outline)' }}>mail</span><input id="forgot-email" name="email" type="email" value={email} onChange={(event) => { setEmail(event.target.value); setErrors({}) }} placeholder="ten@email.com" required style={{ paddingLeft: 48 }} /></div>{errors.email ? <small className="field-error">{errors.email}</small> : null}</div>
+          <button className="auth-submit-button" type="submit" disabled={!canSubmit}>{loading ? 'Đang gửi...' : <>Gửi hướng dẫn đặt lại <span className="material-symbols-outlined">arrow_forward</span></>}</button>
         </form>
-      )}
+        <div style={{ marginTop: 42, paddingTop: 22, borderTop: '1px solid var(--proto-surface-variant)', textAlign: 'center', display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}><Link className="auth-link" to="/login"><span className="material-symbols-outlined">arrow_back</span>Quay lại đăng nhập</Link><span style={{ color: 'var(--proto-surface-variant)' }}>|</span><Link className="auth-link" to="/marketplace"><span className="material-symbols-outlined">home</span>Về trang chủ</Link></div>
+      </div>
     </div>
   )
 }

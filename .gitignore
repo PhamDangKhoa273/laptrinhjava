@@ -1,10 +1,6 @@
-﻿# Frontend
+# Frontend
 frontend/node_modules/
 frontend/dist/
-frontend/frontend/node_modules/
-frontend/frontend/dist/
-frontend/frontend/frontend/node_modules/
-frontend/frontend/frontend/dist/
 node_modules/
 dist/
 
@@ -12,14 +8,39 @@ dist/
 backend/target/
 target/
 
-# Environment / IDE
+# Temp / generated
+.tmp/
+tmp/
+*.tmp
+*.patch
+*.diff
+patch_*.py
+tmp_patch_*
+
+# Environment
 .env
 .env.*
+!.env.example
+!.env.prod.example
+
+# IDE / OS
 .idea/
 .vscode/
-*.log
 .DS_Store
 Thumbs.db
-*.env.local
-*.env.development.local
-*.env.production.local
+*.log
+.env.local
+backend/.env.local
+frontend/.env.local
+
+# Dev scratch outputs (khong commit)
+backend/build_output*.txt
+backend/build_result.txt
+backend/build_log.txt
+backend/compile_out.txt
+backend/test_out.txt
+backend/tmp.txt
+backend/login.json
+backend/login_test.json
+backend/register.json
+backend/ViewController.java

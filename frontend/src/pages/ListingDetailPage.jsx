@@ -1,97 +1,71 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { PublicShell } from '../components/public/PublicShell.jsx'
+import { PublicState } from '../components/public/PublicState.jsx'
+import { TraceTimeline } from '../components/public/TraceTimeline.jsx'
+import { formatPublicPrice } from '../components/public/PublicProductCard.jsx'
 import { getListingById } from '../services/listingService'
+import { traceBatch, traceBatchByCode } from '../services/phase3Service'
 import { getErrorMessage } from '../utils/helpers'
-import './GuestMarketplace.css'
 
-function formatPrice(price) {
-  if (price === null || price === undefined || price === '') return 'Liên hệ'
-  return `${Number(price).toLocaleString('vi-VN')}đ`
-}
+function formatDate(value) { return value ? new Date(value).toLocaleDateString('vi-VN') : 'Đang cập nhật' }
+function InfoRow({ label, value }) { return <div className="info-row"><span>{label}</span><strong>{value || 'N/A'}</strong></div> }
 
 export function ListingDetailPage() {
   const { id } = useParams()
   const [listing, setListing] = useState(null)
+  const [traceData, setTraceData] = useState(null)
+  const [traceError, setTraceError] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
+    let mounted = true
     async function load() {
       try {
-        setLoading(true)
-        setError('')
-        const data = await getListingById(id)
-        setListing(data)
-      } catch (err) {
-        setError(getErrorMessage(err, 'Không thể tải chi tiết listing.'))
-        setListing(null)
-      } finally {
-        setLoading(false)
-      }
+        setLoading(true); setError(''); setTraceError(''); setTraceData(null)
+        const nextListing = await getListingById(id)
+        if (!mounted) return
+        setListing(nextListing)
+        const traceCode = nextListing?.traceCode
+        const batchId = nextListing?.batchId || nextListing?.batch?.batchId || nextListing?.batch?.id
+        if (traceCode || batchId) {
+          try {
+            const nextTrace = traceCode ? await traceBatchByCode(traceCode) : await traceBatch(batchId, true)
+            if (mounted) setTraceData(nextTrace)
+          } catch (err) {
+            if (mounted) setTraceError(getErrorMessage(err, 'Trace events unavailable for this listing.'))
+          }
+        }
+      } catch (err) { if (mounted) { setError(getErrorMessage(err, 'Không thể tải chi tiết listing.')); setListing(null) } }
+      finally { if (mounted) setLoading(false) }
     }
-
     if (id) load()
+    return () => { mounted = false }
   }, [id])
 
-  if (loading) {
-    return (
-      <section className="marketplace">
-        <div className="mp-grid" style={{ gridTemplateColumns: '1.1fr 0.9fr' }}>
-          <div className="mp-card mp-card--skeleton"><div className="mp-card__image mp-skeleton mp-skeleton--image" /><div className="mp-card__body"><div className="mp-skeleton mp-skeleton--title" /><div className="mp-skeleton mp-skeleton--line" /><div className="mp-skeleton mp-skeleton--line short" /></div></div>
-          <div className="mp-card mp-card--skeleton"><div className="mp-card__body"><div className="mp-skeleton mp-skeleton--title" /><div className="mp-skeleton mp-skeleton--line" /><div className="mp-skeleton mp-skeleton--line" /><div className="mp-skeleton mp-skeleton--button" /></div></div>
-        </div>
-      </section>
-    )
-  }
+  const timelineItems = useMemo(() => traceData?.processList || traceData?.timeline || [], [traceData])
 
-  if (error) {
-    return (
-      <section className="marketplace">
-        <div className="mp-empty">
-          <span className="mp-empty__icon">⚠️</span>
-          <p>{error}</p>
-          <Link className="mp-retry-btn" to="/dashboard/guest">Quay lại marketplace</Link>
-        </div>
-      </section>
-    )
-  }
-
+  if (loading) return <PublicShell><main className="proto-page"><PublicState loading title="Đang tải sản phẩm" /></main></PublicShell>
+  if (error) return <PublicShell><main className="proto-page"><PublicState title="Không thể tải sản phẩm" message={error} action={<Link className="proto-btn-primary" to="/marketplace">Quay lại chợ nông sản</Link>} /></main></PublicShell>
   if (!listing) return null
 
-  return (
-    <section className="marketplace">
-      <div className="mp-grid" style={{ gridTemplateColumns: '1.1fr 0.9fr', alignItems: 'start' }}>
-        <article className="mp-card" style={{ overflow: 'hidden' }}>
-          <div className="mp-card__image" style={{ height: 320, background: listing.imageUrl ? undefined : 'linear-gradient(135deg, #1a3a0a 0%, #3d6b1e 100%)' }}>
-            {listing.imageUrl ? <img src={listing.imageUrl} alt={listing.title} /> : <div className="mp-card__placeholder"><span className="mp-card__placeholder-icon">🌱</span><span className="mp-card__placeholder-text">{listing.productName || 'Nông sản'}</span></div>}
-          </div>
-          <div className="mp-card__body">
-            <p className="mp-hero__eyebrow" style={{ marginBottom: 8 }}>LISTING DETAIL</p>
-            <h1 className="mp-card__title" style={{ fontSize: '1.5rem', whiteSpace: 'normal' }}>{listing.title}</h1>
-            <p className="mp-card__farm">🏡 {listing.farmName || 'Nông trại BICAP'} {listing.province ? `, ${listing.province}` : ''}</p>
-            {listing.description ? <p className="mp-card__desc" style={{ WebkitLineClamp: 'unset' }}>{listing.description}</p> : null}
-            <div className="mp-card__footer">
-              <span className="mp-card__price">{formatPrice(listing.price)}</span>
-              <span className="mp-card__unit">/ {listing.unit || 'kg'}</span>
-            </div>
-          </div>
-        </article>
+  const title = listing.title || listing.productName || 'Sản phẩm BICAP'
+  const batchId = listing.batchId || listing.batch?.batchId || listing.batch?.id
+  const traceHref = listing.traceCode ? `/public/trace?traceCode=${encodeURIComponent(listing.traceCode)}` : `/public/trace?batchId=${batchId || ''}`
+  const orderHref = `/login?redirect=${encodeURIComponent(`/listings/${listing.listingId || id}`)}`
 
-<<<<<<< Updated upstream
-        <article className="mp-card">
-          <div className="mp-card__body">
-            <h3 className="mp-card__title" style={{ whiteSpace: 'normal' }}>Thông tin listing</h3>
-            <div className="mp-card__meta"><span className="mp-card__qty">Mã listing</span><span className="mp-card__batch">#{listing.listingId}</span></div>
-            <div className="mp-card__meta"><span className="mp-card__qty">Mã batch</span><span className="mp-card__batch">{listing.batchCode || 'N/A'}</span></div>
-            <div className="mp-card__meta"><span className="mp-card__qty">Mã sản phẩm</span><span className="mp-card__batch">{listing.productCode || 'N/A'}</span></div>
-            <div className="mp-card__meta"><span className="mp-card__qty">Mã farm</span><span className="mp-card__batch">{listing.farmCode || 'N/A'}</span></div>
-            <div className="mp-card__meta"><span className="mp-card__qty">Số lượng còn bán</span><span className="mp-card__batch">{listing.quantityAvailable} {listing.unit || 'kg'}</span></div>
-            <div className="mp-card__meta"><span className="mp-card__qty">Chất lượng</span><span className="mp-card__batch">{listing.qualityGrade || 'N/A'}</span></div>
-            <div className="mp-card__meta"><span className="mp-card__qty">Trạng thái</span><span className="mp-card__batch">{listing.status || 'N/A'}</span></div>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 18 }}>
-              <Link className="mp-retry-btn" to={`/public/trace?batchId=${listing.batchId}`}>Xem nguồn gốc lô hàng</Link>
-              <Link className="mp-retry-btn" to="/dashboard/guest">Quay lại marketplace</Link>
-=======
+  return (
+    <PublicShell>
+      <main className="detail-page">
+        <section className="detail-stack">
+          <article className="detail-gallery">
+            <div className="detail-media" style={{ background: listing.imageUrl ? '#eef2ec' : 'linear-gradient(135deg,#ecfdf5,#bbf7d0)' }}>
+              {listing.imageUrl ? <img src={listing.imageUrl} alt={title} /> : <span style={{ color: '#166534', fontSize: 30, fontWeight: 900 }}>{listing.productName || 'Nông sản BICAP'}</span>}
+              <span className="public-badge grade" style={{ left: 16, right: 'auto', top: 16 }}><span className="material-symbols-outlined">verified</span> Có truy xuất</span>
+            </div>
+          </article>
+
           <article className="detail-card">
             <span className="proto-kicker"><span className="material-symbols-outlined fill">eco</span> Thông tin sản phẩm</span>
             <h2 className="auth-title">{title}</h2>
@@ -100,11 +74,26 @@ export function ListingDetailPage() {
               <div className="proto-card" style={{ padding: 16 }}><small>Ngày thu hoạch</small><strong>{formatDate(listing.harvestDate || traceData?.batch?.harvestDate)}</strong></div>
               <div className="proto-card" style={{ padding: 16 }}><small>Hạn sử dụng</small><strong>{formatDate(listing.expiryDate)}</strong></div>
               <div className="proto-card" style={{ padding: 16 }}><small>Hạng chất lượng</small><strong>{listing.qualityGrade || traceData?.batch?.qualityGrade || 'Đang cập nhật'}</strong></div>
->>>>>>> Stashed changes
             </div>
-          </div>
-        </article>
-      </div>
-    </section>
+          </article>
+
+          <article className="detail-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'center' }}><h2 className="auth-title">Nhật ký truy xuất công khai</h2><Link className="auth-link" to={traceHref}><span className="material-symbols-outlined">qr_code</span> Xem truy xuất</Link></div>
+            {traceError ? <div className="alert alert-error" style={{ marginBottom: 16 }}>{traceError}</div> : null}
+            <TraceTimeline items={timelineItems} emptyMessage="Chưa có nhật ký sản xuất công khai cho sản phẩm này." />
+          </article>
+        </section>
+
+        <aside className="detail-sticky">
+          <article className="detail-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}><h1 className="auth-title">{title}</h1><span className="material-symbols-outlined">eco</span></div>
+            <div className="public-product-footer"><strong>{formatPublicPrice(listing.price)}</strong><small> / {listing.unit || 'kg'}</small></div>
+            <div className="proto-card" style={{ display: 'grid', gap: 12, margin: '20px 0', padding: 18 }}><div><small>Nông trại</small><strong>{listing.farmName || traceData?.seasonInfo?.farmName || 'Đang cập nhật'}</strong></div><div><small>Khu vực</small><strong>{listing.province || traceData?.seasonInfo?.province || 'Đang cập nhật'}</strong></div><div><small>Chứng nhận</small><strong>{listing.certificationStatus || 'Đang cập nhật'}</strong></div></div>
+            <div className="auth-grid"><Link className="auth-submit-button" to={orderHref}><span className="material-symbols-outlined">login</span> Đăng nhập để đặt hàng</Link><Link className="proto-btn-secondary" to={traceHref}><span className="material-symbols-outlined">qr_code</span> Truy xuất QR</Link></div>
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--proto-line)' }}><p><span className="material-symbols-outlined">gpp_good</span> Thông tin công khai đã được BICAP ghi nhận</p><p><span className="material-symbols-outlined">visibility</span> Khách có thể xem nguồn gốc trước khi đăng nhập</p></div>
+          </article>
+        </aside>
+      </main>
+    </PublicShell>
   )
 }

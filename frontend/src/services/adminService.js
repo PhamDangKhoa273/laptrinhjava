@@ -19,7 +19,7 @@ export async function changeUserStatus(id, status) {
 export async function getFarms() {
   try {
     return unwrap(await api.get('/farms'))
-  } catch (error) {
+  } catch {
     return []
   }
 }
@@ -31,7 +31,7 @@ export async function reviewFarm(id, approvalStatus, reviewComment = '') {
 export async function getRetailers() {
   try {
     return unwrap(await api.get('/retailers'))
-  } catch (error) {
+  } catch {
     return []
   }
 }
@@ -39,12 +39,12 @@ export async function getRetailers() {
 export async function getPackages() {
   try {
     return unwrap(await api.get('/packages'))
-  } catch (error) {
+  } catch {
     return []
   }
 }
 
-// === NEW ADMIN API ENDPOINTS (Mocked/Fallback) === //
+// === ADMIN API ENDPOINTS === //
 
 export async function getProducts() {
   return unwrap(await api.get('/products'))
@@ -98,10 +98,42 @@ export async function updateFarmDetailByAdmin(id, data) {
   return unwrap(await api.put(`/farms/${id}/admin`, data))
 }
 
-export async function deleteUserAccount() {
-  throw new Error('Delete user account flow is disabled until safe soft-delete is implemented.')
+export async function deleteUserAccount(id) {
+  return unwrap(await api.delete(`/users/${id}`))
 }
 
-export async function deploySmartContract() {
-  throw new Error('Smart contract deployment is not wired to a real admin endpoint yet.')
+export async function getAdminGovernanceOverview() {
+  return unwrap(await api.get('/admin/governance'))
+}
+
+export async function getBlockchainGovernanceConfig() {
+  return unwrap(await api.get('/blockchain/governance/config'))
+}
+
+export async function getBlockchainTransactions() {
+  return unwrap(await api.get('/blockchain/governance/transactions'))
+}
+
+export async function retryBlockchainTransaction(entityType, entityId) {
+  return unwrap(await api.post(`/blockchain/governance/transactions/${entityType}/${entityId}/retry`))
+}
+
+export async function deploySmartContract(data = {}) {
+  return unwrap(await api.post('/blockchain/governance/deploy', data))
+}
+
+export async function getPermissionMatrix() {
+  return unwrap(await api.get('/permissions/role-matrix'))
+}
+
+export async function getPermissions() {
+  return unwrap(await api.get('/permissions'))
+}
+
+export async function assignPermission(data) {
+  return unwrap(await api.post('/permissions', data))
+}
+
+export async function seedPermissions() {
+  return unwrap(await api.post('/permissions/seed'))
 }

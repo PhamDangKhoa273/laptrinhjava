@@ -2,16 +2,23 @@ package com.bicap.modules.listing.repository;
 
 import com.bicap.modules.listing.entity.ProductListing;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface ProductListingRepository extends JpaRepository<ProductListing, Long>, JpaSpecificationExecutor<ProductListing> {
+
+    @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT pl FROM ProductListing pl WHERE pl.listingId = :id")
+    Optional<ProductListing> findByIdForUpdate(@Param("id") Long id);
 
     @Query("SELECT DISTINCT f.province FROM ProductListing pl JOIN pl.batch b JOIN b.season s JOIN s.farm f WHERE pl.status = :status AND pl.approvalStatus = :approvalStatus AND f.province IS NOT NULL AND f.province <> '' ORDER BY f.province")
     List<String> findDistinctProvincesByStatusAndApprovalStatus(@Param("status") String status, @Param("approvalStatus") String approvalStatus);
@@ -33,4 +40,13 @@ public interface ProductListingRepository extends JpaRepository<ProductListing, 
     List<ProductListing> findByFarmOwnerId(@Param("userId") Long userId);
 
     List<ProductListing> findByBatchBatchId(Long batchId);
+
+    List<ProductListing> findByStatusAndApprovalStatus(String status, String approvalStatus, Sort sort);
+
+    @Query("SELECT COALESCE(SUM(pl.quantityAvailable + pl.quantityReserved), 0) " +
+           "FROM ProductListing pl " +
+           "WHERE pl.batch.batchId = :batchId " +
+           "AND (:excludeListingId IS NULL OR pl.listingId <> :excludeListingId) " +
+           "AND pl.status <> 'CANCELLED'")
+    java.math.BigDecimal sumListedQuantityByBatchId(@Param("batchId") Long batchId, @Param("excludeListingId") Long excludeListingId);
 }

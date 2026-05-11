@@ -42,6 +42,7 @@ export function RetailerOrderWorkflowPage() {
 
   useEffect(() => {
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const selectedOrder = orders.find((item) => String(item.orderId) === String(selectedOrderId))
@@ -153,7 +154,7 @@ export function RetailerOrderWorkflowPage() {
         <div>
           <p className="eyebrow">Retailer order workflow</p>
           <h2>Đặt cọc, hủy đơn và xác nhận giao hàng</h2>
-          <p>Khóa phần nghiệp vụ retailer để flow phase 4 dùng được thật từ UI.</p>
+          <p>Quản lý đơn hàng retailer bằng các thao tác ngắn, rõ trạng thái.</p>
         </div>
         <div className="section-actions">
           <Button variant="secondary" onClick={loadData} disabled={loading}>Làm mới</Button>

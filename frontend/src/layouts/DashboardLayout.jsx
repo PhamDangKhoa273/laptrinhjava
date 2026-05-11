@@ -1,15 +1,11 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Sidebar } from '../components/Sidebar.jsx'
-import { RoleBadge } from '../components/RoleBadge.jsx'
-import { Button } from '../components/Button.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { getPrimaryRole } from '../utils/helpers'
-<<<<<<< Updated upstream
-import { ROLES } from '../utils/constants'
-=======
 import { ROLES, ROLE_LABELS } from '../utils/constants'
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { getMyNotifications, markNotificationRead } from '../services/workflowService.js'
+import { SupportButton } from '../components/SupportButton.jsx'
 
 const prototypeLinks = [
   { to: '/dashboard', label: 'Trang chủ', description: '' },
@@ -18,45 +14,35 @@ const prototypeLinks = [
   { to: '/announcements', label: 'Thông báo', description: '' },
   { to: '/profile', label: 'Hồ sơ', description: '' },
 ]
->>>>>>> Stashed changes
 
 const adminLinks = [
-  { to: '/dashboard', label: 'Tổng quan', description: 'Tổng quan phiên đăng nhập và kết nối hệ thống' },
-  { to: '/dashboard/admin/accounts', label: 'Quản lý tài khoản', description: 'Quản trị người dùng và nhà bán lẻ trên hệ thống' },
-  { to: '/dashboard/admin/operations', label: 'Nông trại và vận hành', description: 'Duyệt nông trại và theo dõi gói dịch vụ' },
-  { to: '/admin/operations-plus', label: 'Control center', description: 'Gom listing approval, report, notification và guest content vào một chỗ' },
-  { to: '/dashboard/admin/products', label: 'Sản phẩm', description: 'Quản lý danh mục, thông tin sản phẩm và dữ liệu' },
-  { to: '/dashboard/admin/blockchain', label: 'Blockchain', description: 'Giám sát hợp đồng thông minh và cấu hình blockchain' },
-  { to: '/dashboard/appearance', label: 'Giao diện website', description: 'Quản lý tài nguyên hiển thị và xem trước giao diện' },
-  { to: '/profile', label: 'Hồ sơ cá nhân', description: 'Xem và cập nhật hồ sơ cá nhân' },
+  { to: '/dashboard/admin/control-center', label: 'Trung tâm điều hành', description: 'Sức khỏe hệ thống và thao tác nhanh' },
+  { to: '/dashboard/admin/accounts', label: 'Tài khoản', description: 'Người dùng, vai trò, khóa và xác minh' },
+  { to: '/dashboard/admin/operations', label: 'Vận hành', description: 'Đơn hàng, lô hàng, vận chuyển, khiếu nại' },
+  { to: '/dashboard/admin/farms', label: 'Nông trại', description: 'Hồ sơ nông trại và chứng nhận' },
+  { to: '/dashboard/admin/retailers', label: 'Nhà bán lẻ', description: 'Hồ sơ nhà bán lẻ và đơn hàng' },
+  { to: '/dashboard/admin/packages', label: 'Gói dịch vụ', description: 'Gói dịch vụ và truy xuất' },
+  { to: '/dashboard/admin/logistics', label: 'Logistics', description: 'Chuyến hàng, tài xế, bằng chứng' },
+  { to: '/dashboard/admin/products', label: 'Sản phẩm', description: 'Sản phẩm, danh mục, lô hàng' },
+  { to: '/dashboard/admin/blockchain', label: 'Truy xuất blockchain', description: 'Giao dịch và nhật ký kiểm toán' },
+  { to: '/dashboard/admin/content', label: 'Nội dung', description: 'Thông báo và kiến thức' },
+  { to: '/dashboard/admin/analytics', label: 'Phân tích', description: 'Báo cáo tăng trưởng và vận hành' },
+  { to: '/dashboard/appearance', label: 'Giao diện website', description: 'Logo, thương hiệu, banner chợ nông sản' },
+  { to: '/profile', label: 'Hồ sơ', description: 'Cài đặt tài khoản cá nhân' },
 ]
 
 const roleLinks = {
   [ROLES.FARM]: [
-    { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
-    { to: '/dashboard/farm', label: 'Farm dashboard', description: 'Tổng quan vai trò nông trại' },
-    { to: '/farm/workflow', label: 'Farm workflow', description: 'Theo dõi notification, report và tiến độ duyệt listing' },
-    { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
+    { to: '/dashboard', label: 'Trang chủ', description: 'Trang tổng quan chung' },
+    { to: '/marketplace', label: 'Chợ nông sản', description: 'Xem listing công khai' },
+    { to: '/public/trace', label: 'Truy xuất', description: 'Truy xuất mã QR sản phẩm' },
+    { to: '/announcements', label: 'Thông báo', description: 'Cập nhật và thông báo công khai' },
+    { to: '/profile', label: 'Hồ sơ', description: 'Thông tin cá nhân và bảo mật' },
+    { to: '/dashboard/farm', label: 'Không gian nông trại', description: 'KPI, sức khỏe sản xuất, việc cần làm hôm nay' },
+    { to: '/farm/packages', label: 'Gói / Lô hàng', description: 'Thẻ lô, QR, blockchain, trạng thái chợ' },
+    { to: '/farm/seasons', label: 'Mùa vụ', description: 'Mùa vụ, nhật ký canh tác, thu hoạch' },
   ],
   [ROLES.RETAILER]: [
-<<<<<<< Updated upstream
-    { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
-    { to: '/dashboard/retailer', label: 'Retailer dashboard', description: 'Tổng quan vai trò nhà bán lẻ' },
-    { to: '/retailer/orders', label: 'Order workflow', description: 'Đặt cọc, hủy đơn và xác nhận giao hàng' },
-    { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
-  ],
-  [ROLES.SHIPPING_MANAGER]: [
-    { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
-    { to: '/dashboard/shipping-manager', label: 'Shipping dashboard', description: 'Tổng quan vai trò vận chuyển' },
-    { to: '/shipping/proof', label: 'Shipping proof', description: 'Ghi nhận bằng chứng giao vận' },
-    { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
-  ],
-  [ROLES.DRIVER]: [
-    { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
-    { to: '/dashboard/driver', label: 'Driver dashboard', description: 'Tổng quan vai trò tài xế' },
-    { to: '/driver/proof', label: 'Delivery proof', description: 'Ghi nhận bằng chứng giao vận khi đi tuyến' },
-    { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
-=======
     { section: true, label: 'TỔNG QUAN' },
     { to: '/dashboard/retailer', label: 'Tổng quan', description: 'KPI mua hàng và giao nhận' },
     { to: '/retailer/profile', label: 'Hồ sơ', description: 'Thông tin kinh doanh và giấy phép' },
@@ -97,12 +83,14 @@ const roleLinks = {
     { to: '/driver/handover', label: 'Bàn giao', description: 'Xác nhận bàn giao' },
     { to: '/driver/report', label: 'Báo cáo sự cố', description: 'Báo cáo quản lý vận chuyển' },
     { to: '/profile', label: 'Hồ sơ cá nhân', description: 'Thông tin tài khoản' },
->>>>>>> Stashed changes
   ],
   [ROLES.GUEST]: [
-    { to: '/dashboard', label: 'Overview', description: 'Tổng quan hệ thống và trạng thái đăng nhập' },
-    { to: '/dashboard/guest', label: 'Sàn giao dịch', description: 'Chợ nông sản sạch' },
-    { to: '/profile', label: 'Profile center', description: 'Xem và cập nhật hồ sơ cá nhân' },
+    { to: '/dashboard/guest', label: 'Sàn nông sản', description: 'Tổng quan chợ nông sản' },
+    { to: '/guest/search', label: 'Tìm kiếm & lọc', description: 'Tìm kiếm/lọc sản phẩm' },
+    { to: '/public/trace', label: 'Truy xuất QR', description: 'Tra cứu truy xuất công khai' },
+    { to: '/guest/announcements', label: 'Thông báo', description: 'Tin công khai' },
+    { to: '/guest/education', label: 'Kiến thức/video', description: 'Nội dung giáo dục' },
+    { to: '/profile', label: 'Hồ sơ cá nhân', description: 'Thông tin tài khoản' },
   ],
 }
 
@@ -112,12 +100,10 @@ function filterLinksByRole(role) {
 }
 
 export function DashboardLayout() {
-  const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
   const role = getPrimaryRole(user)
-<<<<<<< Updated upstream
-  const visibleLinks = filterLinksByRole(role)
-=======
   const isPrototypeRoute = location.pathname === '/dashboard' || location.pathname === '/profile'
   const isProfileRoute = location.pathname === '/profile'
   const isDriverMobileRoute = role === ROLES.DRIVER && (location.pathname === '/dashboard/driver' || location.pathname.startsWith('/driver/'))
@@ -130,29 +116,12 @@ export function DashboardLayout() {
     isProfileRoute ? 'prototype-profile-shell' : '',
     isDriverMobileRoute ? 'driver-mobile-layout' : '',
   ].filter(Boolean).join(' ')
->>>>>>> Stashed changes
 
-  async function handleLogout() {
+  async function handleGlobalLogout() {
     await logout()
     navigate('/login', { replace: true })
   }
 
-<<<<<<< Updated upstream
-  return (
-    <div className="dashboard-shell">
-      <Sidebar links={visibleLinks} />
-      <div className="dashboard-main">
-        <header className="dashboard-header enhanced">
-          <div>
-            <p className="eyebrow">Trung tâm điều khiển BICAP</p>
-            <h1>{user?.fullName || user?.name || 'Bảng điều khiển người dùng'}</h1>
-            <p className="header-description">
-              Khu vực quản lý giao diện frontend cho phân quyền người dùng, hồ sơ tài khoản và điều hướng theo vai trò.
-            </p>
-            <div className="header-meta">
-              <RoleBadge role={role} />
-              <span>{user?.email || 'Chưa có email'}</span>
-=======
   const displayName = user?.fullName || user?.email || 'Người dùng BICAP'
   const roleLabel = ROLE_LABELS[role] || role || 'Tài khoản đã xác thực'
 
@@ -166,6 +135,7 @@ export function DashboardLayout() {
           </div>
           <div className="dashboard-topbar-actions">
             <NotificationBell />
+            <SupportButton />
             <button className="dashboard-icon-button" type="button" aria-label="Cài đặt">
               <span className="material-symbols-outlined" aria-hidden="true">settings</span>
             </button>
@@ -176,12 +146,10 @@ export function DashboardLayout() {
                 <span>{roleLabel}</span>
               </div>
               <span className="dashboard-user-avatar prototype-avatar-img">M</span>
->>>>>>> Stashed changes
             </div>
-          </div>
-          <div className="header-actions">
-            <Link to="/profile" className="text-link">Hồ sơ</Link>
-            <Button variant="secondary" onClick={handleLogout}>Đăng xuất</Button>
+            <button className="dashboard-logout-button" type="button" onClick={handleGlobalLogout}>
+              Đăng xuất
+            </button>
           </div>
         </header> : null}
         <main>

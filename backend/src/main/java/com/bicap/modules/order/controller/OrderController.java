@@ -1,5 +1,7 @@
 package com.bicap.modules.order.controller;
 
+// Workspace sync trigger
+
 import com.bicap.core.dto.ApiResponse;
 import com.bicap.modules.media.dto.MediaFileResponse;
 import com.bicap.modules.order.dto.*;
@@ -43,6 +45,16 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success("Lấy danh sách đơn hàng thành công", payload));
     }
 
+    @GetMapping("/{id}/status-history")
+    @PreAuthorize("hasAnyRole('RETAILER','FARM','SHIPPING_MANAGER','DRIVER','ADMIN')")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderStatusHistory(@PathVariable Long id) {
+        List<OrderStatusHistoryResponse> history = orderService.getOrderStatusHistory(id);
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("items", history);
+        payload.put("totalItems", history.size());
+        return ResponseEntity.ok(ApiResponse.success("Lấy lịch sử thay đổi trạng thái thành công", payload));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('RETAILER','FARM','SHIPPING_MANAGER','DRIVER','ADMIN')")
     public ResponseEntity<ApiResponse<OrderResponse>> getOrderById(@PathVariable Long id) {
@@ -56,26 +68,23 @@ public class OrderController {
             @PathVariable Long id,
             @Valid @RequestBody OrderDepositRequest request) {
         OrderResponse response = orderService.payDeposit(id, request);
-        return ResponseEntity.ok(ApiResponse.success("Thanh toán đặt cọc thành công", response));
+        return ResponseEntity.ok(ApiResponse.success("Yêu cầu thanh toán đặt cọc đã được ghi nhận", response));
+    }
+
+    @PostMapping("/deposit/gateway/callback")
+    public ResponseEntity<ApiResponse<OrderResponse>> verifyDepositGatewayCallback(
+            @Valid @RequestBody OrderDepositCallbackRequest request) {
+        OrderResponse response = orderService.verifyDepositGatewayCallback(request);
+        return ResponseEntity.ok(ApiResponse.success("Xác nhận thanh toán đặt cọc thành công", response));
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('RETAILER') or hasRole('FARM') or hasRole('SHIPPING_MANAGER')")
+    @PreAuthorize("hasRole('RETAILER') or hasRole('FARM') or hasRole('SHIPPING_MANAGER') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<OrderResponse>> updateOrderStatus(
             @PathVariable Long id,
             @Valid @RequestBody UpdateOrderStatusRequest request) {
         OrderResponse response = orderService.updateOrderStatus(id, request);
         return ResponseEntity.ok(ApiResponse.success("Cập nhật trạng thái đơn hàng thành công", response));
-    }
-
-    @GetMapping("/{id}/status-history")
-    @PreAuthorize("hasAnyRole('RETAILER','FARM','SHIPPING_MANAGER','DRIVER','ADMIN')")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderStatusHistory(@PathVariable Long id) {
-        List<OrderStatusHistoryResponse> history = orderService.getOrderStatusHistory(id);
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("items", history);
-        payload.put("totalItems", history.size());
-        return ResponseEntity.ok(ApiResponse.success("Lấy lịch sử thay đổi trạng thái thành công", payload));
     }
 
     @PostMapping("/{id}/shipping-proof")
@@ -100,6 +109,15 @@ public class OrderController {
             @PathVariable Long id,
             @Valid @RequestBody ConfirmDeliveryRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Xác nhận nhận hàng thành công", orderService.confirmDelivery(id, request)));
+    }
+
+    @PostMapping("/{id}/settle")
+    @PreAuthorize("hasAnyRole('FARM','ADMIN')")
+    public ResponseEntity<ApiResponse<OrderResponse>> settleAfterDeliveryWindow(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean disputeRaised,
+            @RequestParam(required = false) String note) {
+        return ResponseEntity.ok(ApiResponse.success("Chốt đơn hàng thành công", orderService.settleAfterDeliveryWindow(id, disputeRaised, note)));
     }
 
     @PostMapping("/{id}/cancel")

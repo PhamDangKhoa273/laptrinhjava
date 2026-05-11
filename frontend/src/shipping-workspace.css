@@ -1,13 +1,18 @@
-.shipping-workspace-shell {
-  gap: 28px;
+.shipping-prototype-shell {
+  --ship-primary: #0d631b;
+  --ship-primary-soft: #e8f5e9;
+  --ship-secondary: #005faf;
+  --ship-surface: #f8faf8;
+  --ship-card: #ffffff;
+  --ship-border: #e5ebe4;
+  --ship-muted: #667064;
+  --ship-text: #17201a;
+  --ship-danger: #ba1a1a;
+  --ship-amber: #b96b00;
+  color: var(--ship-text);
+  font-family: Inter, system-ui, sans-serif;
 }
 
-<<<<<<< Updated upstream
-.shipping-workspace-grid {
-  display: grid;
-  gap: 20px;
-  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.95fr);
-=======
 .shipping-prototype-shell * { box-sizing: border-box; }
 .shipping-prototype-shell .material-symbols-outlined { font-size: 20px; vertical-align: middle; }
 .shipping-prototype-shell .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
@@ -162,58 +167,9 @@
   .ship-overview-grid, .ship-create-grid, .tracking-layout, .drivers-grid, .verification-grid { grid-template-columns:1fr; }
   .ship-summary { position:static; }
   .tracking-list { border-left:0; }
->>>>>>> Stashed changes
 }
-
-.shipping-panel {
-  display: grid;
-  gap: 18px;
-}
-
-.shipping-panel-wide {
-  min-width: 0;
-}
-
-.shipping-panel-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.shipping-chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.shipping-chip {
-  border: 1px solid rgba(132, 157, 187, 0.2);
-  background: rgba(255, 255, 255, 0.04);
-  color: #d8e5f3;
-  border-radius: 999px;
-  padding: 10px 14px;
-  cursor: pointer;
-}
-
-.shipping-chip.active {
-  background: linear-gradient(135deg, rgba(29, 143, 255, 0.2), rgba(51, 212, 139, 0.18));
-  border-color: rgba(95, 168, 255, 0.34);
-}
-
-.shipping-order-card.is-selected {
-  border: 1px solid rgba(95, 168, 255, 0.34);
-  background: linear-gradient(135deg, rgba(29, 143, 255, 0.1), rgba(51, 212, 139, 0.08));
-}
-
-.shipping-proof-preview {
-  max-width: 180px;
-  border-radius: 16px;
-  border: 1px solid rgba(132, 157, 187, 0.16);
-}
-
-@media (max-width: 1080px) {
-  .shipping-workspace-grid {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 680px) {
+  .ship-page-head { flex-direction:column; align-items:flex-start; }
+  .ship-metrics, .ship-metrics.four, .two-cols, .tracking-stats { grid-template-columns:1fr; }
+  .ship-card, .ship-metric { border-radius:18px; padding:16px; }
 }
