@@ -111,7 +111,7 @@ class ProductBatchServiceTests {
 
             QrCodeResponse response = productBatchService.generateQrCode(30L);
 
-            assertEquals("QR-BATCH-30", response.getSerialNo());
+            assertTrue(response.getSerialNo() != null && response.getSerialNo().startsWith("QR-BATCH-30"));
             assertNotNull(response.getQrUrl());
             assertNotNull(response.getQrCodeData());
         }

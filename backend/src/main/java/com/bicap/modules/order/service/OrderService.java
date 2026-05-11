@@ -128,21 +128,26 @@ public class OrderService {
         BigDecimal totalAmount = BigDecimal.ZERO;
         Long farmId = null;
         Map<Long, BigDecimal> quantityByListing = items.stream().collect(Collectors.toMap(OrderItemRequest::getListingId, OrderItemRequest::getQuantity, BigDecimal::add));
-        for (Map.Entry<Long, BigDecimal> entry : quantityByListing.entrySet()) {
-            ProductListing listing = listingRepository.findById(entry.getKey()).orElseThrow(() -> new BusinessException("Listing không tồn tại: " + entry.getKey()));
-            validateListingForOrder(listing, entry.getValue());
+        // Sắp xếp theo listingId để tránh deadlock giữa các giao dịch đặt song song.
+        java.util.List<Long> orderedIds = new java.util.ArrayList<>(quantityByListing.keySet());
+        java.util.Collections.sort(orderedIds);
+        for (Long listingId : orderedIds) {
+            BigDecimal qty = quantityByListing.get(listingId);
+            ProductListing listing = listingRepository.findByIdForUpdate(listingId)
+                    .orElseThrow(() -> new BusinessException("Listing không tồn tại: " + listingId));
+            validateListingForOrder(listing, qty);
             Long listingFarmId = listing.getBatch().getSeason().getFarm().getFarmId();
             if (farmId == null) farmId = listingFarmId; else if (!farmId.equals(listingFarmId)) throw new BusinessException("Một đơn hàng chỉ được tạo từ cùng một farm");
-            listing.setQuantityReserved(safe(listing.getQuantityReserved()).add(entry.getValue()));
-            listing.setQuantityAvailable(safe(listing.getQuantityAvailable()).subtract(entry.getValue()));
+            listing.setQuantityReserved(safe(listing.getQuantityReserved()).add(qty));
+            listing.setQuantityAvailable(safe(listing.getQuantityAvailable()).subtract(qty));
             if (listing.getQuantityAvailable().compareTo(BigDecimal.ZERO) == 0) listing.setStatus("SOLD_OUT");
             listingRepository.save(listing);
             OrderItem orderItem = new OrderItem();
             orderItem.setListing(listing);
-            orderItem.setQuantity(entry.getValue());
+            orderItem.setQuantity(qty);
             orderItem.setPrice(listing.getPrice());
             order.addOrderItem(orderItem);
-            totalAmount = totalAmount.add(listing.getPrice().multiply(entry.getValue()));
+            totalAmount = totalAmount.add(listing.getPrice().multiply(qty));
         }
 
         if (farmId == null) throw new BusinessException("Không xác định được farm của đơn hàng");
@@ -468,7 +473,7 @@ public class OrderService {
     }
 
     private boolean canCancel(Order order) {
-        return EnumSet.of(OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.DISPUTED).contains(order.getStatusEnum());
+        return EnumSet.of(OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.READY_FOR_SHIPMENT, OrderStatus.DISPUTED).contains(order.getStatusEnum());
     }
 
     private void validateListingForOrder(ProductListing listing, BigDecimal qty) {

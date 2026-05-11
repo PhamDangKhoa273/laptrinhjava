@@ -34,7 +34,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -180,22 +182,29 @@ public class ProductListingService {
     }
 
 
-    public Page<ListingResponse> searchPublicListings(String keyword, String province, String certification, Boolean availableOnly, Boolean verifiedOnly, LocalDate harvestFrom, LocalDate harvestTo, int page, int size, String sort) {
+    public Page<ListingResponse> searchPublicListings(String keyword, String province, String certification, String productCategory, Boolean availableOnly, Boolean verifiedOnly, LocalDate harvestFrom, LocalDate harvestTo, int page, int size, String sort) {
         Pageable pageable = PageRequest.of(page, size, resolvePublicSort(sort));
-        List<ListingResponse> filtered = listingRepository.findByStatusAndApprovalStatus(ListingStatus.ACTIVE.name(), ApprovalStatus.APPROVED.name(), resolvePublicSort(sort))
-                .stream()
-                .map(this::toResponse)
-                .filter(listing -> matchesKeyword(listing, keyword))
-                .filter(listing -> matchesProvince(listing, province))
-                .filter(listing -> matchesCertification(listing, certification))
-                .filter(listing -> availableOnly == null || !availableOnly || Boolean.TRUE.equals(listing.getAvailableForRetailer()))
-                .filter(listing -> verifiedOnly == null || !verifiedOnly || isVerifiedCertification(listing.getCertificationStatus()))
-                .filter(listing -> matchesHarvestRange(listing, harvestFrom, harvestTo))
-                .toList();
-        int total = filtered.size();
-        int from = Math.min(page * size, total);
-        int to = Math.min(from + size, total);
-        return new org.springframework.data.domain.PageImpl<>(filtered.subList(from, to), pageable, total);
+        org.springframework.data.jpa.domain.Specification<ProductListing> spec =
+                com.bicap.modules.discovery.specification.ProductListingSpecification
+                        .searchListings(keyword, null, null, province, productCategory, certification);
+
+        if (Boolean.TRUE.equals(verifiedOnly)) {
+            spec = spec.and((root, query, cb) -> cb.lower(root.get("batch").get("season").get("farm").get("certificationStatus")).in(java.util.List.of("vietgap", "globalgap", "organic")));
+        }
+        if (harvestFrom != null) {
+            final LocalDate from = harvestFrom;
+            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("batch").get("harvestDate"), from));
+        }
+        if (harvestTo != null) {
+            final LocalDate to = harvestTo;
+            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("batch").get("harvestDate"), to));
+        }
+        if (Boolean.TRUE.equals(availableOnly)) {
+            spec = spec.and((root, query, cb) -> cb.greaterThan(root.get("quantityAvailable"), BigDecimal.ZERO));
+        }
+
+        Page<ProductListing> rows = listingRepository.findAll(spec, pageable);
+        return rows.map(this::toResponse);
     }
 
     private boolean matchesKeyword(ListingResponse listing, String keyword) {
@@ -212,6 +221,11 @@ public class ProductListingService {
     private boolean matchesCertification(ListingResponse listing, String certification) {
         if (certification == null || certification.isBlank()) return true;
         return normalizeRegion(listing.getCertificationStatus()).contains(normalizeRegion(certification));
+    }
+
+    private boolean matchesProductCategory(ListingResponse listing, String productCategory) {
+        if (productCategory == null || productCategory.isBlank()) return true;
+        return contains(listing.getProductCategory(), productCategory);
     }
 
     private boolean isVerifiedCertification(String certificationStatus) {
@@ -481,6 +495,17 @@ public class ProductListingService {
 
     private boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
+    }
+
+    public Map<String, List<String>> getFilterOptions() {
+        String status = ListingStatus.ACTIVE.name();
+        String approval = ApprovalStatus.APPROVED.name();
+        List<String> provinces = listingRepository.findDistinctProvincesByStatusAndApprovalStatus(status, approval);
+        List<String> certifications = listingRepository.findDistinctCertificationsByStatusAndApprovalStatus(status, approval);
+        Map<String, List<String>> result = new HashMap<>();
+        result.put("provinces", provinces);
+        result.put("certifications", certifications);
+        return result;
     }
 
     private String trimToNull(String value) {

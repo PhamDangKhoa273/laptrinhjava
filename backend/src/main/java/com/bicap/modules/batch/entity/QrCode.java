@@ -12,7 +12,7 @@ public class QrCode {
     @Column(name = "qr_code_id")
     private Long qrCodeId;
 
-    @Transient
+    @Column(name = "serial_no", length = 60)
     private String serialNo;
     
     private String qrValue;
@@ -23,7 +23,7 @@ public class QrCode {
     private String status;
     private LocalDateTime generatedAt;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_id")
     private ProductBatch batch;
 

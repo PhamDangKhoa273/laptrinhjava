@@ -137,6 +137,10 @@ public class SubscriptionPaymentService {
 
     @Transactional
     public SubscriptionPaymentResponse adminOverrideActivate(Long paymentId, Long adminUserId, String note) {
+        String auditNote = note == null ? "" : note.trim();
+        if (auditNote.isEmpty()) {
+            throw new BusinessException("Admin override subscription phải kèm ghi chú lý do");
+        }
         SubscriptionPayment payment = getEntityById(paymentId);
         payment.setPaymentStatus("PAID");
 
@@ -145,8 +149,8 @@ public class SubscriptionPaymentService {
         subscription.setSubscriptionStatus("ACTIVE");
         farmSubscriptionRepository.save(subscription);
 
-        auditLogService.log(adminUserId, "ADMIN_OVERRIDE_SUBSCRIPTION_PAYMENT", "SUBSCRIPTION_PAYMENT", saved.getSubscriptionPaymentId());
-        auditLogService.log(adminUserId, "PAYMENT_STATE_CHANGE", "SUBSCRIPTION_PAYMENT", saved.getSubscriptionPaymentId(), "status=PAID,source=ADMIN_OVERRIDE");
+        auditLogService.log(adminUserId, "ADMIN_OVERRIDE_SUBSCRIPTION_PAYMENT", "SUBSCRIPTION_PAYMENT", saved.getSubscriptionPaymentId(), auditNote);
+        auditLogService.log(adminUserId, "PAYMENT_STATE_CHANGE", "SUBSCRIPTION_PAYMENT", saved.getSubscriptionPaymentId(), "status=PAID,source=ADMIN_OVERRIDE,note=" + auditNote);
         return toResponse(saved);
     }
 

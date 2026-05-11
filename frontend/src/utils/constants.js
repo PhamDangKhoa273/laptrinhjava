@@ -8,12 +8,12 @@ export const ROLES = {
 }
 
 export const ROLE_LABELS = {
-  [ROLES.ADMIN]: 'Admin',
-  [ROLES.FARM]: 'Farm',
-  [ROLES.RETAILER]: 'Retailer',
-  [ROLES.SHIPPING_MANAGER]: 'Vận chuyển Manager',
-  [ROLES.DRIVER]: 'Driver',
-  [ROLES.GUEST]: 'Guest',
+  [ROLES.ADMIN]: 'Quản trị viên',
+  [ROLES.FARM]: 'Nông trại',
+  [ROLES.RETAILER]: 'Nhà bán lẻ',
+  [ROLES.SHIPPING_MANAGER]: 'Quản lý vận chuyển',
+  [ROLES.DRIVER]: 'Tài xế',
+  [ROLES.GUEST]: 'Khách',
 }
 
 export const ROLE_DASHBOARD_PATHS = {
@@ -21,7 +21,7 @@ export const ROLE_DASHBOARD_PATHS = {
   [ROLES.FARM]: '/dashboard/farm',
   [ROLES.RETAILER]: '/dashboard/retailer',
   [ROLES.SHIPPING_MANAGER]: '/dashboard/shipping-manager',
-  [ROLES.DRIVER]: '/dashboard/driver',
+  [ROLES.DRIVER]: '/driver/mobile',
   [ROLES.GUEST]: '/dashboard/guest',
 }
 

@@ -3,6 +3,9 @@ import { Sidebar } from '../components/Sidebar.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { getPrimaryRole } from '../utils/helpers'
 import { ROLES, ROLE_LABELS } from '../utils/constants'
+import { useEffect, useState, useRef, useCallback } from 'react'
+import { getMyNotifications, markNotificationRead } from '../services/workflowService.js'
+import { SupportButton } from '../components/SupportButton.jsx'
 
 const prototypeLinks = [
   { to: '/dashboard', label: 'Trang chủ', description: '' },
@@ -40,37 +43,45 @@ const roleLinks = {
     { to: '/farm/seasons', label: 'Mùa vụ', description: 'Mùa vụ, nhật ký canh tác, thu hoạch' },
   ],
   [ROLES.RETAILER]: [
-    { to: '/dashboard/retailer', label: 'Retailer tổng quan', description: 'KPI mua hàng và giao nhận' },
-    { to: '/retailer/profile', label: 'Hồ sơ & giấy phép', description: 'Thông tin kinh doanh và giấy phép' },
-    { to: '/retailer/marketplace', label: 'Tìm nông sản', description: 'Tìm kiếm, lọc, chi tiết sản phẩm' },
-    { to: '/retailer/trace', label: 'Truy xuất QR', description: 'Quét/tải mã truy xuất' },
-    { to: '/retailer/orders', label: 'Tạo đơn hàng', description: 'Tạo yêu cầu đặt hàng từ listing' },
-    { to: '/retailer/deposit', label: 'Đặt cọc', description: 'Thanh toán đặt cọc' },
-    { to: '/retailer/history', label: 'Lịch sử đơn', description: 'Chi tiết và trạng thái đơn hàng' },
-    { to: '/retailer/shipping', label: 'Giao nhận', description: 'Bằng chứng và xác nhận giao hàng' },
-    { to: '/retailer/messages', label: 'Tin nhắn farm', description: 'Thông báo giữa nông trại và nhà bán lẻ' },
-    { to: '/retailer/reports', label: 'Báo cáo admin', description: 'Gửi báo cáo cho quản trị viên' },
-    { to: '/profile', label: 'Hồ sơ cá nhân', description: 'Thông tin tài khoản' },
+    { section: true, label: 'TỔNG QUAN' },
+    { to: '/dashboard/retailer', label: 'Tổng quan', description: 'KPI mua hàng và giao nhận' },
+    { to: '/retailer/profile', label: 'Hồ sơ', description: 'Thông tin kinh doanh và giấy phép' },
+    { section: true, label: 'MUA HÀNG' },
+    { to: '/retailer/marketplace', label: 'Chợ nông sản', description: 'Tìm listing, lọc và xem chi tiết' },
+    { to: '/retailer/trace', label: 'Truy xuất QR', description: 'Tra cứu mã truy xuất' },
+    { to: '/retailer/orders', label: 'Đơn hàng', description: 'Tạo và quản lý đơn' },
+    { to: '/retailer/deposit', label: 'Đặt cọc', description: 'Thanh toán cọc' },
+    { to: '/retailer/history', label: 'Lịch sử', description: 'Trạng thái và timeline' },
+    { to: '/retailer/shipping', label: 'Giao nhận', description: 'Xác nhận và chứng từ' },
+    { to: '/retailer/contracts', label: 'Hợp đồng', description: 'Theo dõi thỏa thuận hợp tác' },
+    { section: true, label: 'LIÊN LẠC' },
+    { to: '/retailer/messages', label: 'Tin nhắn farm', description: 'Trao đổi với nông trại' },
+    { to: '/retailer/reports', label: 'Báo cáo admin', description: 'Gửi báo cáo sự cố' },
+    { to: '/profile', label: 'Hồ sơ cá nhân', description: 'Cài đặt tài khoản' },
   ],
   [ROLES.SHIPPING_MANAGER]: [
-    { to: '/dashboard/shipping-manager', label: 'Tổng quan vận chuyển', description: 'KPI vận chuyển' },
-    { to: '/shipping/orders', label: 'Đơn đủ điều kiện', description: 'Đơn hàng sẵn sàng tạo chuyến' },
-    { to: '/shipping/create', label: 'Tạo shipment', description: 'Chọn tài xế, phương tiện, đơn hàng' },
-    { to: '/shipping/tracking', label: 'Theo dõi chuyến hàng', description: 'Dòng thời gian và trạng thái' },
+    { section: true, label: 'TỔNG QUAN' },
+    { to: '/dashboard/shipping-manager', label: 'Bảng điều khiển', description: 'KPI vận chuyển' },
+    { section: true, label: 'ĐƠN HÀNG & VẬN CHUYỂN' },
+    { to: '/shipping/orders', label: 'Quản lý đơn hàng', description: 'Xem, tạo, theo dõi và hủy chuyến hàng' },
+    { to: '/shipping/completed', label: 'Đơn hàng hoàn thành', description: 'Xem đơn hàng thành công giữa nhà bán lẻ và trang trại' },
+    { section: true, label: 'QUẢN LÝ' },
     { to: '/shipping/drivers', label: 'Tài xế', description: 'Quản lý tài xế' },
     { to: '/shipping/vehicles', label: 'Phương tiện', description: 'Quản lý phương tiện' },
-    { to: '/shipping/notifications', label: 'Thông báo', description: 'Thông báo nông trại/nhà bán lẻ' },
-    { to: '/shipping/reports', label: 'Báo cáo driver/admin', description: 'Quy trình sự cố và báo cáo' },
-    { to: '/profile', label: 'Hồ sơ cá nhân', description: 'Thông tin tài khoản' },
+    { section: true, label: 'LIÊN LẠC & BÁO CÁO' },
+    { to: '/shipping/sendnotification', label: 'Gửi thông báo', description: 'Gửi đến nông trại, nhà bán lẻ hoặc quản trị viên' },
+    { to: '/shipping/reports', label: 'Báo cáo từ tài xế', description: 'Sự cố vận hành' },
+    { section: true, label: 'TÀI KHOẢN' },
+    { to: '/shipping/profile', label: 'Hồ sơ cá nhân', description: 'Thông tin tài khoản' },
   ],
   [ROLES.DRIVER]: [
     { to: '/dashboard/driver', label: 'Tuyến của tôi', description: 'Danh sách/chi tiết chuyến hàng' },
-    { to: '/driver/qr', label: 'Quét QR pickup', description: 'Quét truy xuất tại nông trại' },
+    { to: '/driver/mobile', label: 'Ứng dụng Di động', description: 'Giao diện tối ưu cho điện thoại' },
+    { to: '/driver/qr', label: 'Quét QR', description: 'Quét truy xuất tại nông trại' },
     { to: '/driver/pickup', label: 'Nhận hàng', description: 'Xác nhận nhận hàng' },
     { to: '/driver/checkpoint', label: 'Checkpoint', description: 'Cập nhật tiến trình' },
     { to: '/driver/handover', label: 'Bàn giao', description: 'Xác nhận bàn giao' },
     { to: '/driver/report', label: 'Báo cáo sự cố', description: 'Báo cáo quản lý vận chuyển' },
-    { to: '/driver/mobile', label: 'Mobile workflow', description: 'PWA cho tài xế' },
     { to: '/profile', label: 'Hồ sơ cá nhân', description: 'Thông tin tài khoản' },
   ],
   [ROLES.GUEST]: [
@@ -95,6 +106,7 @@ export function DashboardLayout() {
   const role = getPrimaryRole(user)
   const isPrototypeRoute = location.pathname === '/dashboard' || location.pathname === '/profile'
   const isProfileRoute = location.pathname === '/profile'
+  const isDriverMobileRoute = role === ROLES.DRIVER && (location.pathname === '/dashboard/driver' || location.pathname.startsWith('/driver/'))
   const visibleLinks = isPrototypeRoute ? prototypeLinks : filterLinksByRole(role)
   const shellClassName = [
     'dashboard-shell',
@@ -102,6 +114,7 @@ export function DashboardLayout() {
     isPrototypeRoute ? 'prototype-shell' : '',
     location.pathname === '/dashboard' ? 'prototype-dashboard-shell' : '',
     isProfileRoute ? 'prototype-profile-shell' : '',
+    isDriverMobileRoute ? 'driver-mobile-layout' : '',
   ].filter(Boolean).join(' ')
 
   async function handleGlobalLogout() {
@@ -111,24 +124,18 @@ export function DashboardLayout() {
 
   const displayName = user?.fullName || user?.email || 'Người dùng BICAP'
   const roleLabel = ROLE_LABELS[role] || role || 'Tài khoản đã xác thực'
-  const searchPlaceholder = isProfileRoute ? 'Tìm kiếm dữ liệu...' : 'Tìm đơn hàng, lô hàng hoặc hồ sơ...'
 
   return (
     <div className={shellClassName}>
-      <Sidebar links={visibleLinks} />
+      {!isDriverMobileRoute ? <Sidebar links={visibleLinks} /> : null}
       <div className="dashboard-main">
-        <header className="dashboard-topbar" aria-label="Thanh điều hướng không gian làm việc">
+        {!isDriverMobileRoute ? <header className="dashboard-topbar" aria-label="Thanh điều hướng không gian làm việc">
           <div className="dashboard-topbar-main">
             {isProfileRoute ? <span className="dashboard-topbar-title">BICAP</span> : null}
-            <label className="dashboard-topbar-search" aria-label="Tìm kiếm dữ liệu không gian làm việc">
-              <span className="material-symbols-outlined" aria-hidden="true">search</span>
-              <input type="search" placeholder={searchPlaceholder} />
-            </label>
           </div>
           <div className="dashboard-topbar-actions">
-            <button className="dashboard-icon-button" type="button" aria-label="Thông báo">
-              <span className="material-symbols-outlined" aria-hidden="true">notifications</span>
-            </button>
+            <NotificationBell />
+            <SupportButton />
             <button className="dashboard-icon-button" type="button" aria-label="Cài đặt">
               <span className="material-symbols-outlined" aria-hidden="true">settings</span>
             </button>
@@ -144,11 +151,70 @@ export function DashboardLayout() {
               Đăng xuất
             </button>
           </div>
-        </header>
+        </header> : null}
         <main>
           <Outlet />
         </main>
       </div>
+    </div>
+  )
+}
+
+function NotificationBell() {
+  const [notifications, setNotifications] = useState([])
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  async function load() {
+    try { setNotifications(await getMyNotifications() || []) } catch { }
+  }
+  useEffect(() => { load() }, [])
+
+  useEffect(() => {
+    function handleClick(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const unread = notifications.filter(n => !n.read).length
+
+  async function handleMarkRead(id) {
+    try {
+      await markNotificationRead(id)
+      await load()
+    } catch { }
+  }
+
+  return (
+    <div className="notification-bell-wrapper" ref={ref}>
+      <button className="dashboard-icon-button" type="button" aria-label="Thông báo" onClick={() => { setOpen(!open); if (!open) load() }}>
+        <span className="material-symbols-outlined" aria-hidden="true">notifications</span>
+        {unread > 0 && <span className="notification-badge">{unread}</span>}
+      </button>
+      {open && (
+        <div className="notification-dropdown">
+          <div className="notification-dropdown-header">
+            <strong>Thông báo</strong>
+            <span>{notifications.length} cái</span>
+          </div>
+          <div className="notification-dropdown-list">
+            {notifications.length === 0 ? (
+              <div className="notification-dropdown-empty">Không có thông báo</div>
+            ) : (
+              notifications.slice(0, 10).map(n => (
+                <div key={n.notificationId} className={`notification-dropdown-item ${n.read ? '' : 'unread'}`}>
+                  <div className="notification-item-main">
+                    <strong>{n.title}</strong>
+                    <p>{n.message}</p>
+                    <small>{new Date(n.createdAt).toLocaleDateString('vi-VN')}</small>
+                  </div>
+                  {!n.read && <button className="notification-mark-read" onClick={() => handleMarkRead(n.notificationId)} title="Đánh dấu đọc"><span className="material-symbols-outlined">check</span></button>}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

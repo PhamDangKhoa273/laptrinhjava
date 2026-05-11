@@ -89,3 +89,19 @@ Backend, from `backend/` when applicable:
 ```
 
 Use targeted tests first when a full test run is slow.
+
+## Known DB Schema Issues
+
+All tables with `@Version` (optimistic locking) have the `version` column as **nullable** with no default. Existing pre-migration rows have `version = NULL`, causing `NullPointerException` when Hibernate tries to increment a null version during UPDATE. After any DB migration that creates rows without setting version, run:
+
+```sql
+UPDATE <table_name> SET version = 0 WHERE version IS NULL;
+```
+
+Tables affected: `shipments`, `orders`, `product_listings`, `subscription_payments`, `iot_alerts`.
+
+## Known Authorization Pattern
+
+- `DriverService` / `VehicleService`: Any `SHIPPING_MANAGER` can update/delete any driver/vehicle (not restricted to creator).
+- `ShipmentService.assertCanManageShipment`: Any `SHIPPING_MANAGER` can update any shipment (changed from "only creator + ADMIN").
+- `ShipmentService.assertCanViewShipment`: Restricted by user type + ownership.

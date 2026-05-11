@@ -39,6 +39,14 @@ class FarmServiceTests {
     private UserService userService;
     @Mock
     private AuditLogService auditLogService;
+    @Mock
+    private com.bicap.modules.media.service.MediaStorageService mediaStorageService;
+    @Mock
+    private com.bicap.modules.media.repository.MediaFileRepository mediaFileRepository;
+    @Mock
+    private com.bicap.modules.listing.repository.ProductListingRepository productListingRepository;
+    @Mock
+    private com.bicap.modules.subscription.repository.FarmSubscriptionRepository farmSubscriptionRepository;
 
     @InjectMocks
     private FarmService farmService;
@@ -193,7 +201,7 @@ class FarmServiceTests {
         approvedFarm.setCertificationStatus("VALID");
         User stranger = new User();
         stranger.setUserId(9L);
-        when(farmRepository.findAll()).thenReturn(List.of(farm, approvedFarm));
+        when(farmRepository.findByApprovalStatusIgnoreCase("APPROVED")).thenReturn(List.of(approvedFarm));
         when(userRepository.findById(9L)).thenReturn(Optional.of(stranger));
         when(userService.hasRole(stranger, RoleName.ADMIN)).thenReturn(false);
         setPrincipal(9L, "ROLE_RETAILER");

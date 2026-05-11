@@ -2,6 +2,7 @@ package com.bicap.modules.listing.repository;
 
 import com.bicap.modules.listing.entity.ProductListing;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -9,10 +10,21 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface ProductListingRepository extends JpaRepository<ProductListing, Long>, JpaSpecificationExecutor<ProductListing> {
+
+    @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT pl FROM ProductListing pl WHERE pl.listingId = :id")
+    Optional<ProductListing> findByIdForUpdate(@Param("id") Long id);
+
+    @Query("SELECT DISTINCT f.province FROM ProductListing pl JOIN pl.batch b JOIN b.season s JOIN s.farm f WHERE pl.status = :status AND pl.approvalStatus = :approvalStatus AND f.province IS NOT NULL AND f.province <> '' ORDER BY f.province")
+    List<String> findDistinctProvincesByStatusAndApprovalStatus(@Param("status") String status, @Param("approvalStatus") String approvalStatus);
+
+    @Query("SELECT DISTINCT f.certificationStatus FROM ProductListing pl JOIN pl.batch b JOIN b.season s JOIN s.farm f WHERE pl.status = :status AND pl.approvalStatus = :approvalStatus AND f.certificationStatus IS NOT NULL AND f.certificationStatus <> '' ORDER BY f.certificationStatus")
+    List<String> findDistinctCertificationsByStatusAndApprovalStatus(@Param("status") String status, @Param("approvalStatus") String approvalStatus);
 
     List<ProductListing> findByStatus(String status);
 

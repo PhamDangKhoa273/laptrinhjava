@@ -88,14 +88,32 @@ public class PlatformReportService {
     public PlatformReportResponse updateStatus(Long reportId, UpdatePlatformReportStatusRequest request) {
         PlatformReport report = platformReportRepository.findById(reportId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy report"));
-        String status = request.getStatus().trim().toUpperCase();
-        if (!List.of("OPEN", "IN_REVIEW", "ESCALATED", "RESOLVED", "CLOSED").contains(status)) {
+        String next = request.getStatus().trim().toUpperCase();
+        String current = report.getStatus() == null ? "OPEN" : report.getStatus().trim().toUpperCase();
+        if (!List.of("OPEN", "IN_REVIEW", "ESCALATED", "RESOLVED", "CLOSED").contains(next)) {
             throw new BusinessException("Trạng thái report không hợp lệ");
         }
-        report.setStatus(status);
+        if (!isReportTransitionAllowed(current, next)) {
+            throw new BusinessException(String.format("Không thể chuyển report từ '%s' sang '%s'", current, next));
+        }
+        report.setStatus(next);
         PlatformReportResponse response = toResponse(platformReportRepository.save(report));
-        securityAuditService.logAdminAction(SecurityUtils.getCurrentUserIdOrNull(), "REPORT_STATUS_CHANGE", String.valueOf(reportId), status);
+        securityAuditService.logAdminAction(SecurityUtils.getCurrentUserIdOrNull(), "REPORT_STATUS_CHANGE", String.valueOf(reportId), next);
         return response;
+    }
+
+    private boolean isReportTransitionAllowed(String current, String next) {
+        if (current.equals(next)) {
+            return true;
+        }
+        return switch (current) {
+            case "OPEN" -> next.equals("IN_REVIEW") || next.equals("ESCALATED") || next.equals("CLOSED");
+            case "IN_REVIEW" -> next.equals("RESOLVED") || next.equals("ESCALATED") || next.equals("CLOSED");
+            case "ESCALATED" -> next.equals("IN_REVIEW") || next.equals("RESOLVED") || next.equals("CLOSED");
+            case "RESOLVED" -> next.equals("CLOSED");
+            case "CLOSED" -> false;
+            default -> false;
+        };
     }
 
     private PlatformReportResponse toResponse(PlatformReport report) {

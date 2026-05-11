@@ -30,6 +30,7 @@ const WebsiteAppearancePage = lazy(() => import('../pages/WebsiteAppearancePage.
 const GuestMarketplacePage = lazy(() => import('../pages/GuestMarketplacePage.jsx').then((module) => ({ default: module.GuestMarketplacePage })))
 const PublicMarketplacePage = lazy(() => import('../pages/PublicMarketplacePage.jsx').then((module) => ({ default: module.PublicMarketplacePage })))
 const PublicAnnouncementsPage = lazy(() => import('../pages/PublicAnnouncementsPage.jsx').then((module) => ({ default: module.PublicAnnouncementsPage })))
+const PublicEducationPage = lazy(() => import('../pages/PublicEducationPage.jsx').then((module) => ({ default: module.PublicEducationPage })))
 const ForgotPasswordPage = lazy(() => import('../pages/ForgotPasswordPage.jsx').then((module) => ({ default: module.ForgotPasswordPage })))
 const ResetPasswordPage = lazy(() => import('../pages/ResetPasswordPage.jsx').then((module) => ({ default: module.ResetPasswordPage })))
 const BatchDetailPage = lazy(() => import('../pages/BatchDetailPage.jsx').then((module) => ({ default: module.BatchDetailPage })))
@@ -39,6 +40,8 @@ const AnalyticsDashboardPage = lazy(() => import('../pages/AnalyticsDashboardPag
 const AdminControlCenterPage = lazy(() => import('../pages/AdminControlCenterPage.jsx').then((module) => ({ default: module.AdminControlCenterPage })))
 const AdminLogisticsPage = lazy(() => import('../pages/AdminLogisticsPage.jsx').then((module) => ({ default: module.AdminLogisticsPage })))
 const AdminContentPage = lazy(() => import('../pages/AdminContentPage.jsx').then((module) => ({ default: module.AdminContentPage })))
+const AdminAnnouncementsPage = lazy(() => import('../pages/AdminAnnouncementsPage.jsx'))
+const AdminEducationContentPage = lazy(() => import('../pages/AdminEducationContentPage.jsx'))
 const FarmWorkflowPage = lazy(() => import('../pages/FarmWorkflowPage.jsx').then((module) => ({ default: module.FarmWorkflowPage })))
 const RetailerOrderWorkflowPage = lazy(() => import('../pages/RetailerOrderWorkflowPage.jsx').then((module) => ({ default: module.RetailerOrderWorkflowPage })))
 const ShippingProofPage = lazy(() => import('../pages/ShippingProofPage.jsx').then((module) => ({ default: module.ShippingProofPage })))
@@ -79,6 +82,8 @@ export function AppRoutes() {
             <Route path="/dashboard/admin/blockchain" element={<AdminBlockchainTracePage />} />
             <Route path="/dashboard/admin/blockchain/ops" element={<Navigate to="/dashboard/admin/blockchain" replace />} />
             <Route path="/dashboard/admin/content" element={<AdminContentPage />} />
+            <Route path="/dashboard/admin/announcements" element={<AdminAnnouncementsPage />} />
+            <Route path="/dashboard/admin/education" element={<AdminEducationContentPage />} />
             <Route path="/dashboard/admin/analytics" element={<AnalyticsDashboardPage />} />
             <Route path="/dashboard/analytics" element={<Navigate to="/dashboard/admin/analytics" replace />} />
 
@@ -117,41 +122,47 @@ export function AppRoutes() {
             <Route path="/retailer/shipping" element={<RetailerWorkspacePage module="shipping" />} />
             <Route path="/retailer/messages" element={<RetailerWorkspacePage module="messages" />} />
             <Route path="/retailer/reports" element={<RetailerWorkspacePage module="reports" />} />
+            <Route path="/retailer/contracts" element={<RetailerWorkspacePage module="contracts" />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.SHIPPING_MANAGER]} />}>
             <Route path="/dashboard/shipping-manager" element={<ShippingWorkspacePage module="overview" />} />
             <Route path="/shipping/workspace" element={<ShippingWorkspacePage module="overview" />} />
             <Route path="/shipping/orders" element={<ShippingWorkspacePage module="orders" />} />
-            <Route path="/shipping/create" element={<ShippingWorkspacePage module="create" />} />
-            <Route path="/shipping/tracking" element={<ShippingWorkspacePage module="tracking" />} />
+            <Route path="/shipping/create" element={<Navigate to="/shipping/orders" replace />} />
+            <Route path="/shipping/tracking" element={<Navigate to="/shipping/orders" replace />} />
             <Route path="/shipping/drivers" element={<ShippingWorkspacePage module="drivers" />} />
             <Route path="/shipping/vehicles" element={<ShippingWorkspacePage module="vehicles" />} />
             <Route path="/shipping/notifications" element={<ShippingWorkspacePage module="notifications" />} />
             <Route path="/shipping/reports" element={<ShippingWorkspacePage module="reports" />} />
+            <Route path="/shipping/sendreport" element={<ShippingWorkspacePage module="sendreport" />} />
+            <Route path="/shipping/sendnotification" element={<ShippingWorkspacePage module="sendnotification" />} />
+            <Route path="/shipping/completed" element={<ShippingWorkspacePage module="completed" />} />
+            <Route path="/shipping/profile" element={<ShippingWorkspacePage module="profile" />} />
             <Route path="/shipping/proof" element={<ShippingProofPage />} />
           </Route>
 
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.DRIVER]} />}>
-            <Route path="/dashboard/driver" element={<DriverWorkspacePage module="shipments" />} />
-            <Route path="/driver/workspace" element={<DriverWorkspacePage module="shipments" />} />
-            <Route path="/driver/qr" element={<DriverWorkspacePage module="qr" />} />
-            <Route path="/driver/pickup" element={<DriverWorkspacePage module="pickup" />} />
-            <Route path="/driver/checkpoint" element={<DriverWorkspacePage module="checkpoint" />} />
-            <Route path="/driver/handover" element={<DriverWorkspacePage module="handover" />} />
-            <Route path="/driver/report" element={<DriverWorkspacePage module="report" />} />
+            <Route path="/dashboard/driver" element={<DriverMobilePage module="shipments" />} />
+            <Route path="/driver/workspace" element={<DriverMobilePage module="shipments" />} />
+            <Route path="/driver/qr" element={<DriverMobilePage module="qr" />} />
+            <Route path="/driver/pickup" element={<DriverMobilePage module="pickup" />} />
+            <Route path="/driver/checkpoint" element={<DriverMobilePage module="checkpoint" />} />
+            <Route path="/driver/handover" element={<DriverMobilePage module="handover" />} />
+            <Route path="/driver/report" element={<DriverMobilePage module="report" />} />
             <Route path="/driver/mobile" element={<DriverMobilePage />} />
             <Route path="/driver/proof" element={<ShippingProofPage />} />
           </Route>
 
-          <Route element={<RoleProtectedRoute allowedRoles={[ROLES.GUEST]} />}>
-            <Route path="/dashboard/guest" element={<GuestMarketplacePage module="overview" />} />
-            <Route path="/guest/search" element={<GuestMarketplacePage module="search" />} />
-            <Route path="/guest/announcements" element={<GuestMarketplacePage module="announcements" />} />
-            <Route path="/guest/education" element={<GuestMarketplacePage module="education" />} />
-          </Route>
         </Route>
       </Route>
+
+      <Route path="/guest" element={<Navigate to="/guest/overview" replace />} />
+      <Route path="/dashboard/guest" element={<Navigate to="/guest/overview" replace />} />
+      <Route path="/guest/overview" element={<GuestMarketplacePage module="overview" />} />
+      <Route path="/guest/search" element={<GuestMarketplacePage module="search" />} />
+      <Route path="/guest/announcements" element={<GuestMarketplacePage module="announcements" />} />
+      <Route path="/guest/education" element={<GuestMarketplacePage module="education" />} />
 
       <Route path="/public/trace" element={<PublicTracePage />} />
       <Route path="/trace/:traceCode" element={<PublicTracePage />} />
@@ -159,6 +170,7 @@ export function AppRoutes() {
       <Route path="/marketplace" element={<PublicMarketplacePage />} />
       <Route path="/content" element={<PublicMarketplacePage />} />
       <Route path="/announcements" element={<PublicAnnouncementsPage />} />
+      <Route path="/education" element={<PublicEducationPage />} />
       <Route path="/listings/:id" element={<ListingDetailPage />} />
       <Route path="*" element={<NotFoundPage />} />
       </Routes>

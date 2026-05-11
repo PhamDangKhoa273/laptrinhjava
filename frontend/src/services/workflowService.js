@@ -156,3 +156,31 @@ export async function driverReportIssue(id, payload) {
 export async function getPublicAnnouncementFeed() {
   return unwrap(await api.get('/announcements/feed', { skipAuth: true }))
 }
+
+export async function getAdminAnnouncements() {
+  return unwrap(await api.get('/announcements/admin'))
+}
+
+export async function createAnnouncement(payload) {
+  return unwrap(await api.post('/announcements', payload))
+}
+
+export async function updateAnnouncement(id, payload) {
+  return unwrap(await api.put(`/announcements/${id}`, payload))
+}
+
+export async function deleteAnnouncement(id) {
+  return unwrap(await api.delete(`/announcements/${id}`))
+}
+
+export async function getAdminContents() {
+  return unwrap(await api.get('/content/admin/all'))
+}
+
+export async function updateContent(id, payload) {
+  return unwrap(await api.put(`/content/${id}`, payload))
+}
+
+export async function deleteContent(id) {
+  return unwrap(await api.delete(`/content/${id}`))
+}

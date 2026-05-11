@@ -1,4 +1,6 @@
 import '../farm-workspace.css'
+import ContractsPage from './ContractsPage.jsx'
+import { SupportButton } from '../components/SupportButton.jsx'
 
 const navItems = [
   { module: 'overview', href: '/dashboard/farm', icon: 'dashboard', label: 'Bảng điều khiển' },
@@ -48,9 +50,9 @@ function FarmShell({ module, title, subtitle, searchPlaceholder, children }) {
               <Icon>search</Icon>
               <input placeholder={searchPlaceholder || 'Tìm kiếm...'} />
             </label>
-            <button><Icon>notifications</Icon></button>
-            <button><Icon>help</Icon></button>
-            <button><Icon>settings</Icon></button>
+            <button aria-label="Thông báo"><Icon>notifications</Icon></button>
+            <SupportButton label="Hỗ trợ" />
+            <button aria-label="Cài đặt"><Icon>settings</Icon></button>
             <div className="farm-proto-avatar">GF</div>
           </div>
         </header>
@@ -148,5 +150,6 @@ export function FarmWorkspacePage({ module = 'overview' }) {
   if (module === 'blockchain') return <BlockchainPage />
   if (module === 'export') return <ExportPage />
   if (module === 'marketplace') return <MarketplacePage />
+  if (module === 'contracts') return <ContractsPage />
   return <FallbackFarmPage module={module} />
 }

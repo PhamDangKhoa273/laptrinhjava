@@ -32,3 +32,15 @@ Thumbs.db
 .env.local
 backend/.env.local
 frontend/.env.local
+
+# Dev scratch outputs (khong commit)
+backend/build_output*.txt
+backend/build_result.txt
+backend/build_log.txt
+backend/compile_out.txt
+backend/test_out.txt
+backend/tmp.txt
+backend/login.json
+backend/login_test.json
+backend/register.json
+backend/ViewController.java

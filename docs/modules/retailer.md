@@ -25,6 +25,7 @@ farm messages, and reports.
   - `/retailer/shipping`
   - `/retailer/messages`
   - `/retailer/reports`
+  - `/retailer/contracts`
 - Pages:
   - `RetailerWorkspacePage.jsx`
   - `retailerWorkspace/RetailerWorkspaceShell.jsx`

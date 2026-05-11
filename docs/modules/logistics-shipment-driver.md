@@ -34,6 +34,7 @@ assignment, vehicle/driver management, delivery proof, handover, checkpoints, an
   - `/driver/mobile`
   - `/driver/proof`
 - Pages: `ShippingWorkspacePage.jsx`, `DriverWorkspacePage.jsx`, `DriverMobilePage.jsx`, `ShippingProofPage.jsx`
+- Driver workspace is mobile-first and reuses the same mobile shell/card language across driver routes; only the driver actions and shipment logic differ.
 
 ## Roles
 
