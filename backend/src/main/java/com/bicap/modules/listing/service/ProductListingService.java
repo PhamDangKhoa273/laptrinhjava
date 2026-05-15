@@ -508,17 +508,6 @@ public class ProductListingService {
         return result;
     }
 
-    public Map<String, List<String>> getFilterOptions() {
-        String status = ListingStatus.ACTIVE.name();
-        String approval = ApprovalStatus.APPROVED.name();
-        List<String> provinces = listingRepository.findDistinctProvincesByStatusAndApprovalStatus(status, approval);
-        List<String> certifications = listingRepository.findDistinctCertificationsByStatusAndApprovalStatus(status, approval);
-        Map<String, List<String>> result = new HashMap<>();
-        result.put("provinces", provinces);
-        result.put("certifications", certifications);
-        return result;
-    }
-
     private String trimToNull(String value) {
         if (value == null) return null;
         String trimmed = value.trim();

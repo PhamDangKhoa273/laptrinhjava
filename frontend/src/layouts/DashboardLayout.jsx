@@ -25,6 +25,7 @@ const adminLinks = [
   { to: '/dashboard/admin/logistics', label: 'Logistics', description: 'Chuyến hàng, tài xế, bằng chứng' },
   { to: '/dashboard/admin/products', label: 'Sản phẩm', description: 'Sản phẩm, danh mục, lô hàng' },
   { to: '/dashboard/admin/blockchain', label: 'Truy xuất blockchain', description: 'Giao dịch và nhật ký kiểm toán' },
+  { to: '/dashboard/admin/payments', label: 'Thanh toán gói dịch vụ', description: 'Lịch sử thanh toán subscription của nông trại' },
   { to: '/dashboard/admin/content', label: 'Nội dung', description: 'Thông báo và kiến thức' },
   { to: '/dashboard/admin/analytics', label: 'Phân tích', description: 'Báo cáo tăng trưởng và vận hành' },
   { to: '/dashboard/appearance', label: 'Giao diện website', description: 'Logo, thương hiệu, banner chợ nông sản' },
@@ -107,6 +108,7 @@ export function DashboardLayout() {
   const isPrototypeRoute = location.pathname === '/dashboard' || location.pathname === '/profile'
   const isProfileRoute = location.pathname === '/profile'
   const isDriverMobileRoute = role === ROLES.DRIVER && (location.pathname === '/dashboard/driver' || location.pathname.startsWith('/driver/'))
+  const isFarmWorkspaceRoute = role === ROLES.FARM && (location.pathname === '/dashboard/farm' || location.pathname.startsWith('/farm/'))
   const visibleLinks = isPrototypeRoute ? prototypeLinks : filterLinksByRole(role)
   const shellClassName = [
     'dashboard-shell',
@@ -115,6 +117,7 @@ export function DashboardLayout() {
     location.pathname === '/dashboard' ? 'prototype-dashboard-shell' : '',
     isProfileRoute ? 'prototype-profile-shell' : '',
     isDriverMobileRoute ? 'driver-mobile-layout' : '',
+    isFarmWorkspaceRoute ? 'farm-workspace-layout' : '',
   ].filter(Boolean).join(' ')
 
   async function handleGlobalLogout() {
@@ -127,9 +130,9 @@ export function DashboardLayout() {
 
   return (
     <div className={shellClassName}>
-      {!isDriverMobileRoute ? <Sidebar links={visibleLinks} /> : null}
+      {!isDriverMobileRoute && !isFarmWorkspaceRoute ? <Sidebar links={visibleLinks} /> : null}
       <div className="dashboard-main">
-        {!isDriverMobileRoute ? <header className="dashboard-topbar" aria-label="Thanh điều hướng không gian làm việc">
+        {!isDriverMobileRoute && !isFarmWorkspaceRoute ? <header className="dashboard-topbar" aria-label="Thanh điều hướng không gian làm việc">
           <div className="dashboard-topbar-main">
             {isProfileRoute ? <span className="dashboard-topbar-title">BICAP</span> : null}
           </div>
@@ -163,7 +166,9 @@ export function DashboardLayout() {
 function NotificationBell() {
   const [notifications, setNotifications] = useState([])
   const [open, setOpen] = useState(false)
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 })
   const ref = useRef(null)
+  const buttonRef = useRef(null)
 
   async function load() {
     try { setNotifications(await getMyNotifications() || []) } catch { }
@@ -176,6 +181,18 @@ function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
+  function handleToggle() {
+    if (!open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setDropdownPos({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      })
+    }
+    setOpen(!open)
+    if (!open) load()
+  }
+
   const unread = notifications.filter(n => !n.read).length
 
   async function handleMarkRead(id) {
@@ -187,12 +204,12 @@ function NotificationBell() {
 
   return (
     <div className="notification-bell-wrapper" ref={ref}>
-      <button className="dashboard-icon-button" type="button" aria-label="Thông báo" onClick={() => { setOpen(!open); if (!open) load() }}>
+      <button ref={buttonRef} className="dashboard-icon-button" type="button" aria-label="Thông báo" onClick={handleToggle}>
         <span className="material-symbols-outlined" aria-hidden="true">notifications</span>
         {unread > 0 && <span className="notification-badge">{unread}</span>}
       </button>
       {open && (
-        <div className="notification-dropdown">
+        <div className="notification-dropdown" style={{ top: dropdownPos.top, right: dropdownPos.right }}>
           <div className="notification-dropdown-header">
             <strong>Thông báo</strong>
             <span>{notifications.length} cái</span>

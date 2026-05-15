@@ -176,6 +176,18 @@ public class SubscriptionPaymentService {
                 .toList();
     }
 
+    public List<SubscriptionPaymentResponse> getAllPayments() {
+        return subscriptionPaymentRepository.findAll().stream()
+                .sorted((a, b) -> {
+                    if (a.getPaidAt() == null && b.getPaidAt() == null) return 0;
+                    if (a.getPaidAt() == null) return 1;
+                    if (b.getPaidAt() == null) return -1;
+                    return b.getPaidAt().compareTo(a.getPaidAt());
+                })
+                .map(this::toResponse)
+                .toList();
+    }
+
     public SubscriptionPayment getEntityById(Long paymentId) {
         return subscriptionPaymentRepository.findById(paymentId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy subscription payment"));

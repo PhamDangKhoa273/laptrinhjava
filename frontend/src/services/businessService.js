@@ -176,6 +176,22 @@ export async function resolveIoTAlert(id) {
   return unwrap(await api.patch(`/iot/alerts/${id}/resolve`))
 }
 
+export async function getIoTThresholds() {
+  return unwrap(await api.get('/iot/thresholds'))
+}
+
+export async function createIoTThreshold(payload) {
+  return unwrap(await api.post('/iot/thresholds', payload))
+}
+
+export async function updateIoTThreshold(id, payload) {
+  return unwrap(await api.put(`/iot/thresholds/${id}`, payload))
+}
+
+export async function deleteIoTThreshold(id) {
+  return unwrap(await api.delete(`/iot/thresholds/${id}`))
+}
+
 export async function createNotification(payload) {
   return unwrap(await api.post('/notifications', payload))
 }

@@ -51,4 +51,10 @@ public class SubscriptionPaymentController {
     public ApiResponse<SubscriptionPaymentResponse> adminOverride(@PathVariable Long id, @RequestParam(required = false) String note) {
         return ApiResponse.success(subscriptionPaymentService.adminOverrideActivate(id, SecurityUtils.getCurrentUserId(), note));
     }
+
+    @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<SubscriptionPaymentResponse>> getAllPayments() {
+        return ApiResponse.success(subscriptionPaymentService.getAllPayments());
+    }
 }
