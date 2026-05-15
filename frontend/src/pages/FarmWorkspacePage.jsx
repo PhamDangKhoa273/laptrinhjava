@@ -1,6 +1,8 @@
 import '../farm-workspace.css'
 import ContractsPage from './ContractsPage.jsx'
 import { SupportButton } from '../components/SupportButton.jsx'
+import { useEffect, useState } from 'react'
+import { getIoTAlerts, resolveIoTAlert, getIoTThresholds, createIoTThreshold, updateIoTThreshold, deleteIoTThreshold } from '../services/businessService.js'
 
 const navItems = [
   { module: 'overview', href: '/dashboard/farm', icon: 'dashboard', label: 'Bảng điều khiển' },
@@ -21,14 +23,52 @@ function Icon({ children, fill = false }) {
 function FarmShell({ module, title, subtitle, searchPlaceholder, children }) {
   return (
     <div className="farm-prototype-shell">
+      {/* Decorative leaf backgrounds */}
+      <svg className="farm-leaves-bg" viewBox="0 0 300 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g fill="none" stroke="#86efac" strokeWidth="1.5" opacity="0.5">
+          <path d="M30 260 Q60 200 120 170 Q180 140 230 80" />
+          <path d="M50 250 Q90 210 150 195" />
+          <path d="M40 230 Q70 200 110 185" />
+          <path d="M80 160 Q120 145 170 130" />
+          <path d="M100 100 Q130 90 180 80" />
+          <circle cx="120" cy="170" r="6" fill="#86efac" opacity="0.3" />
+          <circle cx="170" cy="130" r="5" fill="#86efac" opacity="0.25" />
+          <circle cx="180" cy="80" r="7" fill="#86efac" opacity="0.3" />
+        </g>
+      </svg>
+      <svg className="farm-leaves-bg-2" viewBox="0 0 260 380" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g fill="none" stroke="#86efac" strokeWidth="1.5" opacity="0.45">
+          <path d="M230 360 Q200 300 175 240 Q150 180 130 110 Q110 60 80 20" />
+          <path d="M220 320 Q190 290 170 250" />
+          <path d="M205 280 Q180 255 160 230" />
+          <path d="M190 230 Q170 210 150 185" />
+          <path d="M175 180 Q155 160 140 140" />
+          <path d="M160 130 Q140 110 125 90" />
+          <circle cx="170" cy="240" r="6" fill="#86efac" opacity="0.3" />
+          <circle cx="150" cy="185" r="5" fill="#86efac" opacity="0.3" />
+          <circle cx="125" cy="90" r="7" fill="#86efac" opacity="0.3" />
+        </g>
+      </svg>
+
       <aside className="farm-proto-sidebar">
+        {/* Brand mini header */}
         <div className="farm-proto-brand">
+          <div className="farm-proto-brand-mini"><Icon fill>eco</Icon></div>
+          <div>
+            <strong>GreenField Farm</strong>
+            <small>Nông trại thông minh</small>
+          </div>
+        </div>
+
+        {/* Profile card */}
+        <div className="farm-proto-profile-card">
           <div className="farm-proto-logo">GF</div>
           <div>
             <strong>GreenField Farm</strong>
             <span><Icon>verified</Icon> Đã xác thực blockchain</span>
           </div>
         </div>
+
         <nav className="farm-proto-nav" aria-label="Farm workspace navigation">
           {navItems.map((item) => (
             <a key={item.module} href={item.href} className={item.module === module ? 'active' : ''}>
@@ -39,22 +79,18 @@ function FarmShell({ module, title, subtitle, searchPlaceholder, children }) {
         </nav>
         <button className="farm-proto-add"><Icon>add</Icon> Add New Batch</button>
       </aside>
+
       <main className="farm-proto-main">
         <header className="farm-proto-topbar">
-          <div>
-            <h1>{title}</h1>
-            {subtitle ? <p>{subtitle}</p> : null}
-          </div>
-          <div className="farm-proto-actions">
-            <label className="farm-proto-search">
-              <Icon>search</Icon>
-              <input placeholder={searchPlaceholder || 'Tìm kiếm...'} />
-            </label>
-            <button aria-label="Thông báo"><Icon>notifications</Icon></button>
-            <SupportButton label="Hỗ trợ" />
-            <button aria-label="Cài đặt"><Icon>settings</Icon></button>
-            <div className="farm-proto-avatar">GF</div>
-          </div>
+          <label className="farm-proto-search">
+            <Icon>search</Icon>
+            <input placeholder={searchPlaceholder || 'Tìm kiếm...'} />
+            <kbd>Ctrl + K</kbd>
+          </label>
+          <button className="notif" aria-label="Thông báo"><Icon>notifications</Icon></button>
+          <SupportButton label="Hỗ trợ" />
+          <button aria-label="Cài đặt"><Icon>settings</Icon></button>
+          <div className="farm-proto-avatar">GF</div>
         </header>
         {children}
       </main>
@@ -62,36 +98,189 @@ function FarmShell({ module, title, subtitle, searchPlaceholder, children }) {
   )
 }
 
-function StatCard({ icon, label, value, tone = 'green' }) {
-  return <article className={`farm-stat-card ${tone}`}><Icon>{icon}</Icon><span>{label}</span><strong>{value}</strong></article>
+function StatCard({ icon, label, value, tone = 'green', trend, trendDir = 'up' }) {
+  return (
+    <article className={`farm-stat-card ${tone}`}>
+      <div className="farm-stat-card-top">
+        <div className="farm-stat-icon"><Icon>{icon}</Icon></div>
+        <div className="farm-stat-label">{label}</div>
+      </div>
+      <div className="farm-stat-value">{value}</div>
+      {trend && (
+        <div className={`farm-stat-trend ${trendDir}`}>
+          <Icon>{trendDir === 'up' ? 'arrow_upward' : trendDir === 'down' ? 'arrow_downward' : 'remove'}</Icon>
+          {trend}
+        </div>
+      )}
+    </article>
+  )
+}
+
+function ProductivityChart({ period, onPeriodChange }) {
+  const data = {
+    'this-year': {
+      labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
+      values: [42, 68, 55, 80, 95, 38],
+      avg: 61.7,
+      trend: '+15% so với năm ngoái',
+    },
+    'last-year': {
+      labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
+      values: [35, 50, 45, 65, 75, 30],
+      avg: 50.0,
+      trend: '+8% so với năm trước',
+    },
+  }
+  const d = data[period] || data['this-year']
+  const maxVal = 100
+  const highlightIdx = d.values.indexOf(Math.max(...d.values))
+
+  return (
+    <div className="farm-glass-card farm-chart-card">
+      <div className="farm-card-head">
+        <h3><Icon>show_chart</Icon> Xu Hướng Năng Suất</h3>
+        <select value={period} onChange={(e) => onPeriodChange(e.target.value)}>
+          <option value="this-year">Năm nay</option>
+          <option value="last-year">Năm ngoái</option>
+        </select>
+      </div>
+      <div className="farm-chart-wrap">
+        {/* Y-axis labels */}
+        <div className="farm-chart-y-labels">
+          {[0, 20, 40, 60, 80, 100].map((v) => <span key={v}>{v}</span>)}
+        </div>
+        {/* Grid lines */}
+        <div className="farm-chart-grid">
+          {[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="farm-chart-grid-line" />)}
+        </div>
+        {/* Bars */}
+        <div className="farm-chart-bars">
+          {d.values.map((v, i) => (
+            <div key={i} className="farm-chart-bar-wrap">
+              {i === highlightIdx && (
+                <div className="farm-chart-tooltip">
+                  <strong>{d.labels[i]}</strong>
+                  <span>Năng suất: {v}</span>
+                </div>
+              )}
+              <div
+                className={`farm-chart-bar ${i === highlightIdx ? 'highlight' : ''}`}
+                style={{ height: `${(v / maxVal) * 100}%` }}
+              />
+              <span className="farm-chart-label">{d.labels[i]}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Footer: "Năng suất trung bình" + progress bar + trend */}
+      <div className="farm-chart-footer">
+        <div className="farm-chart-footer-icon"><Icon>trending_up</Icon></div>
+        <div className="farm-chart-footer-content">
+          <div className="farm-chart-footer-label">
+            Năng suất trung bình: <strong>{d.avg}</strong>
+          </div>
+          <div className="farm-chart-progress">
+            <div style={{ width: `${d.avg}%` }} />
+          </div>
+        </div>
+        <div className="farm-chart-footer-trend">
+          <Icon>arrow_upward</Icon> {d.trend}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function OverviewPage() {
+  const [chartPeriod, setChartPeriod] = useState('this-year')
+
+  // Today's date in Vietnamese format
+  const today = new Date()
+  const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
+  const dayName = days[today.getDay()]
+  const dateStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`
+  const timeStr = today.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+
   return (
     <FarmShell module="overview" title="Tổng quan Nông trại" subtitle="Theo dõi sản xuất, IoT và chuỗi cung ứng theo thời gian thực." searchPlaceholder="Tìm kiếm...">
       <section className="farm-proto-content farm-overview">
+        {/* Page head with greeting + date + actions */}
         <div className="farm-page-head">
-          <div><h2>Tổng quan Nông trại</h2><p>Theo dõi sản xuất, IoT và chuỗi cung ứng theo thời gian thực.</p></div>
-          <div><button className="farm-btn ghost"><Icon>calendar_today</Icon> Hôm nay</button><button className="farm-btn primary"><Icon>download</Icon> Báo cáo</button></div>
+          <div>
+            <div className="farm-page-greeting">
+              Xin chào, <span style={{ fontSize: '16px' }}>👋</span>
+            </div>
+            <h2>Tổng quan Nông trại</h2>
+            <p>Theo dõi sản xuất, IoT và chuỗi cung ứng theo thời gian thực.</p>
+          </div>
+          <div className="farm-page-actions">
+            <div className="farm-page-date">
+              <Icon>calendar_month</Icon> {dayName}, {dateStr} • {timeStr}
+            </div>
+            <div className="farm-page-actions-row">
+              <button className="farm-btn ghost"><Icon>calendar_today</Icon> Hôm nay</button>
+              <button className="farm-btn primary"><Icon>download</Icon> Báo cáo</button>
+            </div>
+          </div>
         </div>
+
+        {/* KPI Cards — 5 cards matching the mockup */}
         <div className="farm-kpi-grid five">
-          <StatCard icon="eco" label="Tổng Mùa Vụ" value="12" />
-          <StatCard icon="inventory_2" label="Tổng Lô Hàng" value="145" tone="brown" />
-          <StatCard icon="store" label="Bán Hàng đang hoạt động" value="28" tone="blue" />
-          <StatCard icon="pending_actions" label="Đơn Chờ Xử Lý" value="7" tone="red" />
-          <StatCard icon="local_shipping" label="Đang Giao Hàng" value="4" />
+          <StatCard
+            icon="eco" label="Tổng Mùa Vụ" value="12" tone="green"
+            trend="↑ 8% so với tháng trước" trendDir="up"
+          />
+          <StatCard
+            icon="inventory_2" label="Tổng Lô Hàng" value="145" tone="amber"
+            trend="↑ 12% so với tháng trước" trendDir="up"
+          />
+          <StatCard
+            icon="local_shipping" label="Bán Hàng đang hoạt động" value="28" tone="blue"
+            trend="↑ 5% so với tháng trước" trendDir="up"
+          />
+          <StatCard
+            icon="pending_actions" label="Đơn Chờ Xử Lý" value="7" tone="red"
+            trend="↓ 2% so với tháng trước" trendDir="down"
+          />
+          <StatCard
+            icon="local_shipping" label="Đang Giao Hàng" value="4" tone="green-light"
+            trend="↑ 0% so với tháng trước" trendDir="flat"
+          />
         </div>
+
+        {/* Main bento: Chart + IoT Alerts */}
         <div className="farm-bento-grid">
-          <article className="farm-glass-card farm-chart-card">
-            <div className="farm-card-head"><h3>Xu Hướng Năng Suất</h3><select><option>Năm nay</option><option>Năm ngoái</option></select></div>
-            <div className="farm-chart-bars">{[40,65,55,80,95,30].map((v,i)=><div key={i} style={{height:`${v}%`}}><span>{i === 5 ? 'Dự kiến ' : ''}{v}T</span></div>)}</div>
-          </article>
-          <article className="farm-glass-card farm-alert-card">
-            <div className="farm-card-head"><h3>Cảnh Báo IoT</h3><Icon>sensors</Icon></div>
-            <div className="farm-alert danger"><Icon fill>warning</Icon><div><strong>Độ ẩm đất thấp</strong><p>Khu vực A (Lô #102) ghi nhận độ ẩm 32%.</p><button>Kích hoạt bơm nước</button></div></div>
-            <div className="farm-alert"><Icon>thermostat</Icon><div><strong>Nhiệt độ ổn định</strong><p>Nhà màng B duy trì ở mức 24°C.</p></div></div>
-            <div className="farm-alert"><Icon>science</Icon><div><strong>Lịch kiểm tra pH</strong><p>Cần lấy mẫu đất khu C vào chiều nay.</p></div></div>
-          </article>
+          <ProductivityChart period={chartPeriod} onPeriodChange={setChartPeriod} />
+
+          <div className="farm-glass-card farm-alert-card">
+            <div className="farm-card-head">
+              <h3><Icon>sensors</Icon> Cảnh Báo IoT</h3>
+              <a href="/farm/iot" className="farm-card-link">Xem tất cả</a>
+            </div>
+            <div className="farm-alert danger">
+              <div className="farm-alert-icon"><Icon fill>warning</Icon></div>
+              <div className="farm-alert-body">
+                <strong>Độ ẩm đất thấp</strong>
+                <p>Khu vực A (Lô #102) ghi nhận độ ẩm 32%.</p>
+                <button>Kích hoạt bơm nước</button>
+              </div>
+            </div>
+            <div className="farm-alert warning">
+              <div className="farm-alert-icon"><Icon>thermostat</Icon></div>
+              <div className="farm-alert-body">
+                <strong>Nhiệt độ ổn định</strong>
+                <p>Nhà màng B duy trì ở mức 24°C.</p>
+              </div>
+            </div>
+            <div className="farm-alert info">
+              <div className="farm-alert-icon"><Icon>science</Icon></div>
+              <div className="farm-alert-body">
+                <strong>Lịch kiểm tra pH</strong>
+                <p>Cần lấy mẫu đất khu C vào chiều nay.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </FarmShell>
@@ -143,6 +332,275 @@ function MarketplacePage() {
 
 function FallbackFarmPage({ module }) { return <FarmShell module={module} title="Không gian nông trại" subtitle="Module này giữ chức năng hiện tại trong khi chờ prototype chi tiết."><section className="farm-proto-content"><article className="farm-glass-card"><h2>Module: {module}</h2><p>Trang này chưa có HTML prototype mới, nên được giữ làm placeholder an toàn trong workspace Farm.</p></article></section></FarmShell> }
 
+function IoTPage() {
+  const [alerts, setAlerts] = useState([])
+  const [thresholds, setThresholds] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [tab, setTab] = useState('alerts')
+  // Threshold form
+  const [metric, setMetric] = useState('')
+  const [minValue, setMinValue] = useState('')
+  const [maxValue, setMaxValue] = useState('')
+  const [editingId, setEditingId] = useState(null)
+  const [saving, setSaving] = useState(false)
+
+  async function load() {
+    setLoading(true)
+    setError('')
+    try {
+      const [a, t] = await Promise.all([
+        getIoTAlerts().catch(() => []),
+        getIoTThresholds().catch(() => []),
+      ])
+      setAlerts(Array.isArray(a) ? a : [])
+      setThresholds(Array.isArray(t) ? t : [])
+    } catch (err) {
+      setError(err?.message || 'Không tải được dữ liệu IoT.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { load() }, [])
+
+  async function handleResolve(id) {
+    try {
+      await resolveIoTAlert(id)
+      setSuccess('Đã giải quyết cảnh báo.')
+      await load()
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || 'Không thể giải quyết cảnh báo.')
+    }
+  }
+
+  function startEdit(rule) {
+    setEditingId(rule.ruleId)
+    setMetric(rule.metric || '')
+    setMinValue(rule.minValue !== null && rule.minValue !== undefined ? String(rule.minValue) : '')
+    setMaxValue(rule.maxValue !== null && rule.maxValue !== undefined ? String(rule.maxValue) : '')
+  }
+
+  function resetForm() {
+    setEditingId(null)
+    setMetric('')
+    setMinValue('')
+    setMaxValue('')
+  }
+
+  async function handleSaveThreshold() {
+    if (!metric.trim()) { setError('Vui lòng nhập tên chỉ số (metric).'); return }
+    setSaving(true)
+    setError('')
+    setSuccess('')
+    try {
+      const payload = {
+        metric: metric.trim().toUpperCase(),
+        minValue: minValue !== '' ? Number(minValue) : null,
+        maxValue: maxValue !== '' ? Number(maxValue) : null,
+        enabled: true,
+      }
+      if (editingId) {
+        await updateIoTThreshold(editingId, payload)
+        setSuccess('Đã cập nhật ngưỡng cảnh báo.')
+      } else {
+        await createIoTThreshold(payload)
+        setSuccess('Đã tạo ngưỡng cảnh báo mới.')
+      }
+      resetForm()
+      await load()
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || 'Không thể lưu ngưỡng cảnh báo.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDeleteThreshold(id) {
+    if (!window.confirm('Xóa ngưỡng cảnh báo này?')) return
+    try {
+      await deleteIoTThreshold(id)
+      setSuccess('Đã xóa ngưỡng cảnh báo.')
+      await load()
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || 'Không thể xóa ngưỡng.')
+    }
+  }
+
+  const severityColor = (s) => s === 'HIGH' ? '#dc2626' : s === 'MEDIUM' ? '#d97706' : '#16a34a'
+
+  return (
+    <FarmShell module="iot" title="IoT Monitoring" subtitle="Theo dõi cảnh báo cảm biến và quản lý ngưỡng cảnh báo.">
+      <section className="farm-proto-content">
+        {error ? <div className="farm-alert danger" style={{ marginBottom: '12px' }}><Icon>error</Icon><div>{error}</div></div> : null}
+        {success ? <div className="farm-alert" style={{ marginBottom: '12px', background: '#f0fdf4', borderColor: '#86efac' }}><Icon>check_circle</Icon><div>{success}</div></div> : null}
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+          {[['alerts', 'Cảnh báo IoT', 'sensors'], ['thresholds', 'Ngưỡng cảnh báo', 'tune']].map(([key, label, icon]) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className={`farm-btn ${tab === key ? 'primary' : 'ghost'}`}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Icon>{icon}</Icon>{label}
+              {key === 'alerts' && alerts.filter(a => a.status !== 'RESOLVED').length > 0 && (
+                <span style={{ background: '#dc2626', color: '#fff', borderRadius: '999px', padding: '0 6px', fontSize: '11px', fontWeight: 700 }}>
+                  {alerts.filter(a => a.status !== 'RESOLVED').length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {loading ? <p style={{ color: '#94a3b8' }}>Đang tải dữ liệu IoT...</p> : null}
+
+        {/* Alerts Tab */}
+        {tab === 'alerts' && !loading && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {alerts.length === 0 ? (
+              <article className="farm-glass-card" style={{ textAlign: 'center', padding: '32px', color: '#94a3b8' }}>
+                <Icon>sensors_off</Icon>
+                <p>Không có cảnh báo IoT nào.</p>
+              </article>
+            ) : alerts.map((alert) => (
+              <article key={alert.alertId} className="farm-glass-card" style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '16px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: alert.status === 'RESOLVED' ? '#f0fdf4' : '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon>{alert.status === 'RESOLVED' ? 'check_circle' : 'warning'}</Icon>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <strong style={{ fontSize: '14px' }}>{alert.title || alert.metric}</strong>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: severityColor(alert.severity), background: '#fef2f2', padding: '2px 8px', borderRadius: '999px' }}>
+                      {alert.severity || 'N/A'}
+                    </span>
+                    <span style={{ fontSize: '11px', color: alert.status === 'RESOLVED' ? '#16a34a' : '#dc2626', fontWeight: 600 }}>
+                      {alert.status || 'ACTIVE'}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 4px' }}>{alert.description}</p>
+                  <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>
+                    Giá trị: <strong>{alert.value}</strong>
+                    {alert.minValue !== null && alert.minValue !== undefined ? ` | Min: ${alert.minValue}` : ''}
+                    {alert.maxValue !== null && alert.maxValue !== undefined ? ` | Max: ${alert.maxValue}` : ''}
+                    {alert.measuredAt ? ` | ${new Date(alert.measuredAt).toLocaleString('vi-VN')}` : ''}
+                  </p>
+                </div>
+                {alert.status !== 'RESOLVED' && (
+                  <button className="farm-btn ghost" onClick={() => handleResolve(alert.alertId)} style={{ flexShrink: 0, fontSize: '12px' }}>
+                    <Icon>check</Icon> Giải quyết
+                  </button>
+                )}
+              </article>
+            ))}
+          </div>
+        )}
+
+        {/* Thresholds Tab */}
+        {tab === 'thresholds' && !loading && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            {/* Form */}
+            <article className="farm-glass-card" style={{ padding: '20px' }}>
+              <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Icon>{editingId ? 'edit' : 'add_circle'}</Icon>
+                {editingId ? 'Chỉnh sửa ngưỡng' : 'Thêm ngưỡng mới'}
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Chỉ số (metric) *</label>
+                  <select
+                    className="form-input"
+                    value={metric}
+                    onChange={(e) => setMetric(e.target.value)}
+                    style={{ width: '100%' }}
+                  >
+                    <option value="">Chọn chỉ số...</option>
+                    {['TEMPERATURE', 'HUMIDITY', 'PH', 'SOIL_MOISTURE', 'CO2', 'LIGHT'].map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Giá trị tối thiểu</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      value={minValue}
+                      onChange={(e) => setMinValue(e.target.value)}
+                      placeholder="Ví dụ: 20"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Giá trị tối đa</label>
+                    <input
+                      type="number"
+                      className="form-input"
+                      value={maxValue}
+                      onChange={(e) => setMaxValue(e.target.value)}
+                      placeholder="Ví dụ: 35"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="farm-btn primary" onClick={handleSaveThreshold} disabled={saving} style={{ flex: 1 }}>
+                    <Icon>{editingId ? 'save' : 'add'}</Icon>
+                    {saving ? 'Đang lưu...' : editingId ? 'Cập nhật' : 'Thêm ngưỡng'}
+                  </button>
+                  {editingId && (
+                    <button className="farm-btn ghost" onClick={resetForm}>
+                      <Icon>close</Icon> Hủy
+                    </button>
+                  )}
+                </div>
+              </div>
+            </article>
+
+            {/* List */}
+            <article className="farm-glass-card" style={{ padding: '20px' }}>
+              <h3 style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Icon>list</Icon> Danh sách ngưỡng ({thresholds.length})
+              </h3>
+              {thresholds.length === 0 ? (
+                <p style={{ color: '#94a3b8', fontSize: '13px' }}>Chưa có ngưỡng cảnh báo nào. Thêm ngưỡng để nhận cảnh báo IoT tự động.</p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {thresholds.map((rule) => (
+                    <div key={rule.ruleId} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ flex: 1 }}>
+                        <strong style={{ fontSize: '13px' }}>{rule.metric}</strong>
+                        <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0' }}>
+                          {rule.minValue !== null && rule.minValue !== undefined ? `Min: ${rule.minValue}` : ''}
+                          {rule.minValue !== null && rule.maxValue !== null ? ' · ' : ''}
+                          {rule.maxValue !== null && rule.maxValue !== undefined ? `Max: ${rule.maxValue}` : ''}
+                          {rule.minValue === null && rule.maxValue === null ? 'Không giới hạn' : ''}
+                        </p>
+                      </div>
+                      <span style={{ fontSize: '11px', color: rule.enabled ? '#16a34a' : '#94a3b8', fontWeight: 600 }}>
+                        {rule.enabled ? 'Bật' : 'Tắt'}
+                      </span>
+                      <button className="farm-btn ghost" onClick={() => startEdit(rule)} style={{ padding: '4px 8px', fontSize: '12px' }}>
+                        <Icon>edit</Icon>
+                      </button>
+                      <button className="farm-btn ghost" onClick={() => handleDeleteThreshold(rule.ruleId)} style={{ padding: '4px 8px', fontSize: '12px', color: '#dc2626' }}>
+                        <Icon>delete</Icon>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </article>
+          </div>
+        )}
+      </section>
+    </FarmShell>
+  )
+}
+
 export function FarmWorkspacePage({ module = 'overview' }) {
   if (module === 'overview') return <OverviewPage />
   if (module === 'seasons') return <SeasonsPage />
@@ -151,5 +609,6 @@ export function FarmWorkspacePage({ module = 'overview' }) {
   if (module === 'export') return <ExportPage />
   if (module === 'marketplace') return <MarketplacePage />
   if (module === 'contracts') return <ContractsPage />
+  if (module === 'iot') return <IoTPage />
   return <FallbackFarmPage module={module} />
 }

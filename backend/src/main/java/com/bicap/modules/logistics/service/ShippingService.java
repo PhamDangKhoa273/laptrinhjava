@@ -211,7 +211,7 @@ public class ShippingService {
      */
     @Transactional(readOnly = true)
     public List<ShipmentHistoryResponse> getShipmentHistory(Long shipmentId) {
-        return shipmentHistoryRepository.findByShipmentIdOrderByChangedAtDesc(shipmentId).stream()
+        return shipmentHistoryRepository.findByShipmentShipmentIdOrderByChangedAtDesc(shipmentId).stream()
                 .map(this::toHistoryResponse)
                 .collect(Collectors.toList());
     }

@@ -12,12 +12,12 @@ public interface ShipmentHistoryRepository extends JpaRepository<ShipmentHistory
     /**
      * Tìm tất cả bản ghi lịch sử cho một đơn vận chuyển, sắp xếp theo mới nhất trước
      */
-    List<ShipmentHistory> findByShipmentIdOrderByChangedAtDesc(Long shipmentId);
+    List<ShipmentHistory> findByShipmentShipmentIdOrderByChangedAtDesc(Long shipmentId);
     
     /**
      * Tìm tất cả bản ghi lịch sử cho một đơn vận chuyển, sắp xếp theo cũ nhất trước
      */
-    List<ShipmentHistory> findByShipmentIdOrderByChangedAtAsc(Long shipmentId);
+    List<ShipmentHistory> findByShipmentShipmentIdOrderByChangedAtAsc(Long shipmentId);
     
     /**
      * Tìm tất cả những thay đổi trạng thái được thực hiện bởi một người dùng cụ thể

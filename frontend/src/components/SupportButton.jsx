@@ -13,7 +13,9 @@ import './SupportButton.css'
 export function SupportButton({ variant = 'icon', className = '', label = 'Hỗ trợ' }) {
   const [open, setOpen] = useState(false)
   const [config, setConfig] = useState(() => getSupportConfig())
+  const [popoverPos, setPopoverPos] = useState({ top: 0, right: 0 })
   const wrapperRef = useRef(null)
+  const buttonRef = useRef(null)
 
   useEffect(() => {
     function handleConfigChange(event) {
@@ -62,12 +64,24 @@ export function SupportButton({ variant = 'icon', className = '', label = 'Hỗ 
     ? `support-button support-button--text ${className}`
     : `support-button support-button--icon dashboard-icon-button ${className}`
 
+  function handleToggle() {
+    if (!open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setPopoverPos({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      })
+    }
+    setOpen((value) => !value)
+  }
+
   return (
     <div className="support-button-wrapper" ref={wrapperRef}>
       <button
+        ref={buttonRef}
         type="button"
         className={triggerClass}
-        onClick={() => setOpen((value) => !value)}
+        onClick={handleToggle}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={label}
@@ -78,7 +92,7 @@ export function SupportButton({ variant = 'icon', className = '', label = 'Hỗ 
       </button>
 
       {open ? (
-        <div className="support-popover" role="dialog" aria-label="Kênh hỗ trợ BICAP">
+        <div className="support-popover" role="dialog" aria-label="Kênh hỗ trợ BICAP" style={{ top: popoverPos.top, right: popoverPos.right }}>
           <header className="support-popover__head">
             <div className="support-popover__title">
               <span className="material-symbols-outlined" aria-hidden="true">support_agent</span>

@@ -36,6 +36,18 @@ export async function getRetailers() {
   }
 }
 
+export async function reviewRetailer(id, approvalStatus, reviewComment = '') {
+  return unwrap(await api.post(`/retailers/${id}/review`, { approvalStatus, reviewComment }))
+}
+
+export async function getAllSubscriptionPayments() {
+  try {
+    return unwrap(await api.get('/subscription-payments/admin/all'))
+  } catch {
+    return []
+  }
+}
+
 export async function getPackages() {
   try {
     return unwrap(await api.get('/packages'))
