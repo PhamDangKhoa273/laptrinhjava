@@ -49,16 +49,16 @@
 }
 
 .support-popover {
-  position: absolute;
-  top: calc(100% + 12px);
-  right: 0;
+  position: fixed;
+  top: auto;
+  right: 24px;
   width: 320px;
   max-width: 92vw;
   background: #ffffff;
   border-radius: 16px;
   border: 1px solid rgba(191, 201, 192, 0.6);
   box-shadow: 0 22px 44px -20px rgba(11, 28, 48, 0.35);
-  z-index: 60;
+  z-index: 9999;
   overflow: hidden;
   animation: supportPopIn 0.18s ease;
 }
@@ -236,9 +236,10 @@
 }
 
 .auth-support-floater .support-popover {
-  right: 0;
-  bottom: calc(100% + 12px);
-  top: auto;
+  position: fixed;
+  right: 20px;
+  bottom: 80px;
+  top: auto !important;
 }
 
 
