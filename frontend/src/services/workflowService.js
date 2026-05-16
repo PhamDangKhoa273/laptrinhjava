@@ -113,6 +113,11 @@ export async function getShipmentReportsForReview() {
   return unwrap(await api.get('/shipments/reports'))
 }
 
+/** Bullet R-FRM-170 — Farm xem báo cáo shipment liên quan tới farm của mình. */
+export async function getFarmShipmentReports() {
+  return unwrap(await api.get('/shipments/reports/farm'))
+}
+
 export async function createShipment(payload) {
   return unwrap(await api.post('/shipments', payload))
 }

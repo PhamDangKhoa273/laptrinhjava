@@ -3,7 +3,7 @@ import { Sidebar } from '../components/Sidebar.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { getPrimaryRole } from '../utils/helpers'
 import { ROLES, ROLE_LABELS } from '../utils/constants'
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { getMyNotifications, markNotificationRead } from '../services/workflowService.js'
 import { SupportButton } from '../components/SupportButton.jsx'
 
@@ -34,14 +34,22 @@ const adminLinks = [
 
 const roleLinks = {
   [ROLES.FARM]: [
-    { to: '/dashboard', label: 'Trang chủ', description: 'Trang tổng quan chung' },
-    { to: '/marketplace', label: 'Chợ nông sản', description: 'Xem listing công khai' },
-    { to: '/public/trace', label: 'Truy xuất', description: 'Truy xuất mã QR sản phẩm' },
-    { to: '/announcements', label: 'Thông báo', description: 'Cập nhật và thông báo công khai' },
-    { to: '/profile', label: 'Hồ sơ', description: 'Thông tin cá nhân và bảo mật' },
-    { to: '/dashboard/farm', label: 'Không gian nông trại', description: 'KPI, sức khỏe sản xuất, việc cần làm hôm nay' },
-    { to: '/farm/packages', label: 'Gói / Lô hàng', description: 'Thẻ lô, QR, blockchain, trạng thái chợ' },
-    { to: '/farm/seasons', label: 'Mùa vụ', description: 'Mùa vụ, nhật ký canh tác, thu hoạch' },
+    { section: true, label: 'TỔNG QUAN' },
+    { to: '/dashboard/farm', label: 'Không gian nông trại', description: 'KPI sản xuất, IoT, đơn hàng' },
+    { to: '/farm/profile', label: 'Hồ sơ farm', description: 'Thông tin cá nhân + giấy phép kinh doanh' },
+    { to: '/farm/subscription', label: 'Gói dịch vụ', description: 'Mua gói + thanh toán BICAP' },
+    { section: true, label: 'SẢN XUẤT' },
+    { to: '/farm/seasons', label: 'Mùa vụ', description: 'Tạo mùa vụ và quy trình canh tác' },
+    { to: '/farm/packages', label: 'Lô hàng', description: 'Tạo batch từ mùa vụ đã thu hoạch' },
+    { to: '/farm/export-qr', label: 'Xuất QR & Truy xuất', description: 'Generate QR và xem trace blockchain' },
+    { section: true, label: 'KINH DOANH' },
+    { to: '/farm/marketplace', label: 'Đăng sàn', description: 'Tạo listing và submit duyệt' },
+    { to: '/farm/orders', label: 'Đơn hàng từ retailer', description: 'Xử lý buy requests từ nhà bán lẻ' },
+    { to: '/farm/shipping', label: 'Vận chuyển', description: 'Theo dõi shipment liên quan' },
+    { to: '/farm/shipment-reports', label: 'Báo cáo vận chuyển', description: 'Báo cáo sự cố từ tài xế' },
+    { to: '/farm/contracts', label: 'Hợp đồng', description: 'Hợp tác với nhà bán lẻ' },
+    { section: true, label: 'BÁO CÁO' },
+    { to: '/farm/reports', label: 'Báo cáo cho admin', description: 'Gửi báo cáo sự cố hoặc phản ánh đến quản trị viên' },
   ],
   [ROLES.RETAILER]: [
     { section: true, label: 'TỔNG QUAN' },
@@ -112,6 +120,7 @@ export function DashboardLayout() {
   const visibleLinks = isPrototypeRoute ? prototypeLinks : filterLinksByRole(role)
   const shellClassName = [
     'dashboard-shell',
+    role ? `role-${String(role).toLowerCase().replace('_', '-')}` : '',
     role === ROLES.ADMIN && !isPrototypeRoute ? 'role-admin' : '',
     isPrototypeRoute ? 'prototype-shell' : '',
     location.pathname === '/dashboard' ? 'prototype-dashboard-shell' : '',
@@ -171,9 +180,9 @@ function NotificationBell() {
   const buttonRef = useRef(null)
 
   async function load() {
-    try { setNotifications(await getMyNotifications() || []) } catch { }
+    try { setNotifications(await getMyNotifications() || []) } catch { /* ignore */ }
   }
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/set-state-in-effect
 
   useEffect(() => {
     function handleClick(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -199,7 +208,7 @@ function NotificationBell() {
     try {
       await markNotificationRead(id)
       await load()
-    } catch { }
+    } catch { /* ignore */ }
   }
 
   return (

@@ -20,6 +20,9 @@ public class SeasonResponse {
     private LocalDateTime latestProcessAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String blockchainStatus;
+    private String txHash;
+    private String contractAddress;
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -54,6 +57,12 @@ public class SeasonResponse {
     public void setCreatedAt(LocalDateTime t) { this.createdAt = t; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime t) { this.updatedAt = t; }
+    public String getBlockchainStatus() { return blockchainStatus; }
+    public void setBlockchainStatus(String s) { this.blockchainStatus = s; }
+    public String getTxHash() { return txHash; }
+    public void setTxHash(String s) { this.txHash = s; }
+    public String getContractAddress() { return contractAddress; }
+    public void setContractAddress(String s) { this.contractAddress = s; }
 
     public static Builder builder() { return new Builder(); }
     public static class Builder {
@@ -74,6 +83,9 @@ public class SeasonResponse {
         public Builder latestProcessAt(LocalDateTime t) { r.setLatestProcessAt(t); return this; }
         public Builder createdAt(LocalDateTime t) { r.setCreatedAt(t); return this; }
         public Builder updatedAt(LocalDateTime t) { r.setUpdatedAt(t); return this; }
+        public Builder blockchainStatus(String s) { r.setBlockchainStatus(s); return this; }
+        public Builder txHash(String s) { r.setTxHash(s); return this; }
+        public Builder contractAddress(String s) { r.setContractAddress(s); return this; }
         public SeasonResponse build() { return r; }
     }
 }

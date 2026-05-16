@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Pattern;
 
 public class FarmReviewRequest {
     @NotBlank(message = "Trạng thái phê duyệt không được để trống")
-    @Pattern(regexp = "APPROVED|REJECTED", message = "Trạng thái không hợp lệ")
+    @Pattern(regexp = "APPROVED|REJECTED|SUSPENDED|REVOKED", message = "Trạng thái không hợp lệ")
     private String approvalStatus;
     
     private String reviewComment;

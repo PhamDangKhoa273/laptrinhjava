@@ -13,6 +13,7 @@ import com.bicap.core.enums.RoleName;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.modules.subscription.repository.FarmSubscriptionRepository;
 import com.bicap.modules.subscription.repository.ServicePackageRepository;
+import com.bicap.core.enums.SubscriptionStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,7 +95,7 @@ public class FarmSubscriptionService {
 
         FarmSubscription subscription = getEntityById(subscriptionId);
         String normalized = subscriptionStatus.trim().toUpperCase();
-        if (!List.of("PENDING", "ACTIVE", "EXPIRED", "CANCELLED").contains(normalized)) {
+        if (!SubscriptionStatus.isValid(normalized)) {
             throw new BusinessException("Trạng thái subscription không hợp lệ");
         }
         subscription.setSubscriptionStatus(normalized);

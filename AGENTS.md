@@ -19,10 +19,10 @@ The accepted architecture is **Modular Monolith + Layered Modules + RBAC Fronten
 
 Before changing code, read:
 
-1. `docs/architecture/PROJECT_CONTEXT.md`
-2. `docs/architecture/MODULES.md`
-3. `docs/business/BUSINESS_RULES.md`
-4. The relevant file under `docs/modules/`
+1. `docs/03-architecture/context.md`
+2. `docs/04-modules/README.md`
+3. `docs/02-domain/business-rules.md`
+4. The relevant file under `docs/04-modules/`
 5. Existing tests for the touched module
 
 ## Backend Architecture Rules
@@ -64,13 +64,41 @@ Every protected workspace must be backed by route-level RBAC tests.
 
 ## Documentation Rules
 
-When changing a module, update the matching file in `docs/modules/`.
+When changing a module, update the matching file in `docs/04-modules/`.
 
 When changing cross-module architecture, update:
 
-- `docs/architecture/PROJECT_CONTEXT.md`
-- `docs/architecture/MODULES.md`
-- `docs/business/BUSINESS_RULES.md`
+- `docs/03-architecture/context.md`
+- `docs/04-modules/README.md`
+- `docs/02-domain/business-rules.md`
+
+## Doc-Code Sync Protocol
+
+`docs/` là Single Source of Truth (SSOT). Mọi thay đổi code phải đồng bộ với docs.
+
+1. Mọi PR phải tham chiếu ít nhất một ID (`R-*`, `BR-*`, `STM-*`, `API-*`) trong `docs/` ở phần "Doc IDs touched" của PR description.
+2. Code thực hiện hành vi chưa có ID trong docs ⇒ tạo ID mới ở `docs/01-requirements/` (functional/non-functional), `docs/02-domain/business-rules.md` (cho rule), hoặc `docs/02-domain/state-machines/` (cho transition) trong cùng commit.
+3. Mâu thuẫn giữa code và docs ⇒ docs đổi trước HOẶC tạo `GAP-*` entry trong `docs/09-governance/gap-register.md` ghi nhận deviation.
+4. Endpoint thay đổi (path, request, response) ⇒ cập nhật `docs/05-api/openapi.yaml` trong cùng PR.
+5. State machine code thay đổi ⇒ cập nhật bảng STM-* trong `docs/02-domain/state-machines/<entity>.md` trong cùng PR.
+6. RBAC thay đổi ⇒ cập nhật cell trong `docs/06-security/rbac-matrix.md`.
+7. Reviewer chạy local trước approve:
+   - `scripts/docs/docs-check.{sh,ps1}` — link check (exit 1 nếu broken)
+   - `scripts/docs/docs-lint.{sh,ps1}` — front-matter + ID format + uniqueness (exit 1 nếu violation)
+   - `scripts/docs/docs-trace.{sh,ps1}` — Brief bullet ↔ R-* coverage (exit 1 nếu bullet không có quote trong R-*; R-* không reference module/openapi chỉ warn)
+   (3 lệnh đã implement local; CI workflow `.github/workflows/docs-checks.yml` thuộc spec follow-up `docs-quality-gates-impl`.)
+8. PR template (`.github/PULL_REQUEST_TEMPLATE.md`) bắt buộc các fields: `Doc IDs touched`, `Gap entries`, `OpenAPI delta`, `Tests`, `RBAC impact`.
+
+Khi không tuân thủ: PR review từ chối cho đến khi đạt yêu cầu trên hoặc tạo `GAP-*` ghi nhận deviation.
+
+Reading order khi onboard agent mới:
+
+1. `docs/00-overview/structure.md` — folder map + ID types
+2. `docs/00-overview/stakeholders.md` — 6 vai trò
+3. `docs/01-requirements/functional/_brief-source.md` — Brief gốc
+4. `docs/04-modules/README.md` — module index
+5. `docs/06-security/rbac-matrix.md` — authorization matrix
+6. `docs/09-governance/doc-change-policy.md` — quy tắc sửa docs
 
 ## Verification Commands
 

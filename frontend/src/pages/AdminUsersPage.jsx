@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Button } from '../components/Button.jsx'
 import { SelectField } from '../components/SelectField.jsx'
 import { getUsers, replaceUserRole, updateUserStatus } from '../services/businessService'
+import { createAdminAccount, deleteUserAccount } from '../services/adminService.js'
 import { ROLES, ROLE_LABELS } from '../utils/constants'
 import { getErrorMessage } from '../utils/helpers'
 import '../styles/adminTableFix.css'
@@ -36,6 +37,16 @@ export function AdminUsersPage() {
   const [pendingUserId, setPendingUserId] = useState(null)
   const [assigningRoleFor, setAssigningRoleFor] = useState(null)
   const [roleActionMessage, setRoleActionMessage] = useState('')
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [createForm, setCreateForm] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    phone: '',
+    initialRole: 'ADMIN',
+  })
+  const [creatingUser, setCreatingUser] = useState(false)
+  const [deletingUserId, setDeletingUserId] = useState(null)
 
   useEffect(() => {
     loadUsers()
@@ -99,6 +110,60 @@ export function AdminUsersPage() {
     }
   }
 
+  async function handleCreateUser(event) {
+    event.preventDefault()
+    setError('')
+    setSuccess('')
+    if (!createForm.fullName.trim() || !createForm.email.trim() || !createForm.password) {
+      setError('Vui lòng điền đầy đủ họ tên, email, mật khẩu.')
+      return
+    }
+    if (createForm.password.length < 6) {
+      setError('Mật khẩu phải ít nhất 6 ký tự.')
+      return
+    }
+    setCreatingUser(true)
+    try {
+      const payload = {
+        fullName: createForm.fullName.trim(),
+        email: createForm.email.trim(),
+        password: createForm.password,
+        phone: createForm.phone.trim() || undefined,
+        initialRole: createForm.initialRole || undefined,
+      }
+      await createAdminAccount(payload)
+      setSuccess(`Đã tạo tài khoản ${payload.email} với vai trò ${ROLE_LABELS[createForm.initialRole] || createForm.initialRole}.`)
+      setCreateForm({ fullName: '', email: '', password: '', phone: '', initialRole: 'ADMIN' })
+      setShowCreateForm(false)
+      await loadUsers()
+      setTimeout(() => setSuccess(''), 4000)
+    } catch (err) {
+      setError(getErrorMessage(err, 'Không thể tạo tài khoản.'))
+    } finally {
+      setCreatingUser(false)
+    }
+  }
+
+  async function handleDeleteUser(user) {
+    if (!user?.userId) return
+    if (!window.confirm(`Xóa vĩnh viễn tài khoản ${user.email || `#${user.userId}`}? Hành động này không thể hoàn tác.`)) {
+      return
+    }
+    setDeletingUserId(user.userId)
+    setError('')
+    setSuccess('')
+    try {
+      await deleteUserAccount(user.userId)
+      setSuccess(`Đã xóa tài khoản ${user.email || `#${user.userId}`}.`)
+      await loadUsers()
+      setTimeout(() => setSuccess(''), 4000)
+    } catch (err) {
+      setError(getErrorMessage(err, 'Không thể xóa tài khoản. Tài khoản có thể có dữ liệu liên quan.'))
+    } finally {
+      setDeletingUserId(null)
+    }
+  }
+
   async function handleAssignRole(userId) {
     const roleName = selectedRoles[userId]
     if (!roleName) {
@@ -137,6 +202,7 @@ export function AdminUsersPage() {
 
         </div>
         <div className="section-actions">
+          <Button onClick={() => { setShowCreateForm(true); setError('') }} disabled={loading}>+ Tạo tài khoản</Button>
           <Button variant="secondary" onClick={loadUsers} disabled={loading}>{loading ? 'Đang tải...' : 'Làm mới'}</Button>
         </div>
       </div>
@@ -234,13 +300,23 @@ export function AdminUsersPage() {
                           <span className={`status-pill status-${String(user.status || '').toLowerCase()}`}>{user.status}</span>
                         </td>
                         <td style={{ textAlign: 'right' }}>
-                          <Button
-                            variant="secondary"
-                            onClick={() => handleUserStatusChange(user, getNextStatus(user.status))}
-                            disabled={pendingUserId === user.userId}
-                          >
-                            {pendingUserId === user.userId ? 'Đang xử lý...' : user.status === 'ACTIVE' ? 'Khoá' : 'Mở'}
-                          </Button>
+                          <div className="inline-actions" style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+                            <Button
+                              variant="secondary"
+                              onClick={() => handleUserStatusChange(user, getNextStatus(user.status))}
+                              disabled={pendingUserId === user.userId || deletingUserId === user.userId}
+                            >
+                              {pendingUserId === user.userId ? 'Đang xử lý...' : user.status === 'ACTIVE' ? 'Khoá' : 'Mở'}
+                            </Button>
+                            <Button
+                              variant="danger"
+                              onClick={() => handleDeleteUser(user)}
+                              disabled={deletingUserId === user.userId || pendingUserId === user.userId}
+                              title="Xóa tài khoản (không thể hoàn tác)"
+                            >
+                              {deletingUserId === user.userId ? 'Đang xóa...' : 'Xóa'}
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -281,6 +357,86 @@ export function AdminUsersPage() {
           )}
         </main>
       </div>
+
+      {showCreateForm ? (
+        <div className="admin-modal-backdrop" onClick={() => !creatingUser && setShowCreateForm(false)}>
+          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-head">
+              <h3>Tạo tài khoản mới</h3>
+              <button type="button" onClick={() => !creatingUser && setShowCreateForm(false)} aria-label="Đóng">×</button>
+            </div>
+            <form onSubmit={handleCreateUser}>
+              <div className="admin-modal-body">
+                <p>Backend tự hash mật khẩu BCrypt và gán vai trò ban đầu. Bạn có thể thay đổi vai trò sau ở phần "Gán vai trò".</p>
+                <label className="form-field">
+                  <span className="form-label">Họ tên *</span>
+                  <input
+                    className="form-input"
+                    value={createForm.fullName}
+                    onChange={(e) => setCreateForm((prev) => ({ ...prev, fullName: e.target.value }))}
+                    required
+                    minLength={2}
+                    maxLength={150}
+                    autoFocus
+                  />
+                </label>
+                <label className="form-field">
+                  <span className="form-label">Email *</span>
+                  <input
+                    className="form-input"
+                    type="email"
+                    value={createForm.email}
+                    onChange={(e) => setCreateForm((prev) => ({ ...prev, email: e.target.value }))}
+                    required
+                  />
+                </label>
+                <label className="form-field">
+                  <span className="form-label">Mật khẩu * (≥6 ký tự)</span>
+                  <input
+                    className="form-input"
+                    type="password"
+                    value={createForm.password}
+                    onChange={(e) => setCreateForm((prev) => ({ ...prev, password: e.target.value }))}
+                    required
+                    minLength={6}
+                    maxLength={100}
+                  />
+                </label>
+                <label className="form-field">
+                  <span className="form-label">Số điện thoại</span>
+                  <input
+                    className="form-input"
+                    value={createForm.phone}
+                    onChange={(e) => setCreateForm((prev) => ({ ...prev, phone: e.target.value }))}
+                    placeholder="0xxxxxxxxx hoặc +84xxxxxxxxx"
+                    pattern="^(0|\+84)[0-9]{9,10}$"
+                  />
+                </label>
+                <label className="form-field">
+                  <span className="form-label">Vai trò ban đầu</span>
+                  <select
+                    className="form-input"
+                    value={createForm.initialRole}
+                    onChange={(e) => setCreateForm((prev) => ({ ...prev, initialRole: e.target.value }))}
+                  >
+                    {Object.values(ROLES).map((role) => (
+                      <option key={role} value={role}>{ROLE_LABELS[role] || role}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="admin-modal-foot">
+                <Button type="button" variant="secondary" onClick={() => setShowCreateForm(false)} disabled={creatingUser}>
+                  Hủy
+                </Button>
+                <Button type="submit" disabled={creatingUser}>
+                  {creatingUser ? 'Đang tạo...' : 'Tạo tài khoản'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }

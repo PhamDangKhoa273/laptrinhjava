@@ -1,0 +1,117 @@
+/* ============================================================
+   Dashboard light-theme overrides for non-admin role workspaces.
+   ============================================================
+   App.css declares :root { color: #e8f0f8 } (white-on-dark assumption).
+   Role-scoped pages (FARM/RETAILER/SHIPPING_MANAGER/DRIVER/GUEST)
+   render on a white DashboardLayout background, so default body
+   text is invisible without explicit overrides.
+   This file mirrors the Admin role's color discipline for the
+   other roles, but with a lighter palette appropriate for the
+   light theme. Admin keeps its own rules in admin-premium.css.
+============================================================ */
+
+.dashboard-shell.role-farm,
+.dashboard-shell.role-retailer,
+.dashboard-shell.role-shipping-manager,
+.dashboard-shell.role-driver,
+.dashboard-shell.role-guest {
+  color: #0f172a;
+}
+
+.dashboard-shell.role-farm .dashboard-main,
+.dashboard-shell.role-retailer .dashboard-main,
+.dashboard-shell.role-shipping-manager .dashboard-main,
+.dashboard-shell.role-driver .dashboard-main,
+.dashboard-shell.role-guest .dashboard-main {
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+/* page-section / section-heading default */
+.dashboard-shell:not(.role-admin) .page-section,
+.dashboard-shell:not(.role-admin) .section-heading {
+  color: #0f172a;
+}
+
+.dashboard-shell:not(.role-admin) .section-heading h1,
+.dashboard-shell:not(.role-admin) .section-heading h2,
+.dashboard-shell:not(.role-admin) .section-heading h3 {
+  color: #0f172a;
+  margin: 0;
+}
+
+.dashboard-shell:not(.role-admin) .section-heading p {
+  color: #475569;
+  margin: 4px 0 0;
+}
+
+.dashboard-shell:not(.role-admin) .section-heading .eyebrow {
+  color: #15803d;
+  font-weight: 800;
+}
+
+/* glass-card legacy: in dark theme it uses navy bg + white text;
+   on light dashboard it must invert. Scope the override to non-admin
+   role workspaces so admin's existing premium chrome stays untouched. */
+.dashboard-shell:not(.role-admin) .page-section .glass-card,
+.dashboard-shell:not(.role-admin) .business-card,
+.dashboard-shell:not(.role-admin) .feature-card,
+.dashboard-shell:not(.role-admin) .status-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+}
+
+.dashboard-shell:not(.role-admin) .glass-card h2,
+.dashboard-shell:not(.role-admin) .glass-card h3,
+.dashboard-shell:not(.role-admin) .glass-card h4,
+.dashboard-shell:not(.role-admin) .business-card h2,
+.dashboard-shell:not(.role-admin) .business-card h3,
+.dashboard-shell:not(.role-admin) .business-card h4 {
+  color: #0f172a;
+}
+
+.dashboard-shell:not(.role-admin) .glass-card p,
+.dashboard-shell:not(.role-admin) .business-card p {
+  color: #475569;
+}
+
+.dashboard-shell:not(.role-admin) .feature-list {
+  color: #0f172a;
+}
+
+.dashboard-shell:not(.role-admin) .feature-list li {
+  color: #334155;
+}
+
+/* default `p` inherits #b8c7d8 from App.css; reset for role pages */
+.dashboard-shell:not(.role-admin) p {
+  color: #475569;
+}
+
+/* default `a` inherits color from parent; ensure links are readable */
+.dashboard-shell:not(.role-admin) a {
+  color: #0d631b;
+}
+
+/* alerts inside role pages */
+.dashboard-shell:not(.role-admin) .alert,
+.dashboard-shell:not(.role-admin) .alert-error,
+.dashboard-shell:not(.role-admin) .alert-success,
+.dashboard-shell:not(.role-admin) .alert-info {
+  color: inherit;
+}
+
+/* Field labels inside role workspaces */
+.dashboard-shell:not(.role-admin) .field-label,
+.dashboard-shell:not(.role-admin) label {
+  color: #1e293b;
+}
+
+/* Loading and form section header inside non-admin role shell */
+.dashboard-shell:not(.role-admin) .form-grid,
+.dashboard-shell:not(.role-admin) .grid-two,
+.dashboard-shell:not(.role-admin) .content-grid {
+  color: #0f172a;
+}

@@ -15,8 +15,17 @@ const AdminRetailersPage = lazy(() => import('../pages/AdminRetailersPage.jsx').
 const AdminPackagesPage = lazy(() => import('../pages/AdminPackagesPage.jsx').then((module) => ({ default: module.AdminPackagesPage })))
 const AdminBlockchainTracePage = lazy(() => import('../pages/AdminBlockchainTracePage.jsx').then((module) => ({ default: module.AdminBlockchainTracePage })))
 const DashboardHomePage = lazy(() => import('../pages/DashboardHomePage.jsx').then((module) => ({ default: module.DashboardHomePage })))
-const FarmPhase3Page = lazy(() => import('../pages/FarmPhase3Page.jsx').then((module) => ({ default: module.FarmPhase3Page })))
 const FarmWorkspacePage = lazy(() => import('../pages/FarmWorkspacePage.jsx').then((module) => ({ default: module.FarmWorkspacePage })))
+const FarmProfilePage = lazy(() => import('../pages/FarmProfilePage.jsx').then((module) => ({ default: module.FarmProfilePage })))
+const FarmMarketplacePage = lazy(() => import('../pages/FarmMarketplacePage.jsx').then((module) => ({ default: module.FarmMarketplacePage })))
+const FarmSubscriptionPage = lazy(() => import('../pages/FarmSubscriptionPage.jsx').then((module) => ({ default: module.FarmSubscriptionPage })))
+const FarmReportsPage = lazy(() => import('../pages/FarmReportsPage.jsx').then((module) => ({ default: module.FarmReportsPage })))
+const FarmSeasonsPage = lazy(() => import('../pages/FarmSeasonsPage.jsx').then((module) => ({ default: module.FarmSeasonsPage })))
+const FarmBatchesPage = lazy(() => import('../pages/FarmBatchesPage.jsx').then((module) => ({ default: module.FarmBatchesPage })))
+const FarmExportQrPage = lazy(() => import('../pages/FarmExportQrPage.jsx').then((module) => ({ default: module.FarmExportQrPage })))
+const FarmOrdersPage = lazy(() => import('../pages/FarmOrdersPage.jsx').then((module) => ({ default: module.FarmOrdersPage })))
+const FarmShippingPage = lazy(() => import('../pages/FarmShippingPage.jsx').then((module) => ({ default: module.FarmShippingPage })))
+const FarmShipmentReportsPage = lazy(() => import('../pages/FarmShipmentReportsPage.jsx').then((module) => ({ default: module.FarmShipmentReportsPage })))
 const LoginPage = lazy(() => import('../pages/LoginPage.jsx').then((module) => ({ default: module.LoginPage })))
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage.jsx').then((module) => ({ default: module.NotFoundPage })))
 const ProfilePage = lazy(() => import('../pages/ProfilePage.jsx').then((module) => ({ default: module.ProfilePage })))
@@ -97,18 +106,21 @@ export function AppRoutes() {
           <Route element={<RoleProtectedRoute allowedRoles={[ROLES.FARM]} />}>
             <Route path="/dashboard/farm" element={<FarmWorkspacePage module="overview" />} />
             <Route path="/farm/workspace" element={<Navigate to="/dashboard/farm" replace />} />
-            <Route path="/farm/profile" element={<FarmWorkspacePage module="profile" />} />
-            <Route path="/farm/packages" element={<FarmWorkspacePage module="packages" />} />
-            <Route path="/farm/seasons" element={<FarmWorkspacePage module="seasons" />} />
-            <Route path="/farm/blockchain" element={<FarmWorkspacePage module="blockchain" />} />
-            <Route path="/farm/export-qr" element={<FarmWorkspacePage module="export" />} />
-            <Route path="/farm/marketplace" element={<FarmWorkspacePage module="marketplace" />} />
+            <Route path="/farm/profile" element={<FarmProfilePage />} />
+            <Route path="/farm/subscription" element={<FarmSubscriptionPage />} />
+            <Route path="/farm/seasons" element={<FarmSeasonsPage />} />
+            <Route path="/farm/packages" element={<FarmBatchesPage />} />
+            <Route path="/farm/export-qr" element={<FarmExportQrPage />} />
+            <Route path="/farm/blockchain" element={<Navigate to="/farm/export-qr" replace />} />
+            <Route path="/farm/marketplace" element={<FarmMarketplacePage />} />
             <Route path="/farm/contracts" element={<FarmWorkspacePage module="contracts" />} />
-            <Route path="/farm/shipping" element={<FarmWorkspacePage module="shipping" />} />
-            <Route path="/farm/iot" element={<FarmWorkspacePage module="iot" />} />
-            <Route path="/farm/reports" element={<FarmWorkspacePage module="reports" />} />
-            <Route path="/farm/workflow" element={<FarmWorkflowPage />} />
-            <Route path="/farm/phase3" element={<FarmPhase3Page />} />
+            <Route path="/farm/orders" element={<FarmOrdersPage />} />
+            <Route path="/farm/shipping" element={<FarmShippingPage />} />
+            <Route path="/farm/shipment-reports" element={<FarmShipmentReportsPage />} />
+            <Route path="/farm/iot" element={<Navigate to="/farm/shipment-reports" replace />} />
+            <Route path="/farm/reports" element={<FarmReportsPage />} />
+            <Route path="/farm/workflow" element={<Navigate to="/farm/orders" replace />} />
+            <Route path="/farm/phase3" element={<Navigate to="/farm/seasons" replace />} />
             <Route path="/batches/:id" element={<BatchDetailPage />} />
           </Route>
 

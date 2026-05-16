@@ -184,6 +184,23 @@ public class ProductListingService {
 
     public Page<ListingResponse> searchPublicListings(String keyword, String province, String certification, String productCategory, Boolean availableOnly, Boolean verifiedOnly, LocalDate harvestFrom, LocalDate harvestTo, int page, int size, String sort) {
         Pageable pageable = PageRequest.of(page, size, resolvePublicSort(sort));
+<<<<<<< HEAD
+        List<ListingResponse> filtered = listingRepository.findByStatusAndApprovalStatus(ListingStatus.ACTIVE.name(), ApprovalStatus.APPROVED.name(), resolvePublicSort(sort))
+                .stream()
+                .map(this::toResponse)
+                .filter(listing -> matchesKeyword(listing, keyword))
+                .filter(listing -> matchesProvince(listing, province))
+                .filter(listing -> matchesCertification(listing, certification))
+                .filter(listing -> matchesProductCategory(listing, productCategory))
+                .filter(listing -> availableOnly == null || !availableOnly || Boolean.TRUE.equals(listing.getAvailableForRetailer()))
+                .filter(listing -> verifiedOnly == null || !verifiedOnly || isVerifiedCertification(listing.getCertificationStatus()))
+                .filter(listing -> matchesHarvestRange(listing, harvestFrom, harvestTo))
+                .toList();
+        int total = filtered.size();
+        int from = Math.min(page * size, total);
+        int to = Math.min(from + size, total);
+        return new org.springframework.data.domain.PageImpl<>(filtered.subList(from, to), pageable, total);
+=======
         org.springframework.data.jpa.domain.Specification<ProductListing> spec =
                 com.bicap.modules.discovery.specification.ProductListingSpecification
                         .searchListings(keyword, null, null, province, productCategory, certification);
@@ -205,6 +222,7 @@ public class ProductListingService {
 
         Page<ProductListing> rows = listingRepository.findAll(spec, pageable);
         return rows.map(this::toResponse);
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
     }
 
     private boolean matchesKeyword(ListingResponse listing, String keyword) {

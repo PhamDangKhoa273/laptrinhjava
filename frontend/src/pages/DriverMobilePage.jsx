@@ -66,6 +66,7 @@ export function DriverMobilePage({ module = 'shipments' }) {
     setActiveTab(MODULE_TAB_MAP[module] || 'trips')
   }, [module])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadShipments() }, [])
 
   useEffect(() => {

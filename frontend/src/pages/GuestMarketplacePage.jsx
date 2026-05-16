@@ -1,25 +1,33 @@
-﻿import { useState, useEffect } from 'react'
-import { NavLink } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { getPublicListings } from '../services/listingService'
 import { getPublishedContent, getPublicAnnouncementFeed, getActiveAnnouncement } from '../services/workflowService'
-import { searchListings } from '../services/searchService'
-import { SupportButton } from '../components/SupportButton.jsx'
+import { searchListings, getFilterOptions, getCategories } from '../services/searchService'
 import './GuestMarketplace.css'
 
 const navItems = [
-  { module: 'overview', to: '/guest/overview', icon: 'dashboard', label: 'Báº£ng Ä‘iá»u khiá»ƒn' },
-  { module: 'search', to: '/guest/search', icon: 'search', label: 'TÃ¬m kiáº¿m' },
-  { module: 'announcements', to: '/guest/announcements', icon: 'campaign', label: 'ThÃ´ng bÃ¡o' },
-  { module: 'education', to: '/guest/education', icon: 'school', label: 'Kiáº¿n thá»©c' },
+  { module: 'overview', to: '/guest/overview', icon: 'dashboard', label: 'Bảng điều khiển' },
+  { module: 'search', to: '/guest/search', icon: 'search', label: 'Tìm kiếm' },
+  { module: 'announcements', to: '/guest/announcements', icon: 'campaign', label: 'Thông báo' },
+  { module: 'education', to: '/guest/education', icon: 'school', label: 'Kiến thức' },
 ]
 
-const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="%23e2e8f0"><rect width="400" height="300"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2394a3b8" font-size="16">NÃ´ng sáº£n BICAP</text></svg>')
+const PLACEHOLDER_IMG = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="%23e2e8f0"><rect width="400" height="300"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2394a3b8" font-size="16">Nông sản BICAP</text></svg>')
 
 function formatPrice(price) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)
 }
 
 function GuestShell({ module, children }) {
+  const navigate = useNavigate()
+  const [topQuery, setTopQuery] = useState('')
+
+  function submitTopSearch(e) {
+    e.preventDefault()
+    const q = topQuery.trim()
+    navigate(q ? `/guest/search?q=${encodeURIComponent(q)}` : '/guest/search')
+  }
+
   return (
     <div className="mp-shell">
       <aside className="mp-side">
@@ -27,8 +35,8 @@ function GuestShell({ module, children }) {
         <div className="mp-side__profile">
           <span className="mp-side__profile-icon material-symbols-outlined">account_circle</span>
           <div>
-            <div className="mp-side__profile-name">KhÃ´ng gian khÃ¡ch</div>
-            <div className="mp-side__profile-badge">ÄÃ£ xÃ¡c thá»±c blockchain</div>
+            <div className="mp-side__profile-name">Không gian khách</div>
+            <div className="mp-side__profile-badge">Đã xác thực blockchain</div>
           </div>
         </div>
         <nav className="mp-nav">
@@ -47,16 +55,17 @@ function GuestShell({ module, children }) {
       <div className="mp-wrap">
         <header className="mp-top">
           <div style={{ fontWeight: 600, fontSize: 15 }}>{module === 'overview' ? 'BICAP' : ''}</div>
-          <label className="mp-top__search" style={module !== 'overview' ? { marginLeft: 0 } : undefined}>
+          <form className="mp-top__search" onSubmit={submitTopSearch} style={module !== 'overview' ? { marginLeft: 0 } : undefined}>
             <span className="material-symbols-outlined" style={{ fontSize: 18, opacity: 0.5 }}>search</span>
             <input
-              placeholder={module === 'search' ? 'TÃ¬m nhanh...' : 'TÃ¬m kiáº¿m sáº£n pháº©m, nÃ´ng tráº¡i, mÃ¹a vá»¥...'}
+              placeholder={module === 'search' ? 'Tìm nhanh...' : 'Tìm kiếm sản phẩm, nông trại, mùa vụ...'}
+              value={topQuery}
+              onChange={(e) => setTopQuery(e.target.value)}
             />
-          </label>
+          </form>
           <div className="mp-top__actions">
-            <button className="mp-icon-btn material-symbols-outlined">notifications</button>
-            <SupportButton />
-            <button className="mp-icon-btn material-symbols-outlined">account_circle</button>
+            <NavLink to="/guest/announcements" className="mp-icon-btn material-symbols-outlined" aria-label="Thông báo">notifications</NavLink>
+            <NavLink to="/login" className="mp-icon-btn material-symbols-outlined" aria-label="Đăng nhập">login</NavLink>
           </div>
         </header>
         {children}
@@ -87,7 +96,7 @@ function DashboardPage() {
       try {
         const result = await getPublicListings({ size: 9 })
         if (mounted) setListings(result.items || [])
-      } catch (_) {
+      } catch {
         if (mounted) setListings([])
       } finally {
         if (mounted) setLoading(false)
@@ -101,31 +110,31 @@ function DashboardPage() {
     <GuestShell module="overview">
       <main className="mp-main">
         <section className="mp-hero">
-          <p className="mp-hero__eyebrow">Thá»‹ trÆ°á»ng nÃ´ng sáº£n</p>
-          <h1 className="mp-hero__title">Truy xuáº¥t nguá»“n gá»‘c nÃ´ng sáº£n tá»« trang tráº¡i Ä‘áº¿n bÃ n Äƒn.</h1>
-          <p className="mp-hero__subtitle">KhÃ¡m phÃ¡ nÃ´ng sáº£n Viá»‡t Ä‘Æ°á»£c xÃ¡c thá»±c blockchain vá»›i truy xuáº¥t minh báº¡ch tá»« Ä‘áº¥t trá»“ng Ä‘áº¿n ká»‡ hÃ ng.</p>
+          <p className="mp-hero__eyebrow">Thị trường nông sản</p>
+          <h1 className="mp-hero__title">Truy xuất nguồn gốc nông sản từ trang trại đến bàn ăn.</h1>
+          <p className="mp-hero__subtitle">Khám phá nông sản Việt được xác thực blockchain với truy xuất minh bạch từ đất trồng đến kệ hàng.</p>
           <div className="mp-hero__actions">
-            <NavLink to="/guest/search" className="mp-btn-primary">KhÃ¡m phÃ¡ ngay</NavLink>
+            <NavLink to="/guest/search" className="mp-btn-primary">Khám phá ngay</NavLink>
           </div>
         </section>
 
         {loading ? (
           <div className="mp-loading">
             <div className="mp-spinner"></div>
-            <p>Äang táº£i dá»¯ liá»‡u...</p>
+            <p>Đang tải dữ liệu...</p>
           </div>
         ) : listings.length === 0 ? (
           <div className="mp-empty">
             <span className="mp-empty__icon material-symbols-outlined">inventory_2</span>
-            <h3>ChÆ°a cÃ³ sáº£n pháº©m</h3>
-            <p>ChÆ°a cÃ³ sáº£n pháº©m nÃ o trÃªn thá»‹ trÆ°á»ng.</p>
+            <h3>Chưa có sản phẩm</h3>
+            <p>Chưa có sản phẩm nào trên thị trường.</p>
           </div>
         ) : (
           <section>
             <div className="mp-section-title">
               <div>
-                <h2>Sáº£n pháº©m ná»•i báº­t</h2>
-                <p>CÃ¡c sáº£n pháº©m Ä‘Ã£ Ä‘Æ°á»£c xÃ¡c thá»±c vÃ  phÃª duyá»‡t.</p>
+                <h2>Sản phẩm nổi bật</h2>
+                <p>Các sản phẩm đã được xác thực và phê duyệt.</p>
               </div>
             </div>
             <div className="mp-grid">
@@ -133,7 +142,7 @@ function DashboardPage() {
                 <article className="mp-card" key={p.listingId}>
                   <div className="mp-card__image">
                     <img src={p.imageUrl || PLACEHOLDER_IMG} alt={p.title} />
-                    <span className="mp-card__badge">{p.certification || 'ÄÃ£ xÃ¡c thá»±c'}</span>
+                    <span className="mp-card__badge">{p.certification || 'Đã xác thực'}</span>
                   </div>
                   <div className="mp-card__body">
                     <h3 className="mp-card__title">{p.title}</h3>
@@ -147,7 +156,7 @@ function DashboardPage() {
                     <div className="mp-card__footer">
                       <span className="mp-card__price">{formatPrice(p.price)}</span>
                     </div>
-                    <NavLink to={`/listings/${p.listingId}`} className="mp-btn-detail">Xem chi tiáº¿t</NavLink>
+                    <NavLink to={`/listings/${p.listingId}`} className="mp-btn-detail">Xem chi tiết</NavLink>
                   </div>
                 </article>
               ))}
@@ -160,64 +169,129 @@ function DashboardPage() {
 }
 
 function SearchPage() {
-  const [query, setQuery] = useState('')
+  const initialQuery = (() => {
+    if (typeof window === 'undefined') return ''
+    const params = new URLSearchParams(window.location.search)
+    return params.get('q') || ''
+  })()
+  const [query, setQuery] = useState(initialQuery)
+  const [province, setProvince] = useState('')
+  const [certification, setCertification] = useState('')
+  const [productCategory, setProductCategory] = useState('')
+  const [availableOnly, setAvailableOnly] = useState(false)
+  const [provinces, setProvinces] = useState([])
+  const [certifications, setCertifications] = useState([])
+  const [categories, setCategories] = useState([])
   const [results, setResults] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
 
+  // R-GST-020 — derive filter dimensions from backend (no hardcode).
   useEffect(() => {
-    if (!query.trim()) return
     let mounted = true
-    setLoading(true)
-    searchListings({ keyword: query, size: 20 }).then((r) => {
-      if (mounted) {
-        setResults(r.items || [])
-        setTotal(r.totalItems || 0)
-        setSearched(true)
-      }
-    }).catch(() => {
-      if (mounted) { setResults([]); setTotal(0); setSearched(true) }
-    }).finally(() => {
-      if (mounted) setLoading(false)
+    Promise.all([
+      getFilterOptions().catch(() => ({ provinces: [], certifications: [] })),
+      getCategories().catch(() => []),
+    ]).then(([opts, cats]) => {
+      if (!mounted) return
+      setProvinces(opts.provinces || [])
+      setCertifications(opts.certifications || [])
+      setCategories(Array.isArray(cats) ? cats : [])
     })
     return () => { mounted = false }
-  }, [query])
+  }, [])
+
+  // Debounced search whenever any filter or keyword changes.
+  useEffect(() => {
+    const hasAnyFilter = query.trim() || province || certification || productCategory || availableOnly
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!hasAnyFilter) { setResults([]); setTotal(0); setSearched(false); return }
+    let mounted = true
+    setLoading(true)
+    const handle = setTimeout(() => {
+      searchListings({ keyword: query, province, certification, productCategory, availableOnly: availableOnly || undefined, size: 20 })
+        .then((r) => {
+          if (!mounted) return
+          setResults(r.items || [])
+          setTotal(r.totalItems || 0)
+          setSearched(true)
+        })
+        .catch(() => { if (mounted) { setResults([]); setTotal(0); setSearched(true) } })
+        .finally(() => { if (mounted) setLoading(false) })
+    }, 300)
+    return () => { mounted = false; clearTimeout(handle) }
+  }, [query, province, certification, productCategory, availableOnly])
+
+  function clearFilters() {
+    setQuery(''); setProvince(''); setCertification(''); setProductCategory(''); setAvailableOnly(false)
+  }
+
+  const activeFilterCount = [province, certification, productCategory].filter(Boolean).length + (availableOnly ? 1 : 0)
 
   return (
     <GuestShell module="search">
       <main className="mp-main mp-main--narrow">
         <section className="mp-hero">
-          <h1 className="mp-hero__title">KhÃ¡m phÃ¡ chá»£ nÃ´ng sáº£n</h1>
-          <p className="mp-hero__subtitle">Truy xuáº¥t sáº£n pháº©m tá»« Ä‘áº¥t trá»“ng Ä‘áº¿n ká»‡ hÃ ng báº±ng xÃ¡c thá»±c blockchain.</p>
+          <h1 className="mp-hero__title">Khám phá chợ nông sản</h1>
+          <p className="mp-hero__subtitle">Truy xuất sản phẩm từ đất trồng đến kệ hàng bằng xác thực blockchain.</p>
           <div className="mp-hero__search">
             <div className="mp-hero__search-main">
               <input
                 className="mp-hero__search-input"
-                placeholder="TÃ¬m theo tÃªn sáº£n pháº©m, nÃ´ng tráº¡i hoáº·c Ä‘á»‹a Ä‘iá»ƒm..."
+                placeholder="Tìm theo tên sản phẩm, nông trại hoặc địa điểm..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
             </div>
+            {/* R-GST-020 AC1 — origin/product type/certification/availability filters */}
+            <div className="mp-hero__search-main" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8 }}>
+              <select className="mp-hero__search-input" value={province} onChange={(e) => setProvince(e.target.value)}>
+                <option value="">Nguồn gốc (tất cả)</option>
+                {provinces.map((p) => <option key={p} value={p}>{p}</option>)}
+              </select>
+              <select className="mp-hero__search-input" value={productCategory} onChange={(e) => setProductCategory(e.target.value)}>
+                <option value="">Loại sản phẩm (tất cả)</option>
+                {categories.map((c) => {
+                  const value = c.categoryName || c.name || c
+                  const label = c.categoryName || c.name || c
+                  return <option key={value} value={value}>{label}</option>
+                })}
+              </select>
+              <select className="mp-hero__search-input" value={certification} onChange={(e) => setCertification(e.target.value)}>
+                <option value="">Chứng nhận (tất cả)</option>
+                {certifications.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <label className="mp-hero__search-input" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', justifyContent: 'space-between' }}>
+                <span>Còn hàng</span>
+                <input type="checkbox" checked={availableOnly} onChange={(e) => setAvailableOnly(e.target.checked)} />
+              </label>
+            </div>
+            {activeFilterCount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, opacity: 0.75 }}>
+                <span>Đang lọc: {activeFilterCount} tiêu chí</span>
+                <button type="button" onClick={clearFilters} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.18)', color: 'inherit', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: 12 }}>Xóa bộ lọc</button>
+              </div>
+            )}
           </div>
         </section>
         {searched && !loading && (
           <div className="mp-page-header" style={{ padding: '12px 0' }}>
             <h3 className="mp-page-header__title">
-              Káº¿t quáº£ tÃ¬m kiáº¿m <span style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>{total} káº¿t quáº£</span>
+              Kết quả tìm kiếm <span style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>{total} kết quả</span>
             </h3>
           </div>
         )}
         {loading ? (
           <div className="mp-loading">
             <div className="mp-spinner"></div>
-            <p>Äang tÃ¬m kiáº¿m...</p>
+            <p>Đang tìm kiếm...</p>
           </div>
         ) : results.length === 0 && searched ? (
           <div className="mp-empty">
             <span className="mp-empty__icon material-symbols-outlined">search_off</span>
-            <h3>KhÃ´ng tÃ¬m tháº¥y</h3>
-            <p>KhÃ´ng tÃ¬m tháº¥y káº¿t quáº£ phÃ¹ há»£p.</p>
+            <h3>Không tìm thấy</h3>
+            <p>Không tìm thấy kết quả phù hợp.</p>
           </div>
         ) : (
           <div className="mp-grid">
@@ -231,12 +305,12 @@ function SearchPage() {
                   <h3 className="mp-card__title">{item.title}</h3>
                   <p className="mp-card__farm">
                     <span className="mp-card__farm-icon material-symbols-outlined">location_on</span>
-                    {item.province || 'Viá»‡t Nam'}
+                    {item.province || 'Việt Nam'}
                   </p>
                   <div className="mp-card__footer">
                     <span className="mp-card__price">{formatPrice(item.price)}</span>
                   </div>
-                  <NavLink to={`/listings/${item.listingId}`} className="mp-btn-detail">Theo dÃµi lÃ´</NavLink>
+                  <NavLink to={`/listings/${item.listingId}`} className="mp-btn-detail">Theo dõi lô</NavLink>
                 </div>
               </article>
             ))}
@@ -277,14 +351,14 @@ function AnnouncementsPage() {
     <GuestShell module="announcements">
       <main className="mp-main mp-main--narrow">
         <div className="mp-page-header">
-          <h1 className="mp-page-header__title">ThÃ´ng bÃ¡o má»›i nháº¥t</h1>
-          <p className="mp-page-header__desc">Cáº­p nháº­t thá»‹ trÆ°á»ng, nÃ¢ng cáº¥p há»‡ thá»‘ng vÃ  thÃ´ng tin mÃ¹a vá»¥ tá»« BICAP.</p>
+          <h1 className="mp-page-header__title">Thông báo mới nhất</h1>
+          <p className="mp-page-header__desc">Cập nhật thị trường, nâng cấp hệ thống và thông tin mùa vụ từ BICAP.</p>
         </div>
 
         {loading ? (
           <div className="mp-loading">
             <div className="mp-spinner"></div>
-            <p>Äang táº£i...</p>
+            <p>Đang tải...</p>
           </div>
         ) : (
           <>
@@ -292,7 +366,7 @@ function AnnouncementsPage() {
               <article className="mp-ann-feature" onClick={() => toggleExpand('featured')} style={{cursor:'pointer'}}>
                 <div className="mp-ann-feature__badge">
                   <span className="material-symbols-outlined" style={{ fontSize: 16 }}>campaign</span>
-                  THÃ”NG BÃO Ná»”I Báº¬T
+                  THÔNG BÁO NỔI BẬT
                 </div>
                 <h2 className="mp-ann-feature__title">{active.title}</h2>
                 <p className="mp-ann-feature__text">{active.summary}</p>
@@ -312,7 +386,7 @@ function AnnouncementsPage() {
                   style={{cursor:'pointer',padding:'1rem',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                     <div>
-                      <span className="mp-ann-card__category">{ann.category || 'Cáº­p nháº­t'}</span>
+                      <span className="mp-ann-card__category">{ann.category || 'Cập nhật'}</span>
                       <h4 className="mp-ann-card__title" style={{margin:'0.25rem 0'}}>{ann.title}</h4>
                       <p className="mp-ann-card__summary" style={{margin:0,opacity:0.7,fontSize:'0.9em'}}>{ann.summary}</p>
                       <small className="mp-ann-card__date">
@@ -332,8 +406,8 @@ function AnnouncementsPage() {
               {announcements.length === 0 && !active && (
                 <div className="mp-empty">
                   <span className="mp-empty__icon material-symbols-outlined">notifications_off</span>
-                  <h3>ChÆ°a cÃ³ thÃ´ng bÃ¡o</h3>
-                  <p>ChÆ°a cÃ³ thÃ´ng bÃ¡o nÃ o.</p>
+                  <h3>Chưa có thông báo</h3>
+                  <p>Chưa có thông báo nào.</p>
                 </div>
               )}
             </div>
@@ -367,27 +441,27 @@ function EducationPage() {
     <GuestShell module="education">
       <main className="mp-main mp-main--narrow">
         <section className="mp-hero" style={{ marginBottom: 24 }}>
-          <p className="mp-hero__eyebrow">Trao quyá»n minh báº¡ch</p>
-          <h1 className="mp-hero__title">LÃ m chá»§ <b>nÃ´ng nghiá»‡p truy xuáº¥t Ä‘Æ°á»£c</b></h1>
-          <p className="mp-hero__subtitle">TÃ¬m hiá»ƒu cÃ¡ch blockchain báº£o Ä‘áº£m má»—i nÃ´ng sáº£n Ä‘á»u cÃ³ cÃ¢u chuyá»‡n tá»« Ä‘áº¥t trá»“ng Ä‘áº¿n ká»‡ hÃ ng.</p>
+          <p className="mp-hero__eyebrow">Trao quyền minh bạch</p>
+          <h1 className="mp-hero__title">Làm chủ <b>nông nghiệp truy xuất được</b></h1>
+          <p className="mp-hero__subtitle">Tìm hiểu cách blockchain bảo đảm mỗi nông sản đều có câu chuyện từ đất trồng đến kệ hàng.</p>
         </section>
 
         <section>
           <div className="mp-section-title">
             <div>
-              <h2>BÃ i viáº¿t kiáº¿n thá»©c</h2>
+              <h2>Bài viết kiến thức</h2>
             </div>
           </div>
           {loading ? (
             <div className="mp-loading">
               <div className="mp-spinner"></div>
-              <p>Äang táº£i...</p>
+              <p>Đang tải...</p>
             </div>
           ) : content.length === 0 ? (
             <div className="mp-empty">
               <span className="mp-empty__icon material-symbols-outlined">menu_book</span>
-              <h3>ChÆ°a cÃ³ bÃ i viáº¿t</h3>
-              <p>ChÆ°a cÃ³ bÃ i viáº¿t nÃ o.</p>
+              <h3>Chưa có bài viết</h3>
+              <p>Chưa có bài viết nào.</p>
             </div>
           ) : (
             <div className="mp-edu-list">
@@ -398,7 +472,7 @@ function EducationPage() {
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                     <div>
                       <span style={{fontSize:'0.75em',textTransform:'uppercase',letterSpacing:'1px',opacity:0.5}}>
-                        {item.contentType === 'GUIDE' ? 'HÆ°á»›ng dáº«n' : item.contentType === 'VIDEO' ? 'Video' : 'BÃ i viáº¿t'}
+                        {item.contentType === 'GUIDE' ? 'Hướng dẫn' : item.contentType === 'VIDEO' ? 'Video' : 'Bài viết'}
                       </span>
                       <h3 className="mp-edu-item__title" style={{margin:'0.25rem 0'}}>{item.title}</h3>
                       <p className="mp-edu-item__summary" style={{margin:0,opacity:0.7,fontSize:'0.9em'}}>{item.summary}</p>

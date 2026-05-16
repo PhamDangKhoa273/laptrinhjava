@@ -1,5 +1,14 @@
-# Retailer Module
+---
+title: retailer — Superseded
+status: superseded
+superseded-by: docs/04-modules/retailer.md
+last-reviewed: 2026-05-16
+language: en
+---
 
+<<<<<<< HEAD
+This document moved to [docs/04-modules/retailer.md](../04-modules/retailer.md).
+=======
 ## Purpose
 
 The Retailer module owns buyer-side business workflows: retailer profile, marketplace
@@ -61,3 +70,4 @@ farm messages, and reports.
 ## Known Gaps
 
 - Add backend tests for retailer ownership and order access boundaries where missing.
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd

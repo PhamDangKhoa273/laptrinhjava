@@ -7,20 +7,21 @@ import { getIoTAlerts, resolveIoTAlert, getIoTThresholds, createIoTThreshold, up
 const navItems = [
   { module: 'overview', href: '/dashboard/farm', icon: 'dashboard', label: 'Bảng điều khiển' },
   { module: 'seasons', href: '/farm/seasons', icon: 'potted_plant', label: 'Mùa vụ' },
-  { module: 'packages', href: '/farm/packages', icon: 'package_2', label: 'Lô hàng' },
-  { module: 'marketplace', href: '/farm/marketplace', icon: 'storefront', label: 'Chợ nông sản' },
-  { module: 'contracts', href: '/farm/contracts', icon: 'description', label: 'Contracts' },
-  { module: 'shipping', href: '/farm/shipping', icon: 'local_shipping', label: 'Vận chuyển' },
-  { module: 'iot', href: '/farm/iot', icon: 'sensors', label: 'IoT Monitoring' },
-  { module: 'blockchain', href: '/farm/blockchain', icon: 'database', label: 'Blockchain Logs' },
-  { module: 'profile', href: '/farm/profile', icon: 'agriculture', label: 'Farm Hồ sơ' },
+  { module: 'packages', href: '/farm/packages', icon: 'inventory_2', label: 'Lô hàng' },
+  { module: 'marketplace', href: '/farm/marketplace', icon: 'storefront', label: 'Đăng sàn' },
+  { module: 'contracts', href: '/farm/contracts', icon: 'handshake', label: 'Hợp đồng' },
+  { module: 'blockchain', href: '/farm/export-qr', icon: 'qr_code_2', label: 'QR & Blockchain' },
+  { module: 'iot', href: '/farm/shipment-reports', icon: 'sensors', label: 'IoT & Cảnh báo' },
 ]
+
+// Mounted under DashboardLayout. Uses shipping-workspace.css (shipping-prototype-shell scope)
+// for consistent visual style with other Farm pages (FarmSeasonsPage, FarmBatchesPage, ...).
 
 function Icon({ children, fill = false }) {
   return <span className={`material-symbols-outlined${fill ? ' fill' : ''}`}>{children}</span>
 }
 
-function FarmShell({ module, title, subtitle, searchPlaceholder, children }) {
+function FarmShell({ module, searchPlaceholder, children }) {
   return (
     <div className="farm-prototype-shell">
       {/* Decorative leaf backgrounds */}

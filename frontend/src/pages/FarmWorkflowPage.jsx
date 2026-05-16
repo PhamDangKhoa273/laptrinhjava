@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from '../components/Button.jsx'
 import { TextAreaField } from '../components/TextAreaField.jsx'
-import { createReport, farmReviewOrder, getFarmShipments, getMyListingRegistrations, getMyNotifications, getMyReports, getOrdersV2, markNotificationRead } from '../services/workflowService.js'
+import { createReport, farmReviewOrder, getFarmShipmentReports, getFarmShipments, getMyListingRegistrations, getMyNotifications, getMyReports, getOrdersV2, markNotificationRead } from '../services/workflowService.js'
 import { getErrorMessage } from '../utils/helpers.js'
 
 function formatDateTime(value) {
@@ -9,12 +9,13 @@ function formatDateTime(value) {
   return new Date(value).toLocaleString('vi-VN')
 }
 
-export function FarmWorkflowPage() {
+export function FarmWorkflowPage({ module = 'all' }) {
   const [notifications, setNotifications] = useState([])
   const [reports, setReports] = useState([])
   const [registrations, setRegistrations] = useState([])
   const [orders, setOrders] = useState([])
   const [shipments, setShipments] = useState([])
+  const [shipmentReports, setShipmentReports] = useState([])
   const [farmDecisionNotes, setFarmDecisionNotes] = useState({})
   const [reviewingOrderId, setReviewingOrderId] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -24,18 +25,20 @@ export function FarmWorkflowPage() {
   async function loadData() {
     try {
       setLoading(true)
-      const [notificationData, reportData, registrationData, orderData, shipmentData] = await Promise.all([
+      const [notificationData, reportData, registrationData, orderData, shipmentData, shipmentReportData] = await Promise.all([
         getMyNotifications(),
         getMyReports(),
         getMyListingRegistrations(),
         getOrdersV2(),
         getFarmShipments(),
+        getFarmShipmentReports().catch(() => []),
       ])
       setNotifications(Array.isArray(notificationData) ? notificationData : [])
       setReports(Array.isArray(reportData) ? reportData : [])
       setRegistrations(Array.isArray(registrationData) ? registrationData : [])
       setOrders(Array.isArray(orderData) ? orderData : [])
       setShipments(Array.isArray(shipmentData) ? shipmentData : [])
+      setShipmentReports(Array.isArray(shipmentReportData) ? shipmentReportData : [])
       setError('')
     } catch (err) {
       setError(getErrorMessage(err, 'Không tải được workflow của farm.'))
@@ -99,13 +102,24 @@ export function FarmWorkflowPage() {
     }
   }
 
+  const moduleTitles = {
+    orders: { eyebrow: 'Kinh doanh / Đơn hàng', title: 'Đơn hàng từ retailer', subtitle: 'Xác nhận hoặc từ chối buy request, theo dõi tiến độ duyệt listing.' },
+    shipments: { eyebrow: 'Kinh doanh / Vận chuyển', title: 'Vận chuyển liên quan farm', subtitle: 'Theo dõi shipment, timeline tiến độ và driver report.' },
+    'shipment-reports': { eyebrow: 'Kinh doanh / Báo cáo vận chuyển', title: 'Báo cáo vận chuyển', subtitle: 'Tổng hợp báo cáo sự cố do tài xế gửi cho mọi shipment liên quan farm.' },
+    all: { eyebrow: 'Farm workflow', title: 'Notification, report và tiến độ duyệt listing', subtitle: 'Giúp phía farm nhìn thấy rõ listing nào đang chờ duyệt, bị từ chối hay đã được public.' },
+  }
+  const head = moduleTitles[module] || moduleTitles.all
+  const showOrders = module === 'all' || module === 'orders'
+  const showShipments = module === 'all' || module === 'shipments'
+  const showShipmentReports = module === 'all' || module === 'shipment-reports'
+
   return (
     <section className="page-section">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Farm workflow</p>
-          <h2>Notification, report và tiến độ duyệt listing</h2>
-          <p>Giúp phía farm nhìn thấy rõ listing nào đang chờ duyệt, bị từ chối hay đã được public.</p>
+          <p className="eyebrow">{head.eyebrow}</p>
+          <h2>{head.title}</h2>
+          <p>{head.subtitle}</p>
         </div>
         <div className="section-actions">
           <Button variant="secondary" onClick={loadData} disabled={loading}>Làm mới</Button>
@@ -117,8 +131,8 @@ export function FarmWorkflowPage() {
       {error ? <div className="alert alert-error">{error}</div> : null}
       {success ? <div className="alert alert-success">{success}</div> : null}
 
-      <div className="content-grid">
-        <article className="glass-card">
+      <div className="content-grid" hidden={!showOrders}>
+        <article className="glass-card" id="orders">
           <h3>Buy requests từ retailer</h3>
           {pendingOrders.length === 0 ? <p>Chưa có buy request nào cần farm xử lý.</p> : null}
           <div className="form-grid">
@@ -163,7 +177,7 @@ export function FarmWorkflowPage() {
           </div>
         </article>
 
-        <article className="glass-card">
+        <article className="glass-card" id="notifications">
           <h3>Thông báo</h3>
           {notifications.length === 0 ? <p>Chưa có thông báo.</p> : null}
           <div className="form-grid">
@@ -184,7 +198,7 @@ export function FarmWorkflowPage() {
         </article>
       </div>
 
-      <article className="glass-card top-gap">
+      <article className="glass-card top-gap" id="shipments" hidden={!showShipments}>
         <h3>Shipment visibility của farm</h3>
         {shipments.length === 0 ? <p>Chưa có shipment nào liên quan tới farm này.</p> : null}
         <div className="form-grid">
@@ -227,7 +241,27 @@ export function FarmWorkflowPage() {
         </div>
       </article>
 
-      <article className="glass-card top-gap">
+      <article className="glass-card top-gap" id="shipment-reports" hidden={!showShipmentReports}>
+        <h3>Báo cáo vận chuyển (R-FRM-170)</h3>
+        <p>Tổng hợp báo cáo sự cố do tài xế gửi cho mọi shipment liên quan tới farm của bạn.</p>
+        {shipmentReports.length === 0 ? <p>Chưa có báo cáo vận chuyển nào liên quan tới farm.</p> : null}
+        <div className="form-grid">
+          {shipmentReports.map((report) => (
+            <div key={report.reportId} className="business-card">
+              <div>
+                <strong>Báo cáo #{report.reportId}</strong>
+                <p>Shipment #{report.shipmentId} • Driver #{report.driverId || 'N/A'}</p>
+                <p>Loại: {report.issueType || 'N/A'} • Severity: {report.severity || 'N/A'}</p>
+                <p>Trạng thái: {report.status || 'OPEN'}</p>
+                <p>{report.description}</p>
+                <p>{formatDateTime(report.createdAt)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      <article className="glass-card top-gap" hidden={module !== 'all'}>
         <h3>Report liên quan</h3>
         {reports.length === 0 ? <p>Chưa có report.</p> : null}
         <div className="form-grid">

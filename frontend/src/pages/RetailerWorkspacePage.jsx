@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import '../retailer-workspace.css'
 import { getPublicListings, getListingById } from '../services/listingService.js'
 import { cancelOrder, confirmOrderDelivery, createOrder, createReport, getMyNotifications, getOrderById, getOrderStatusHistory, getOrdersV2, getRetailerShipments, markNotificationRead, payOrderDeposit, uploadShippingProof } from '../services/workflowService.js'
 import { createNotification, getMyRetailer, updateRetailer, uploadRetailerBusinessLicense } from '../services/businessService.js'
+import { traceBatch, traceBatchByCode } from '../services/phase3Service.js'
 import { getErrorMessage } from '../utils/helpers.js'
 import ContractsPage from './ContractsPage.jsx'
 
@@ -109,6 +111,7 @@ function useRetailerWorkspaceData() {
   return { ...state, createOrderFromListing: handleCreateOrder }
 }
 
+// eslint-disable-next-line no-unused-vars
 function getTraceKind(item) {
   if (!item) return 'Kết quả'
   if (item.shipmentId || String(item.status || '').toLowerCase().includes('ship')) return 'Shipment'
@@ -159,7 +162,7 @@ function OverviewPage({ data }) {
   const suppliers = new Set(data.listings.map(item => item.farmName || item.sellerName || item.farm?.farmName).filter(Boolean)).size
 
   return <RetailerShell title="Retailer Overview" subtitle="Trực tiếp order, marketplace, and delivery status from BICAP APIs." loading={data.loading} error={data.error} success={data.success}>
-    <div className="retailer-head-actions"><Button variant="ghost"><Icon>sync</Icon> Trực tiếp Backend</Button><Button variant="ghost"><Icon>download</Icon> Export from API</Button></div>
+    <div className="retailer-head-actions"><Button type="button" variant="ghost" onClick={() => window.location.reload()}><Icon>sync</Icon> Làm mới</Button></div>
     <section className="retailer-kpi-grid">
       <Kpi icon="pending_actions" label="Orders Processing" value={processing} note="Calculated from /orders" tone="blue" />
       <Kpi icon="check_circle" label="Orders Received" value={delivered} note="Delivered/completed orders" />
@@ -177,8 +180,9 @@ function OverviewPage({ data }) {
 }
 
 function RetailerTable({ rows }) {
+  const navigate = useNavigate()
   if (!rows.length) return <p className="empty-copy">Chưa có order nào từ backend.</p>
-  return <table className="retailer-table"><thead><tr>{['Order ID','Supplier','Product','Status','Amount','Action'].map(h => <th key={h}>{h}</th>)}</tr></thead><tbody>{rows.map(order => <tr key={order.orderId || order.id}><td>#{order.orderId || order.id}</td><td>{order.farmName || order.supplierName || order.farm?.farmName || 'N/A'}</td><td>{order.productName || order.listingTitle || order.product?.name || 'N/A'}</td><td><span className={`status ${statusTone(order.status)}`}>{order.status || 'UNKNOWN'}</span></td><td><b>{money(order.totalAmount || order.amount)}</b></td><td><button type="button"><Icon>visibility</Icon></button></td></tr>)}</tbody></table>
+  return <table className="retailer-table"><thead><tr>{['Order ID','Supplier','Product','Status','Amount','Action'].map(h => <th key={h}>{h}</th>)}</tr></thead><tbody>{rows.map(order => <tr key={order.orderId || order.id}><td>#{order.orderId || order.id}</td><td>{order.farmName || order.supplierName || order.farm?.farmName || 'N/A'}</td><td>{order.productName || order.listingTitle || order.product?.name || 'N/A'}</td><td><span className={`status ${statusTone(order.status)}`}>{order.status || 'UNKNOWN'}</span></td><td><b>{money(order.totalAmount || order.amount)}</b></td><td><button type="button" title="Mở chi tiết đơn hàng" onClick={() => navigate('/retailer/orders')}><Icon>visibility</Icon></button></td></tr>)}</tbody></table>
 }
 function Alert({ icon, title, text, tone }) { return <div className={`retailer-alert ${tone}`}><Icon>{icon}</Icon><div><strong>{title}</strong><p>{text}</p><small>Backend update</small></div></div> }
 function Insight({ title, text }) { return <div className="retailer-insight"><div></div><div><strong>{title}</strong><p>{text}</p></div><Icon>chevron_right</Icon></div> }
@@ -241,38 +245,194 @@ function MarketplacePage({ data }) {
 }
 
 function TracePage({ data }) {
-  const [traceCode, setTraceCode] = useState('')
-  const [traceResult, setTraceResult] = useState(null)
-  const [traceKind, setTraceKind] = useState('')
+  const [inputCode, setInputCode] = useState('')
+  const [traceData, setTraceData] = useState(null)
   const [traceError, setTraceError] = useState('')
   const [loadingTrace, setLoadingTrace] = useState(false)
+  const [scannerOpen, setScannerOpen] = useState(false)
+  const [scannerError, setScannerError] = useState('')
+  const scannerRef = useRef(null)
 
-  function searchTrace() {
-    const code = traceCode.trim().toLowerCase()
-    if (!code) {
-      setTraceResult(null)
-      setTraceError('Nhập mã QR / batch / shipment để truy xuất.')
+  // Camera scanner mount/unmount per BR-TRC-010 (QR round-trip).
+  // Reuses html5-qrcode pattern from DriverMobilePage.
+  useEffect(() => {
+    let cancelled = false
+    if (!scannerOpen) {
+      scannerRef.current?.clear?.().catch(() => {})
+      scannerRef.current = null
+      setScannerError('')
       return
     }
-    const shipment = data.shipments.find((item) => [item.traceCode, item.batchCode, item.shipmentId].some((value) => String(value || '').toLowerCase() === code)) || null
-    const listing = data.listings.find((item) => [item.traceCode, item.batchCode, item.listingId, item.id].some((value) => String(value || '').toLowerCase() === code)) || null
-    const order = data.orders.find((item) => [item.traceCode, item.batchCode, item.orderId, item.id].some((value) => String(value || '').toLowerCase() === code)) || null
-    const result = shipment || listing || order
-    setTraceResult(result || null)
-    setTraceKind(getTraceKind(result))
-    setTraceError(result ? '' : 'Không tìm thấy mã phù hợp trong dữ liệu hiện tại.')
+    async function mountScanner() {
+      try {
+        const { Html5QrcodeScanner } = await import('html5-qrcode')
+        if (cancelled) return
+        const scanner = new Html5QrcodeScanner(
+          'retailer-qr-reader',
+          { fps: 10, qrbox: { width: 220, height: 220 }, rememberLastUsedCamera: true },
+          false,
+        )
+        scannerRef.current = scanner
+        scanner.render(
+          (decodedText) => {
+            // QR can encode either a trace code directly or a full URL containing ?traceCode= or ?batchId=
+            const extracted = extractTraceCodeFromQr(decodedText)
+            setInputCode(extracted)
+            setScannerOpen(false)
+            runLookup(extracted)
+          },
+          () => {},
+        )
+      } catch (err) {
+        if (!cancelled) setScannerError(getErrorMessage(err, 'Không thể mở camera. Vui lòng cấp quyền camera trên trình duyệt.'))
+      }
+    }
+    mountScanner()
+    return () => {
+      cancelled = true
+      scannerRef.current?.clear?.().catch(() => {})
+      scannerRef.current = null
+    }
+  }, [scannerOpen])
+
+  async function runLookup(rawCode) {
+    const code = String(rawCode || '').trim()
+    if (!code) {
+      setTraceError('Nhập mã QR / trace code / batch ID để truy xuất.')
+      setTraceData(null)
+      return
+    }
+    setLoadingTrace(true)
+    setTraceError('')
+    setTraceData(null)
+    try {
+      // Heuristic: numeric input → batchId; otherwise trace code (which may include letters and dashes).
+      const isNumeric = /^\d+$/.test(code)
+      const result = isNumeric
+        ? await traceBatch(Number(code), true)
+        : await traceBatchByCode(code)
+      if (!result) {
+        setTraceError('Không tìm thấy thông tin truy xuất cho mã này.')
+        return
+      }
+      setTraceData(result)
+    } catch (err) {
+      setTraceError(getErrorMessage(err, 'Không thể truy xuất thông tin sản phẩm. Mã có thể không hợp lệ hoặc backend chưa sẵn sàng.'))
+    } finally {
+      setLoadingTrace(false)
+    }
   }
 
-  return <RetailerShell title="QR Trace" subtitle="Truy xuất theo mã QR/batch/shipment từ dữ liệu retailer hiện có." loading={data.loading || loadingTrace} error={data.error || traceError} success={data.success}>
+  function handleSubmit(event) {
+    event.preventDefault()
+    runLookup(inputCode)
+  }
+
+  return <RetailerShell title="QR Trace" subtitle="Quét QR hoặc nhập mã để truy xuất nguồn gốc nông sản từ blockchain." loading={data.loading || loadingTrace} error={data.error || traceError || scannerError} success={data.success}>
     <section className="retailer-card">
-      <div className="retailer-card-head"><h3>Nhập mã truy xuất</h3><span className="pill blue">Retailer</span></div>
-      <div className="retailer-search-row">
-        <input value={traceCode} onChange={(event) => setTraceCode(event.target.value)} placeholder="Trace code / batch code / shipment id" />
-        <Button onClick={searchTrace}>Truy xuất</Button>
+      <div className="retailer-card-head">
+        <h3>Truy xuất sản phẩm</h3>
+        <span className="pill blue">Retailer</span>
       </div>
+      <form className="retailer-search-row" onSubmit={handleSubmit} style={{ marginBottom: 12 }}>
+        <input
+          value={inputCode}
+          onChange={(event) => setInputCode(event.target.value)}
+          placeholder="Mã QR / trace code (ví dụ TRACE-30-XXXX) hoặc batch ID"
+        />
+        <Button type="submit" disabled={loadingTrace}>{loadingTrace ? 'Đang truy xuất...' : 'Truy xuất'}</Button>
+      </form>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <Button type="button" onClick={() => setScannerOpen((open) => !open)}>
+          <Icon>qr_code_scanner</Icon>
+          {scannerOpen ? 'Đóng camera' : 'Quét bằng camera'}
+        </Button>
+        <small style={{ color: 'var(--proto-muted, #6b7280)' }}>Mở camera thiết bị để quét trực tiếp mã QR sản phẩm.</small>
+      </div>
+      {scannerOpen ? (
+        <div id="retailer-qr-reader" style={{ marginTop: 16, maxWidth: 360 }} />
+      ) : null}
     </section>
-    {traceResult ? <RetailerDetailsBar title={`${traceKind} truy xuất`} item={traceResult} empty="Không có kết quả." /> : <EmptyState title="Chưa truy xuất" text="Nhập mã ở trên để xem shipment, listing hoặc order liên quan." />}
+
+    {traceData ? <TraceResultPanel trace={traceData} /> : <EmptyState title="Chưa có kết quả" text="Quét QR hoặc nhập mã ở trên để xem thông tin nguồn gốc." />}
   </RetailerShell>
+}
+
+function extractTraceCodeFromQr(decodedText) {
+  if (!decodedText) return ''
+  const text = String(decodedText).trim()
+  // If QR contains a URL with traceCode or batchId query params, extract that.
+  try {
+    const url = new URL(text)
+    const traceCode = url.searchParams.get('traceCode')
+    if (traceCode) return traceCode
+    const batchId = url.searchParams.get('batchId')
+    if (batchId) return batchId
+    // Fallback: take last path segment for routes like /public/trace/CODE
+    const segments = url.pathname.split('/').filter(Boolean)
+    if (segments.length) return segments[segments.length - 1]
+  } catch {
+    // Not a URL; treat as raw code.
+  }
+  return text
+}
+
+function TraceResultPanel({ trace }) {
+  const batch = trace?.batch || {}
+  const season = trace?.seasonInfo || trace?.season || {}
+  const farm = trace?.farm || season?.farm || {}
+  const qrInfo = trace?.qrInfo || {}
+  const processList = Array.isArray(trace?.processList) ? trace.processList : []
+  const timeline = Array.isArray(trace?.timeline) ? trace.timeline : []
+
+  return (
+    <section className="retailer-card" style={{ marginTop: 16 }}>
+      <div className="retailer-card-head">
+        <h3>Thông tin truy xuất</h3>
+        <span className="pill green">Verified</span>
+      </div>
+      <dl className="trace-info-grid">
+        <div><dt>Mã truy xuất</dt><dd>{qrInfo.traceCode || batch.traceCode || 'N/A'}</dd></div>
+        <div><dt>Batch / Lô</dt><dd>{batch.batchCode || batch.batchId || 'N/A'}</dd></div>
+        <div><dt>Mùa vụ</dt><dd>{season.seasonCode || season.seasonName || 'N/A'}</dd></div>
+        <div><dt>Trang trại</dt><dd>{farm.farmName || farm.name || 'N/A'}</dd></div>
+        <div><dt>Địa điểm</dt><dd>{farm.address || farm.province || 'N/A'}</dd></div>
+        <div><dt>Sản phẩm</dt><dd>{batch.productName || season.productName || 'N/A'}</dd></div>
+        <div><dt>Ngày thu hoạch</dt><dd>{batch.harvestDate || season.harvestDate || 'N/A'}</dd></div>
+        <div><dt>Blockchain TX</dt><dd style={{ wordBreak: 'break-all' }}>{batch.blockchainTxHash || season.txHash || 'Đang chờ blockchain commit'}</dd></div>
+      </dl>
+
+      {processList.length ? (
+        <div style={{ marginTop: 16 }}>
+          <h4>Quy trình mùa vụ</h4>
+          <ol className="trace-process-list">
+            {processList.map((step, index) => (
+              <li key={step.processId || step.id || index}>
+                <strong>{step.stepName || step.name || `Bước ${index + 1}`}</strong>
+                <p>{step.stepDescription || step.description || ''}</p>
+                {step.performedAt ? <small>Thực hiện: {step.performedAt}</small> : null}
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : null}
+
+      {timeline.length ? (
+        <div style={{ marginTop: 16 }}>
+          <h4>Mốc thời gian</h4>
+          <ul className="trace-timeline-list">
+            {timeline.map((event, index) => (
+              <li key={event.eventId || index}>
+                <strong>{event.eventType || event.type || 'Event'}</strong>
+                <span>{event.occurredAt || event.timestamp || ''}</span>
+                {event.note ? <p>{event.note}</p> : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </section>
+  )
 }
 
 function OrdersPage({ data }) {
@@ -382,6 +542,7 @@ function ShippingPage({ data }) {
   const selectedShipment = data.shipments.find((item) => String(item.shipmentId || item.id) === String(selectedShipmentId)) || data.shipments[0] || null
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!selectedShipmentId && data.shipments[0]) setSelectedShipmentId(String(data.shipments[0].shipmentId || data.shipments[0].id))
   }, [data.shipments, selectedShipmentId])
 
@@ -478,7 +639,14 @@ function ReportsPage({ data }) {
   async function handleSubmit() {
     setSending(true)
     try {
-      await createReport({ title: title.trim(), description: description.trim(), severity })
+      // R-RTL-190 — backend yêu cầu schema {recipientRole, reportType, subject, content}.
+      // Severity được encode vào subject vì PlatformReport không có cột severity.
+      await createReport({
+        recipientRole: 'ADMIN',
+        reportType: 'RETAILER_OPERATION',
+        subject: `[${severity}] ${title.trim()}`,
+        content: description.trim(),
+      })
       window.location.reload()
     } finally {
       setSending(false)

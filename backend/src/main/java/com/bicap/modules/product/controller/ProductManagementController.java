@@ -60,6 +60,20 @@ public class ProductManagementController {
         return ResponseEntity.ok(ApiResponse.success("Tạo sản phẩm thành công", service.createProduct(req)));
     }
 
+    /**
+     * R-FRM-080 — Farm tự đề xuất sản phẩm canh tác mới khi tạo mùa vụ
+     * (admin enumerate không xuể catalogue thực tế).
+     * Sản phẩm tạo qua endpoint này có status=ACTIVE, admin có thể edit/sort sau.
+     */
+    @PostMapping("/products/suggest")
+    @PreAuthorize("hasAnyRole('FARM','ADMIN')")
+    public ResponseEntity<ApiResponse<ProductResponse>> suggestProduct(@Valid @RequestBody ProductRequest req) {
+        if (req.getStatus() == null || req.getStatus().isBlank()) {
+            req.setStatus("ACTIVE");
+        }
+        return ResponseEntity.ok(ApiResponse.success("Đã thêm sản phẩm vào catalogue", service.createProduct(req)));
+    }
+
     @PutMapping("/products/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(@PathVariable Long id, @RequestBody ProductRequest req) {

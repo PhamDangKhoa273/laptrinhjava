@@ -137,10 +137,27 @@ public class ShipmentService {
     }
 
     public List<ShipmentReportResponse> getReportsForReview() {
+        // Bullet R-SHM-090: shipping_manager + admin xem mọi báo cáo.
         if (!hasAnyRole("ADMIN", "SHIPPING_MANAGER")) {
             throw new BusinessException("Bạn không có quyền xem báo cáo sự cố shipment");
         }
         return reportRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(this::toReportResponse)
+                .toList();
+    }
+
+    /**
+     * Bullet R-FRM-170 / BR-SHP-090: farm owner xem báo cáo của shipment liên quan tới farm của mình.
+     * Defense-in-depth: lookup farmId từ owner user, không nhận tham số từ client.
+     */
+    public List<ShipmentReportResponse> getReportsForFarm() {
+        if (!hasAnyRole("FARM")) {
+            throw new BusinessException("Endpoint này chỉ dành cho FARM. SHIPPING_MANAGER/ADMIN dùng /reports.");
+        }
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Farm farm = farmRepository.findByOwnerUserUserId(currentUserId)
+                .orElseThrow(() -> new BusinessException("Farm chưa được đăng ký cho user hiện tại."));
+        return reportRepository.findAllByFarmIdOrderByCreatedAtDesc(farm.getFarmId()).stream()
                 .map(this::toReportResponse)
                 .toList();
     }

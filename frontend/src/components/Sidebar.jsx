@@ -43,9 +43,19 @@ function guessIcon(to) {
   return 'menu'
 }
 
-export function Sidebar({ links }) {
+export function Sidebar({ links, role }) {
   const [collapsed, setCollapsed] = React.useState(false)
   const location = useLocation()
+
+  const subtitleByRole = {
+    ADMIN: 'Admin Ecosystem',
+    FARM: 'Không gian Nông trại',
+    RETAILER: 'Không gian Nhà bán lẻ',
+    SHIPPING_MANAGER: 'Không gian Vận chuyển',
+    DRIVER: 'Ứng dụng Tài xế',
+    GUEST: 'Không gian Khách',
+  }
+  const brandSubtitle = subtitleByRole[role] || 'BICAP Workspace'
 
   function scrollToHash(hash) {
     if (!hash) return
@@ -75,7 +85,7 @@ export function Sidebar({ links }) {
           <span className="sidebar-brand-mark">B</span>
           <span className="sidebar-brand-text">
             <span className="sidebar-brand-title">BICAP Workspace</span>
-            <span className="sidebar-brand-subtitle">Hệ sinh thái quản trị</span>
+            <span className="sidebar-brand-subtitle">{brandSubtitle}</span>
           </span>
         </div>
 

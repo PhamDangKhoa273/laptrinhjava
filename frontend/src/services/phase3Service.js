@@ -58,6 +58,11 @@ export async function updateSeason(id, payload) {
   return unwrap(await api.put(`/seasons/${id}`, payload))
 }
 
+/** R-FRM-090 — chỉ cập nhật trạng thái + ngày thu hoạch thực tế (cho cả season đã khóa header). */
+export async function updateSeasonStatus(id, payload) {
+  return unwrap(await api.patch(`/seasons/${id}/status`, payload))
+}
+
 export async function getSeasonProcesses(seasonId) {
   return normalizeTimelineResponse(unwrap(await api.get(`/processes/season/${seasonId}`)))
 }

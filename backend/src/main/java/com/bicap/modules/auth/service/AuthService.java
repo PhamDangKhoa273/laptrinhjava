@@ -87,10 +87,14 @@ public class AuthService {
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
+<<<<<<< HEAD
+        RoleName requestedRole = request.getRole() != null ? request.getRole() : RoleName.FARM;
+=======
         if (request.getRole() == null) {
             throw new BusinessException("Role đăng ký là bắt buộc (FARM, RETAILER, SHIPPING_MANAGER)");
         }
         RoleName requestedRole = request.getRole();
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
         if (!SELF_REGISTER_ROLES.contains(requestedRole)) {
             throw new BusinessException("Chỉ được tự đăng ký tài khoản Farm, Retailer hoặc Shipping Manager");
         }

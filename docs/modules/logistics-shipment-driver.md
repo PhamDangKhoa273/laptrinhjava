@@ -1,7 +1,17 @@
-# Logistics, Shipment, and Driver Module
+---
+title: logistics-shipment-driver — Superseded
+status: superseded
+superseded-by: docs/04-modules/logistics.md
+last-reviewed: 2026-05-16
+language: en
+---
 
-## Purpose
+This document was split. See:
 
+<<<<<<< HEAD
+- [docs/04-modules/logistics.md](../04-modules/logistics.md) — shipping manager workflows
+- [docs/04-modules/shipment.md](../04-modules/shipment.md) — shipment lifecycle + driver execution
+=======
 This module group owns shipping manager workflows, shipment creation/tracking, driver
 assignment, vehicle/driver management, delivery proof, handover, checkpoints, and incident reports.
 
@@ -68,3 +78,4 @@ assignment, vehicle/driver management, delivery proof, handover, checkpoints, an
 ## Known Gaps
 
 - Add explicit backend shipment status transition tests where not covered.
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd

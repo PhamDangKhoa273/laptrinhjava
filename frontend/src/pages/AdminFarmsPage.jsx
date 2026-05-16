@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from '../components/Button.jsx'
 import { getAllFarms, updateFarmApprovalStatus } from '../services/businessService'
+import { updateFarmDetailByAdmin } from '../services/adminService.js'
 import { getErrorMessage } from '../utils/helpers.js'
 
 const APPROVAL_LABELS = {
@@ -40,6 +41,20 @@ export function AdminFarmsPage() {
   const [approvalFilter, setApprovalFilter] = useState('')
   const [selectedFarmId, setSelectedFarmId] = useState(null)
   const [reviewingFarmId, setReviewingFarmId] = useState(null)
+  const [rejectingFarm, setRejectingFarm] = useState(null)
+  const [rejectComment, setRejectComment] = useState('')
+  const [editingFarm, setEditingFarm] = useState(null)
+  const [editForm, setEditForm] = useState({
+    farmName: '',
+    farmType: '',
+    businessLicenseNo: '',
+    address: '',
+    province: '',
+    totalArea: '',
+    contactPerson: '',
+    description: '',
+  })
+  const [savingEdit, setSavingEdit] = useState(false)
 
   useEffect(() => {
     loadFarms()
@@ -92,12 +107,12 @@ export function AdminFarmsPage() {
     }
   }
 
-  async function handleChangeApprovalStatus(farm, newStatus) {
+  async function handleChangeApprovalStatus(farm, newStatus, reviewComment) {
     try {
       setReviewingFarmId(farm.farmId)
       setError('')
       setSuccess('')
-      await updateFarmApprovalStatus(farm.farmId, newStatus)
+      await updateFarmApprovalStatus(farm.farmId, newStatus, reviewComment)
       await loadFarms()
       setSuccess(`${APPROVAL_LABELS[newStatus] || newStatus} nông trại ${farm.farmName}`)
       setTimeout(() => setSuccess(''), 3000)
@@ -106,6 +121,72 @@ export function AdminFarmsPage() {
       await loadFarms()
     } finally {
       setReviewingFarmId(null)
+    }
+  }
+
+  function startReject(farm) {
+    setRejectingFarm(farm)
+    setRejectComment('')
+    setError('')
+  }
+
+  async function confirmReject() {
+    if (!rejectingFarm) return
+    if (!rejectComment.trim()) {
+      setError('Vui lòng nhập lý do từ chối.')
+      return
+    }
+    await handleChangeApprovalStatus(rejectingFarm, 'REJECTED', rejectComment.trim())
+    setRejectingFarm(null)
+    setRejectComment('')
+  }
+
+  function cancelReject() {
+    setRejectingFarm(null)
+    setRejectComment('')
+    setError('')
+  }
+
+  function startEdit(farm) {
+    setEditingFarm(farm)
+    setEditForm({
+      farmName: farm.farmName || '',
+      farmType: farm.farmType || '',
+      businessLicenseNo: farm.businessLicenseNo || '',
+      address: farm.address || '',
+      province: farm.province || '',
+      totalArea: farm.totalArea ?? '',
+      contactPerson: farm.contactPerson || '',
+      description: farm.description || '',
+    })
+    setError('')
+  }
+
+  function cancelEdit() {
+    setEditingFarm(null)
+    setError('')
+  }
+
+  async function saveEdit(event) {
+    event.preventDefault()
+    if (!editingFarm) return
+    setError('')
+    setSuccess('')
+    setSavingEdit(true)
+    try {
+      const payload = {
+        ...editForm,
+        totalArea: editForm.totalArea === '' ? null : Number(editForm.totalArea),
+      }
+      await updateFarmDetailByAdmin(editingFarm.farmId, payload)
+      await loadFarms()
+      setSuccess(`Đã cập nhật thông tin nông trại ${editingFarm.farmName}.`)
+      setTimeout(() => setSuccess(''), 4000)
+      setEditingFarm(null)
+    } catch (err) {
+      setError(getErrorMessage(err, 'Không thể cập nhật thông tin nông trại.'))
+    } finally {
+      setSavingEdit(false)
     }
   }
 
@@ -240,6 +321,13 @@ export function AdminFarmsPage() {
                 </div>
                 <div className="admin-farm-review-actions">
                   <Button
+                    variant="secondary"
+                    onClick={() => startEdit(selectedFarm)}
+                    disabled={reviewingFarmId === selectedFarm.farmId}
+                  >
+                    Sửa thông tin
+                  </Button>
+                  <Button
                     variant="primary"
                     disabled={reviewingFarmId === selectedFarm.farmId || selectedFarm.approvalStatus === 'APPROVED'}
                     onClick={() => handleChangeApprovalStatus(selectedFarm, 'APPROVED')}
@@ -249,7 +337,7 @@ export function AdminFarmsPage() {
                   <Button
                     variant="danger"
                     disabled={reviewingFarmId === selectedFarm.farmId || selectedFarm.approvalStatus === 'REJECTED'}
-                    onClick={() => handleChangeApprovalStatus(selectedFarm, 'REJECTED')}
+                    onClick={() => startReject(selectedFarm)}
                   >
                     Từ chối
                   </Button>
@@ -286,6 +374,141 @@ export function AdminFarmsPage() {
           )}
         </main>
       </div>
+
+      {rejectingFarm ? (
+        <div className="admin-modal-backdrop" onClick={cancelReject}>          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-head">
+              <h3>Từ chối farm — {rejectingFarm.farmName}</h3>
+              <button type="button" onClick={cancelReject} aria-label="Đóng">×</button>
+            </div>
+            <div className="admin-modal-body">
+              <p>Backend yêu cầu phải có ghi chú khi từ chối. Lý do sẽ được lưu vào <code>reviewComment</code> và admin/farm có thể xem lại.</p>
+              <label className="form-field">
+                <span className="form-label">Lý do từ chối *</span>
+                <textarea
+                  className="form-input"
+                  rows={4}
+                  value={rejectComment}
+                  onChange={(e) => setRejectComment(e.target.value)}
+                  placeholder="Ví dụ: Giấy phép kinh doanh hết hạn / thông tin liên hệ không khớp / địa chỉ không hợp lệ..."
+                  autoFocus
+                />
+              </label>
+            </div>
+            <div className="admin-modal-foot">
+              <Button variant="secondary" onClick={cancelReject} disabled={reviewingFarmId === rejectingFarm.farmId}>
+                Hủy
+              </Button>
+              <Button variant="danger" onClick={confirmReject} disabled={reviewingFarmId === rejectingFarm.farmId || !rejectComment.trim()}>
+                {reviewingFarmId === rejectingFarm.farmId ? 'Đang xử lý...' : 'Xác nhận từ chối'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {editingFarm ? (
+        <div className="admin-modal-backdrop" onClick={() => !savingEdit && cancelEdit()}>
+          <div className="admin-modal" onClick={(e) => e.stopPropagation()} style={{ width: 'min(720px, 100%)' }}>
+            <div className="admin-modal-head">
+              <h3>Sửa thông tin nông trại — {editingFarm.farmName}</h3>
+              <button type="button" onClick={cancelEdit} aria-label="Đóng" disabled={savingEdit}>×</button>
+            </div>
+            <form onSubmit={saveEdit}>
+              <div className="admin-modal-body">
+                <p>Cập nhật chứng nhận, thông tin liên hệ, vị trí. Backend yêu cầu các trường có dấu <code>*</code>.</p>
+                <div className="admin-form-grid">
+                  <label className="form-field">
+                    <span className="form-label">Tên farm *</span>
+                    <input
+                      className="form-input"
+                      value={editForm.farmName}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, farmName: e.target.value }))}
+                      required
+                      maxLength={150}
+                    />
+                  </label>
+                  <label className="form-field">
+                    <span className="form-label">Loại hình</span>
+                    <input
+                      className="form-input"
+                      value={editForm.farmType}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, farmType: e.target.value }))}
+                      maxLength={100}
+                    />
+                  </label>
+                  <label className="form-field">
+                    <span className="form-label">Số GPKD *</span>
+                    <input
+                      className="form-input"
+                      value={editForm.businessLicenseNo}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, businessLicenseNo: e.target.value }))}
+                      required
+                      maxLength={100}
+                    />
+                  </label>
+                  <label className="form-field">
+                    <span className="form-label">Người liên hệ</span>
+                    <input
+                      className="form-input"
+                      value={editForm.contactPerson}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, contactPerson: e.target.value }))}
+                      maxLength={150}
+                    />
+                  </label>
+                  <label className="form-field">
+                    <span className="form-label">Địa chỉ *</span>
+                    <input
+                      className="form-input"
+                      value={editForm.address}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, address: e.target.value }))}
+                      required
+                      maxLength={255}
+                    />
+                  </label>
+                  <label className="form-field">
+                    <span className="form-label">Tỉnh / TP *</span>
+                    <input
+                      className="form-input"
+                      value={editForm.province}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, province: e.target.value }))}
+                      required
+                      maxLength={100}
+                    />
+                  </label>
+                  <label className="form-field">
+                    <span className="form-label">Diện tích (ha)</span>
+                    <input
+                      className="form-input"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={editForm.totalArea}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, totalArea: e.target.value }))}
+                    />
+                  </label>
+                  <label className="form-field" style={{ gridColumn: '1 / -1' }}>
+                    <span className="form-label">Mô tả</span>
+                    <textarea
+                      className="form-input"
+                      rows={3}
+                      value={editForm.description}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+                      maxLength={2000}
+                    />
+                  </label>
+                </div>
+              </div>
+              <div className="admin-modal-foot">
+                <Button type="button" variant="secondary" onClick={cancelEdit} disabled={savingEdit}>Hủy</Button>
+                <Button type="submit" disabled={savingEdit}>
+                  {savingEdit ? 'Đang lưu...' : 'Lưu thông tin'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }

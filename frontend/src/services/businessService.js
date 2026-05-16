@@ -30,8 +30,12 @@ export async function getAllFarms() {
   return unwrap(await api.get('/farms'))
 }
 
-export async function updateFarmApprovalStatus(id, approvalStatus) {
-  return unwrap(await api.post(`/farms/${id}/review`, { approvalStatus }))
+export async function updateFarmApprovalStatus(id, approvalStatus, reviewComment) {
+  const payload = { approvalStatus }
+  if (reviewComment !== undefined && reviewComment !== null) {
+    payload.reviewComment = reviewComment
+  }
+  return unwrap(await api.post(`/farms/${id}/review`, payload))
 }
 
 export async function getMyRetailer() {
