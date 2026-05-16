@@ -11,6 +11,9 @@ import './admin-profile.css'
 import './styles/adminFarms.css'
 import './styles/adminUsersCompact.css'
 import './styles/public.css'
+import './styles/dashboardLightTheme.css'
+import './shipping-workspace.css'
+import './farm-workspace.css'
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

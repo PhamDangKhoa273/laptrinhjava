@@ -47,7 +47,7 @@ public class NotificationService {
     }
 
     @Transactional
-    public NotificationResponse create(CreateNotificationRequest request) {
+    public List<NotificationResponse> create(CreateNotificationRequest request) {
         User sender = userRepository.findById(SecurityUtils.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy người gửi"));
         rateLimitService.checkPerUser("notification:" + sender.getUserId());
@@ -62,33 +62,49 @@ public class NotificationService {
             throw new BusinessException("Phải chỉ định đúng một đích nhận: recipientUserId hoặc recipientRole");
         }
 
-        Notification notification = new Notification();
-        notification.setSenderUser(sender);
-
-        if (request.getTargetType() != null && request.getTargetId() != null) {
-            enforceThreadPermission(sender, normalizedRecipientRole, request.getTargetType(), request.getTargetId(), request.getRecipientUserId());
-        } else {
-            enforceBroadcastPermission(sender, normalizedRecipientRole, request.getRecipientUserId());
+        List<String> roles = new ArrayList<>();
+        if (normalizedRecipientRole != null) {
+            String[] parts = normalizedRecipientRole.split(",");
+            for (String part : parts) {
+                String trimmed = part.trim().toUpperCase();
+                if (!trimmed.isEmpty()) roles.add(trimmed);
+            }
         }
 
+        if (request.getTargetType() != null && request.getTargetId() != null) {
+            enforceThreadPermission(sender, roles, request.getTargetType(), request.getTargetId(), request.getRecipientUserId());
+        } else {
+            enforceBroadcastPermission(sender, roles, request.getRecipientUserId());
+        }
+
+        List<NotificationResponse> results = new ArrayList<>();
         if (request.getRecipientUserId() != null) {
             User recipient = userRepository.findById(request.getRecipientUserId())
                     .orElseThrow(() -> new BusinessException("Không tìm thấy người nhận"));
-            notification.setRecipientUser(recipient);
-            notification.setRecipientRole(null);
+            Notification notification = buildNotification(sender, recipient, null, request);
+            results.add(toResponse(notificationRepository.save(notification)));
         } else {
-            notification.setRecipientUser(null);
-            notification.setRecipientRole(normalizedRecipientRole.toUpperCase());
+            for (String role : roles) {
+                Notification notification = buildNotification(sender, null, role, request);
+                results.add(toResponse(notificationRepository.save(notification)));
+            }
         }
 
+        return results;
+    }
+
+    private Notification buildNotification(User sender, User recipient, String role, CreateNotificationRequest request) {
+        Notification notification = new Notification();
+        notification.setSenderUser(sender);
+        notification.setRecipientUser(recipient);
+        notification.setRecipientRole(role);
         notification.setTitle(request.getTitle().trim());
         notification.setMessage(request.getMessage().trim());
         notification.setNotificationType(request.getNotificationType().trim().toUpperCase());
         notification.setTargetType(request.getTargetType() != null ? request.getTargetType().trim().toUpperCase() : null);
         notification.setTargetId(request.getTargetId());
         notification.setRead(false);
-
-        return toResponse(notificationRepository.save(notification));
+        return notification;
     }
 
     private void enforceSendRateLimit(Long senderUserId) {
@@ -102,7 +118,7 @@ public class NotificationService {
         }
     }
 
-    private void enforceBroadcastPermission(User sender, String recipientRole, Long recipientUserId) {
+    private void enforceBroadcastPermission(User sender, List<String> roles, Long recipientUserId) {
         boolean isAdmin = hasRole(sender, RoleName.ADMIN.name());
         boolean isShipping = hasRole(sender, RoleName.SHIPPING_MANAGER.name());
 
@@ -113,21 +129,27 @@ public class NotificationService {
             return;
         }
 
-        if (recipientRole == null) {
+        if (roles == null || roles.isEmpty()) {
             throw new BusinessException("Đích nhận không hợp lệ");
         }
 
-        if (isAdmin && ("PUBLIC".equalsIgnoreCase(recipientRole) || "SYSTEM".equalsIgnoreCase(recipientRole) || "ADMIN".equalsIgnoreCase(recipientRole))) {
-            return;
+        for (String role : roles) {
+            boolean allowed = false;
+            if (isAdmin && ("PUBLIC".equalsIgnoreCase(role) || "SYSTEM".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role))) {
+                allowed = true;
+            }
+            if (isShipping && ("FARM".equalsIgnoreCase(role) || "RETAILER".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role))) {
+                allowed = true;
+            }
+            if (!allowed) {
+                throw new BusinessException("Không có quyền gửi notification đến vai trò " + role);
+            }
         }
-        if (isShipping && ("FARM".equalsIgnoreCase(recipientRole) || "RETAILER".equalsIgnoreCase(recipientRole))) {
-            return;
-        }
-        throw new BusinessException("Không có quyền gửi notification đến vai trò này");
     }
 
-    private void enforceThreadPermission(User sender, String recipientRole, String targetType, Long targetId, Long recipientUserId) {
+    private void enforceThreadPermission(User sender, List<String> roles, String targetType, Long targetId, Long recipientUserId) {
         String normalizedTargetType = targetType.trim().toUpperCase();
+        String recipientRole = (roles != null && roles.size() == 1) ? roles.get(0) : null;
         if ("ORDER".equals(normalizedTargetType)) {
             OrderContext ctx = resolveOrderContext(targetId);
             if (hasRole(sender, RoleName.ADMIN.name()) || hasRole(sender, RoleName.SHIPPING_MANAGER.name())) return;

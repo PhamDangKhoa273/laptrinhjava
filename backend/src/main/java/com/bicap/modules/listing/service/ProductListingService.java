@@ -34,7 +34,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -180,7 +182,7 @@ public class ProductListingService {
     }
 
 
-    public Page<ListingResponse> searchPublicListings(String keyword, String province, String certification, Boolean availableOnly, Boolean verifiedOnly, LocalDate harvestFrom, LocalDate harvestTo, int page, int size, String sort) {
+    public Page<ListingResponse> searchPublicListings(String keyword, String province, String certification, String productCategory, Boolean availableOnly, Boolean verifiedOnly, LocalDate harvestFrom, LocalDate harvestTo, int page, int size, String sort) {
         Pageable pageable = PageRequest.of(page, size, resolvePublicSort(sort));
         List<ListingResponse> filtered = listingRepository.findByStatusAndApprovalStatus(ListingStatus.ACTIVE.name(), ApprovalStatus.APPROVED.name(), resolvePublicSort(sort))
                 .stream()
@@ -188,6 +190,7 @@ public class ProductListingService {
                 .filter(listing -> matchesKeyword(listing, keyword))
                 .filter(listing -> matchesProvince(listing, province))
                 .filter(listing -> matchesCertification(listing, certification))
+                .filter(listing -> matchesProductCategory(listing, productCategory))
                 .filter(listing -> availableOnly == null || !availableOnly || Boolean.TRUE.equals(listing.getAvailableForRetailer()))
                 .filter(listing -> verifiedOnly == null || !verifiedOnly || isVerifiedCertification(listing.getCertificationStatus()))
                 .filter(listing -> matchesHarvestRange(listing, harvestFrom, harvestTo))
@@ -212,6 +215,11 @@ public class ProductListingService {
     private boolean matchesCertification(ListingResponse listing, String certification) {
         if (certification == null || certification.isBlank()) return true;
         return normalizeRegion(listing.getCertificationStatus()).contains(normalizeRegion(certification));
+    }
+
+    private boolean matchesProductCategory(ListingResponse listing, String productCategory) {
+        if (productCategory == null || productCategory.isBlank()) return true;
+        return contains(listing.getProductCategory(), productCategory);
     }
 
     private boolean isVerifiedCertification(String certificationStatus) {
@@ -481,6 +489,17 @@ public class ProductListingService {
 
     private boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
+    }
+
+    public Map<String, List<String>> getFilterOptions() {
+        String status = ListingStatus.ACTIVE.name();
+        String approval = ApprovalStatus.APPROVED.name();
+        List<String> provinces = listingRepository.findDistinctProvincesByStatusAndApprovalStatus(status, approval);
+        List<String> certifications = listingRepository.findDistinctCertificationsByStatusAndApprovalStatus(status, approval);
+        Map<String, List<String>> result = new HashMap<>();
+        result.put("provinces", provinces);
+        result.put("certifications", certifications);
+        return result;
     }
 
     private String trimToNull(String value) {

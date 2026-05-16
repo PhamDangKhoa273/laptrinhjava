@@ -36,6 +36,28 @@ public class SeasonController {
         return ApiResponse.success("Cập nhật mùa vụ thành công", seasonService.updateSeason(id, request, currentUserId));
     }
 
+    /**
+     * R-FRM-090 — Update season status (works after header is locked).
+     * Body: { "seasonStatus": "HARVESTED", "actualHarvestDate": "2026-05-16" }
+     */
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN','FARM')")
+    public ApiResponse<SeasonResponse> updateSeasonStatus(@PathVariable Long id,
+                                                          @RequestBody java.util.Map<String, Object> request) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Object statusObj = request.get("seasonStatus");
+        if (statusObj == null) {
+            throw new com.bicap.core.exception.BusinessException("seasonStatus là bắt buộc");
+        }
+        Object actualObj = request.get("actualHarvestDate");
+        java.time.LocalDate actualHarvestDate = null;
+        if (actualObj != null && !actualObj.toString().isBlank()) {
+            actualHarvestDate = java.time.LocalDate.parse(actualObj.toString());
+        }
+        return ApiResponse.success("Cập nhật trạng thái mùa vụ thành công",
+                seasonService.updateSeasonStatus(id, statusObj.toString(), actualHarvestDate, currentUserId));
+    }
+
     @GetMapping("/{id}")
     public ApiResponse<SeasonResponse> getById(@PathVariable Long id) {
         return ApiResponse.success(seasonService.getSeasonById(id));

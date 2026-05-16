@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class TrackingService {
 
     private final TrackingLocationRepository trackingLocationRepository;
-    private final ShipmentRepository shipmentRepository;
+    private final LogisticsShipmentRepository shipmentRepository;
     private final DriverRepository driverRepository;
     private final ShipmentHistoryRepository shipmentHistoryRepository;
     private final UserRepository userRepository;
@@ -155,7 +155,7 @@ public class TrackingService {
         driverRepository.findById(driverId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tài xế không tồn tại"));
         
-        return trackingLocationRepository.findByDriverIdOrderByCreatedAtDesc(driverId).stream()
+        return trackingLocationRepository.findByDriverDriverIdOrderByCreatedAtDesc(driverId).stream()
                 .map(this::toTrackingResponse)
                 .collect(Collectors.toList());
     }

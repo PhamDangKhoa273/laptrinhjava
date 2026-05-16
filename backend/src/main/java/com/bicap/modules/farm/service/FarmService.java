@@ -1,6 +1,7 @@
 package com.bicap.modules.farm.service;
 
 import com.bicap.core.AuditLogService;
+import com.bicap.core.enums.FarmApprovalStatus;
 import com.bicap.core.enums.RoleName;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.SecurityUtils;
@@ -165,7 +166,7 @@ public class FarmService {
         }
 
         String normalizedStatus = status.toUpperCase();
-        if (!List.of("APPROVED", "REJECTED", "PENDING", "DEACTIVATED").contains(normalizedStatus)) {
+        if (!FarmApprovalStatus.isValid(normalizedStatus)) {
             throw new BusinessException("Trạng thái duyệt nông trại không hợp lệ");
         }
         if ("REJECTED".equals(normalizedStatus) && (reviewComment == null || reviewComment.trim().isEmpty())) {
@@ -181,6 +182,12 @@ public class FarmService {
         }
         if ("PENDING".equals(normalizedStatus)) {
             farm.setCertificationStatus("PENDING");
+        }
+        if ("SUSPENDED".equals(normalizedStatus)) {
+            farm.setCertificationStatus("SUSPENDED");
+        }
+        if ("REVOKED".equals(normalizedStatus) || "DEACTIVATED".equals(normalizedStatus)) {
+            farm.setCertificationStatus("REVOKED");
         }
         farm.setReviewComment(reviewComment == null ? null : reviewComment.trim());
         farm.setReviewedByUser(admin);

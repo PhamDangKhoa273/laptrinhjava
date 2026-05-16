@@ -10,6 +10,19 @@ function shouldKeepValue(value) {
   return true
 }
 
+export async function getFilterOptions() {
+  const payload = unwrap(await api.get('/listings/filter-options'))
+  return {
+    provinces: Array.isArray(payload?.provinces) ? payload.provinces : [],
+    certifications: Array.isArray(payload?.certifications) ? payload.certifications : [],
+  }
+}
+
+export async function getCategories() {
+  const payload = unwrap(await api.get('/categories'))
+  return Array.isArray(payload) ? payload : []
+}
+
 export async function searchListings(params = {}) {
   const mappedParams = {
     ...params,

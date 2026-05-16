@@ -40,7 +40,7 @@ import java.util.UUID;
 @Service
 public class AuthService {
 
-    private static final Set<RoleName> SELF_REGISTER_ROLES = Set.of(RoleName.GUEST, RoleName.FARM, RoleName.RETAILER, RoleName.SHIPPING_MANAGER);
+    private static final Set<RoleName> SELF_REGISTER_ROLES = Set.of(RoleName.FARM, RoleName.RETAILER, RoleName.SHIPPING_MANAGER);
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
@@ -80,9 +80,9 @@ public class AuthService {
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
-        RoleName requestedRole = request.getRole() != null ? request.getRole() : RoleName.GUEST;
+        RoleName requestedRole = request.getRole() != null ? request.getRole() : RoleName.FARM;
         if (!SELF_REGISTER_ROLES.contains(requestedRole)) {
-            throw new BusinessException("Chỉ được tự đăng ký tài khoản Guest, Farm hoặc Retailer");
+            throw new BusinessException("Chỉ được tự đăng ký tài khoản Farm, Retailer hoặc Shipping Manager");
         }
 
         UserResponse savedUser = userService.createUser(

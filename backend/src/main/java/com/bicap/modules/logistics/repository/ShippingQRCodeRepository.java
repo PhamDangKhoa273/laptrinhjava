@@ -18,7 +18,7 @@ public interface ShippingQRCodeRepository extends JpaRepository<ShippingQRCode, 
     /**
      * Tìm tất cả mã QR cho một đơn hàng cụ thể
      */
-    List<ShippingQRCode> findByOrderId(Long orderId);
+    List<ShippingQRCode> findByOrderOrderId(Long orderId);
     
     /**
      * Tìm tất cả mã QR của một loại cụ thể (FARM_PICKUP hoặc RETAILER_DELIVERY)
@@ -28,5 +28,5 @@ public interface ShippingQRCodeRepository extends JpaRepository<ShippingQRCode, 
     /**
      * Tìm các mã QR chưa được quét cho một đơn hàng (scannedAt là null)
      */
-    List<ShippingQRCode> findByOrderIdAndScannedAtIsNull(Long orderId);
+    List<ShippingQRCode> findByOrderOrderIdAndScannedAtIsNull(Long orderId);
 }

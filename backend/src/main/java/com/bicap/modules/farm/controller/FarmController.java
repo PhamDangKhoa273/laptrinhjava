@@ -67,6 +67,36 @@ public class FarmController {
         return ApiResponse.success(farmService.changeApprovalStatus(id, request.getApprovalStatus(), request.getReviewComment(), currentUser.getUserId()));
     }
 
+    /** STM-FRMAPP-T04: APPROVED → SUSPENDED */
+    @PostMapping("/{id}/suspend")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<FarmResponse> suspendFarm(
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason,
+            @AuthenticationPrincipal CustomUserPrincipal currentUser) {
+        return ApiResponse.success(farmService.changeApprovalStatus(id, "SUSPENDED", reason, currentUser.getUserId()));
+    }
+
+    /** STM-FRMAPP-T05: SUSPENDED → APPROVED (reinstate) */
+    @PostMapping("/{id}/reinstate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<FarmResponse> reinstateFarm(
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason,
+            @AuthenticationPrincipal CustomUserPrincipal currentUser) {
+        return ApiResponse.success(farmService.changeApprovalStatus(id, "APPROVED", reason, currentUser.getUserId()));
+    }
+
+    /** STM-FRMAPP-T06: APPROVED|SUSPENDED → REVOKED */
+    @PostMapping("/{id}/revoke")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<FarmResponse> revokeFarm(
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason,
+            @AuthenticationPrincipal CustomUserPrincipal currentUser) {
+        return ApiResponse.success(farmService.changeApprovalStatus(id, "REVOKED", reason, currentUser.getUserId()));
+    }
+
     @PutMapping("/{id}/admin")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<FarmResponse> adminUpdateFarm(

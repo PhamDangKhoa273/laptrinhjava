@@ -54,6 +54,11 @@ export async function createProduct(data) {
   return unwrap(await api.post('/products', data))
 }
 
+/** R-FRM-080 — Farm proposes a new product when admin catalogue lacks the crop. */
+export async function suggestProduct(data) {
+  return unwrap(await api.post('/products/suggest', data))
+}
+
 export async function updateProduct(id, data) {
   return unwrap(await api.put(`/products/${id}`, data))
 }

@@ -1,10 +1,38 @@
 import { Link } from 'react-router-dom'
 
 const contentModules = [
-  { title: 'Thông báo hệ thống', description: 'Tạo/gửi thông báo cho user, cảnh báo nghiệp vụ và thông tin vận hành.', badge: 'Notifications', metric: 'Live', tone: 'success' },
-  { title: 'Nội dung public/guest', description: 'Quản lý thông tin công khai cho khách, bài viết, sự kiện và nội dung giới thiệu.', badge: 'Guest content', metric: 'Ready', tone: 'primary' },
-  { title: 'Giao diện website', description: 'Quản lý tài nguyên hiển thị, hero, preview và cấu hình giao diện public.', badge: 'Appearance', metric: 'Assets', tone: 'warning', to: '/dashboard/appearance' },
-  { title: 'Listing & báo cáo', description: 'Duyệt listing lên sàn và theo dõi báo cáo từ các vai trò vận hành.', badge: 'Operations', metric: 'Ops', tone: 'primary', to: '/dashboard/admin/operations' },
+  {
+    title: 'Thông báo hệ thống',
+    description: 'Tạo, sửa, xóa thông báo hiển thị trên public. Quản lý danh sách thông báo, ghim bài, phân loại.',
+    badge: 'CRUD',
+    metric: 'Live',
+    tone: 'success',
+    to: '/dashboard/admin/announcements',
+  },
+  {
+    title: 'Bài viết giáo dục',
+    description: 'Tạo nội dung giáo dục, hướng dẫn, tin tức nông nghiệp cho guest/public.',
+    badge: 'CRUD',
+    metric: 'Articles',
+    tone: 'primary',
+    to: '/dashboard/admin/education',
+  },
+  {
+    title: 'Giao diện website',
+    description: 'Quản lý tài nguyên hiển thị, hero, preview và cấu hình giao diện public.',
+    badge: 'Appearance',
+    metric: 'Assets',
+    tone: 'warning',
+    to: '/dashboard/appearance',
+  },
+  {
+    title: 'Listing & báo cáo',
+    description: 'Duyệt listing lên sàn và theo dõi báo cáo từ các vai trò vận hành.',
+    badge: 'Operations',
+    metric: 'Ops',
+    tone: 'primary',
+    to: '/dashboard/admin/operations',
+  },
 ]
 
 export function AdminContentPage() {
@@ -20,8 +48,8 @@ export function AdminContentPage() {
       <div className="status-grid admin-overview-grid">
         <article className="status-card"><span>Content modules</span><strong>{contentModules.length}</strong><small>Admin commands</small></article>
         <article className="status-card"><span>Public surface</span><strong>Guest</strong><small>Landing + announcement</small></article>
-        <article className="status-card"><span>Workflow links</span><strong>2</strong><small>Appearance + Operations</small></article>
-        <article className="status-card"><span>CRUD readiness</span><strong>100%</strong><small>Ready to extend</small></article>
+        <article className="status-card"><span>Workflow links</span><strong>3</strong><small>Announcements + Education + Appearance</small></article>
+        <article className="status-card"><span>CRUD readiness</span><strong>100%</strong><small>Full CRUD active</small></article>
       </div>
 
       <div className="admin-content-command-grid">

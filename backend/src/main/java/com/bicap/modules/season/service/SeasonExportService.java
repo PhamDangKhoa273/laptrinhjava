@@ -110,7 +110,10 @@ public class SeasonExportService {
                     traceCode,
                     season.getSeasonId()
             );
-        } catch (Exception e) {
+        } catch (Throwable e) {
+            // Catch Throwable (not just Exception) because devkit/web3j can throw NoClassDefFoundError
+            // on guava version mismatch — must not fail the user-facing export flow over a blockchain
+            // commit error. The export still saves with FAILED tx status; admin can retry later.
             veChainTx = new BlockchainTransaction();
             veChainTx.setRelatedEntityType("SEASON_EXPORT");
             veChainTx.setRelatedEntityId(season.getSeasonId());
