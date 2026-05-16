@@ -81,11 +81,15 @@ export function Sidebar({ links, role }) {
   return (
     <aside className={`sidebar ${collapsed ? 'is-collapsed' : ''}`}>
       <div className="sidebar-top">
-        <div className="sidebar-brand" aria-label="BICAP workspace navigation">
+        <div className="sidebar-brand" aria-label="Điều hướng workspace BICAP">
           <span className="sidebar-brand-mark">B</span>
           <span className="sidebar-brand-text">
             <span className="sidebar-brand-title">BICAP Workspace</span>
+<<<<<<< HEAD
             <span className="sidebar-brand-subtitle">{brandSubtitle}</span>
+=======
+            <span className="sidebar-brand-subtitle">Hệ sinh thái quản trị</span>
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
           </span>
         </div>
 
@@ -120,7 +124,7 @@ export function Sidebar({ links, role }) {
         <div className="sidebar-action-panel">
           <button type="button" className="sidebar-new-transaction">
             <span className="material-symbols-outlined" aria-hidden="true">support_agent</span>
-            <span>Support</span>
+            <span>Hỗ trợ</span>
           </button>
         </div>
       </div>

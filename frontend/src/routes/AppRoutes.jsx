@@ -51,6 +51,11 @@ const AdminLogisticsPage = lazy(() => import('../pages/AdminLogisticsPage.jsx').
 const AdminContentPage = lazy(() => import('../pages/AdminContentPage.jsx').then((module) => ({ default: module.AdminContentPage })))
 const AdminAnnouncementsPage = lazy(() => import('../pages/AdminAnnouncementsPage.jsx'))
 const AdminEducationContentPage = lazy(() => import('../pages/AdminEducationContentPage.jsx'))
+<<<<<<< HEAD
+=======
+const AdminSubscriptionPaymentsPage = lazy(() => import('../pages/AdminSubscriptionPaymentsPage.jsx').then((m) => ({ default: m.AdminSubscriptionPaymentsPage })))
+const FarmWorkflowPage = lazy(() => import('../pages/FarmWorkflowPage.jsx').then((module) => ({ default: module.FarmWorkflowPage })))
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
 const RetailerOrderWorkflowPage = lazy(() => import('../pages/RetailerOrderWorkflowPage.jsx').then((module) => ({ default: module.RetailerOrderWorkflowPage })))
 const ShippingProofPage = lazy(() => import('../pages/ShippingProofPage.jsx').then((module) => ({ default: module.ShippingProofPage })))
 const AuthLandingPage = lazy(() => import('../pages/AuthLandingPage.jsx').then((module) => ({ default: module.AuthLandingPage })))
@@ -94,6 +99,7 @@ export function AppRoutes() {
             <Route path="/dashboard/admin/education" element={<AdminEducationContentPage />} />
             <Route path="/dashboard/admin/analytics" element={<AnalyticsDashboardPage />} />
             <Route path="/dashboard/analytics" element={<Navigate to="/dashboard/admin/analytics" replace />} />
+            <Route path="/dashboard/admin/payments" element={<AdminSubscriptionPaymentsPage />} />
 
             <Route path="/admin/users" element={<Navigate to="/dashboard/admin/accounts" replace />} />
             <Route path="/admin/farms" element={<Navigate to="/dashboard/admin/farms" replace />} />

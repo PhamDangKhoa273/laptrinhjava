@@ -26,6 +26,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -124,11 +125,8 @@ class NotificationServiceCreateAuthorizationTests {
     @Test
     void rateLimit_shouldRejectSpammySender() {
         User admin = user(1L, "ADMIN");
-        Notification recent = new Notification();
-        recent.setSenderUser(admin);
-        recent.setCreatedAt(java.time.LocalDateTime.now().minusMinutes(1));
         when(userRepository.findById(1L)).thenReturn(Optional.of(admin));
-        when(notificationRepository.findAll()).thenReturn(java.util.Collections.nCopies(20, recent));
+        when(notificationRepository.countBySenderUserUserIdAndCreatedAtAfter(eq(1L), any(java.time.LocalDateTime.class))).thenReturn(20L);
         org.mockito.Mockito.lenient().doNothing().when(rateLimitService).checkPerUser(any());
 
         CreateNotificationRequest request = new CreateNotificationRequest();

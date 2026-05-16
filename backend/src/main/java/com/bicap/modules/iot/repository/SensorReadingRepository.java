@@ -10,5 +10,9 @@ public interface SensorReadingRepository extends JpaRepository<SensorReading, Lo
     List<SensorReading> findByFarmOwnerUserUserIdOrderByMeasuredAtDesc(Long userId);
     List<SensorReading> findBySeasonSeasonIdOrderByMeasuredAtDesc(Long seasonId);
     List<SensorReading> findByBatchBatchIdOrderByMeasuredAtDesc(Long batchId);
+<<<<<<< HEAD
     List<SensorReading> findAllByMeasuredAtBetween(LocalDateTime start, LocalDateTime end);
+=======
+    List<SensorReading> findByFarmFarmIdAndMeasuredAtBetween(Long farmId, LocalDateTime from, LocalDateTime to);
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
 }

@@ -1,8 +1,12 @@
-package com.bicap.modules.logistics.entity;
+package com.bicap.modules.shipment.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Vị trí GPS realtime của tài xế gắn với shipment.
+ * Bảng được dùng để vẽ hành trình + fallback khi Redis miss.
+ */
 @Entity
 @Table(name = "tracking_locations")
 public class TrackingLocation {
@@ -12,13 +16,11 @@ public class TrackingLocation {
     @Column(name = "location_id")
     private Long locationId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "shipment_id", nullable = false)
-    private Shipment shipment;
+    @Column(name = "shipment_id", nullable = false)
+    private Long shipmentId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "driver_id", nullable = false)
-    private Driver driver;
+    @Column(name = "driver_id", nullable = false)
+    private Long driverId;
 
     @Column(name = "latitude", nullable = false)
     private Double latitude;
@@ -34,29 +36,23 @@ public class TrackingLocation {
 
     @PrePersist
     public void onCreate() {
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
         }
     }
 
     public Long getLocationId() { return locationId; }
     public void setLocationId(Long locationId) { this.locationId = locationId; }
-
-    public Shipment getShipment() { return shipment; }
-    public void setShipment(Shipment shipment) { this.shipment = shipment; }
-
-    public Driver getDriver() { return driver; }
-    public void setDriver(Driver driver) { this.driver = driver; }
-
+    public Long getShipmentId() { return shipmentId; }
+    public void setShipmentId(Long shipmentId) { this.shipmentId = shipmentId; }
+    public Long getDriverId() { return driverId; }
+    public void setDriverId(Long driverId) { this.driverId = driverId; }
     public Double getLatitude() { return latitude; }
     public void setLatitude(Double latitude) { this.latitude = latitude; }
-
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
-
     public Float getAccuracy() { return accuracy; }
     public void setAccuracy(Float accuracy) { this.accuracy = accuracy; }
-
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

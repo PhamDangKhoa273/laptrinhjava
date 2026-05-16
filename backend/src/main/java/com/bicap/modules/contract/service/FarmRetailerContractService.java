@@ -181,18 +181,38 @@ public class FarmRetailerContractService {
         response.setProductScope(contract.getProductScope());
         response.setAgreedPriceRule(contract.getAgreedPriceRule());
         response.setNotes(contract.getNotes());
-        response.setCoverageSummary(buildCoverageSummary(contract));
         response.setCreatedByUserId(contract.getCreatedByUserId());
         response.setReviewedByUserId(contract.getReviewedByUserId());
         response.setReviewedAt(contract.getReviewedAt());
         boolean active = "ACTIVE".equalsIgnoreCase(contract.getStatus()) && (contract.getValidTo() == null || contract.getValidTo().isAfter(LocalDateTime.now()));
         response.setActive(active);
+
+        // Coverage = listings thuộc batch của farm + orders giữa farm và retailer của contract này.
         Long ownerId = resolveFarmOwnerId(contract.getFarmId());
         int listingCount = ownerId == null ? 0 : listingRepository.findByFarmOwnerId(ownerId).size();
-        int orderCount = orderRepository.findByFarmId(contract.getFarmId()).size();
+        int orderCount = orderRepository.findByFarmIdAndRetailerId(contract.getFarmId(), contract.getRetailerId()).size();
         response.setListingCount(listingCount);
         response.setOrderCount(orderCount);
-        response.setCoverageSummary("Listings: " + listingCount + ", Orders: " + orderCount);
+        response.setCoverageSummary(buildCoverageSummary(contract, listingCount, orderCount));
         return response;
+    }
+
+    private String buildCoverageSummary(FarmRetailerContract contract, int listingCount, int orderCount) {
+        StringBuilder sb = new StringBuilder();
+        if (contract.getProductScope() != null && !contract.getProductScope().isBlank()) {
+            sb.append("Scope: ").append(contract.getProductScope());
+        }
+        if (sb.length() > 0) sb.append(" | ");
+        sb.append("Listings linked: ").append(listingCount);
+        sb.append(" | Orders between parties: ").append(orderCount);
+        String relatedListings = contract.getRelatedListingIds();
+        String relatedOrders = contract.getRelatedOrderIds();
+        if (relatedListings != null && !relatedListings.isBlank()) {
+            sb.append(" | RelatedListings: ").append(relatedListings);
+        }
+        if (relatedOrders != null && !relatedOrders.isBlank()) {
+            sb.append(" | RelatedOrders: ").append(relatedOrders);
+        }
+        return sb.toString();
     }
 }

@@ -2,6 +2,7 @@ package com.bicap.modules.listing.repository;
 
 import com.bicap.modules.listing.entity.ProductListing;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -9,11 +10,19 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface ProductListingRepository extends JpaRepository<ProductListing, Long>, JpaSpecificationExecutor<ProductListing> {
 
+<<<<<<< HEAD
+=======
+    @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT pl FROM ProductListing pl WHERE pl.listingId = :id")
+    Optional<ProductListing> findByIdForUpdate(@Param("id") Long id);
+
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
     @Query("SELECT DISTINCT f.province FROM ProductListing pl JOIN pl.batch b JOIN b.season s JOIN s.farm f WHERE pl.status = :status AND pl.approvalStatus = :approvalStatus AND f.province IS NOT NULL AND f.province <> '' ORDER BY f.province")
     List<String> findDistinctProvincesByStatusAndApprovalStatus(@Param("status") String status, @Param("approvalStatus") String approvalStatus);
 

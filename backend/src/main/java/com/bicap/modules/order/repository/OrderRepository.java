@@ -8,5 +8,6 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByRetailerId(Long retailerId);
     List<Order> findByFarmId(Long farmId);
+    List<Order> findByFarmIdAndRetailerId(Long farmId, Long retailerId);
     boolean existsByDepositAmountIsNotNullAndOrderIdNot(Long orderId);
 }

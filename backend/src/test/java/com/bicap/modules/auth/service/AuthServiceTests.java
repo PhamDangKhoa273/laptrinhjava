@@ -43,6 +43,7 @@ class AuthServiceTests {
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private SecurityAuditService securityAuditService;
     @Mock private EmailService emailService;
+    @Mock private com.bicap.core.security.RedisRateLimitService rateLimitService;
 
     @Test
     void changePassword_shouldRejectBadCurrentPasswordAndKeepSessionsActive() {
@@ -113,7 +114,8 @@ class AuthServiceTests {
                 refreshTokenSessionRepository,
                 passwordEncoder,
                 securityAuditService,
-                emailService
+                emailService,
+                rateLimitService
         );
     }
 }

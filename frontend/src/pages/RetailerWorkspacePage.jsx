@@ -4,7 +4,10 @@ import '../retailer-workspace.css'
 import { getPublicListings, getListingById } from '../services/listingService.js'
 import { cancelOrder, confirmOrderDelivery, createOrder, createReport, getMyNotifications, getOrderById, getOrderStatusHistory, getOrdersV2, getRetailerShipments, markNotificationRead, payOrderDeposit, uploadShippingProof } from '../services/workflowService.js'
 import { createNotification, getMyRetailer, updateRetailer, uploadRetailerBusinessLicense } from '../services/businessService.js'
+<<<<<<< HEAD
 import { traceBatch, traceBatchByCode } from '../services/phase3Service.js'
+=======
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
 import { getErrorMessage } from '../utils/helpers.js'
 import ContractsPage from './ContractsPage.jsx'
 
@@ -244,6 +247,7 @@ function MarketplacePage({ data }) {
 }
 
 function TracePage({ data }) {
+<<<<<<< HEAD
   const [inputCode, setInputCode] = useState('')
   const [traceData, setTraceData] = useState(null)
   const [traceError, setTraceError] = useState('')
@@ -434,6 +438,42 @@ function TraceResultPanel({ trace }) {
   )
 }
 
+=======
+  const [traceCode, setTraceCode] = useState('')
+  const [traceResult, setTraceResult] = useState(null)
+  const [traceKind, setTraceKind] = useState('')
+  const [traceError, setTraceError] = useState('')
+  const [loadingTrace, setLoadingTrace] = useState(false)
+
+  function searchTrace() {
+    const code = traceCode.trim().toLowerCase()
+    if (!code) {
+      setTraceResult(null)
+      setTraceError('Nhập mã QR / batch / shipment để truy xuất.')
+      return
+    }
+    const shipment = data.shipments.find((item) => [item.traceCode, item.batchCode, item.shipmentId].some((value) => String(value || '').toLowerCase() === code)) || null
+    const listing = data.listings.find((item) => [item.traceCode, item.batchCode, item.listingId, item.id].some((value) => String(value || '').toLowerCase() === code)) || null
+    const order = data.orders.find((item) => [item.traceCode, item.batchCode, item.orderId, item.id].some((value) => String(value || '').toLowerCase() === code)) || null
+    const result = shipment || listing || order
+    setTraceResult(result || null)
+    setTraceKind(getTraceKind(result))
+    setTraceError(result ? '' : 'Không tìm thấy mã phù hợp trong dữ liệu hiện tại.')
+  }
+
+  return <RetailerShell title="QR Trace" subtitle="Truy xuất theo mã QR/batch/shipment từ dữ liệu retailer hiện có." loading={data.loading || loadingTrace} error={data.error || traceError} success={data.success}>
+    <section className="retailer-card">
+      <div className="retailer-card-head"><h3>Nhập mã truy xuất</h3><span className="pill blue">Retailer</span></div>
+      <div className="retailer-search-row">
+        <input value={traceCode} onChange={(event) => setTraceCode(event.target.value)} placeholder="Trace code / batch code / shipment id" />
+        <Button onClick={searchTrace}>Truy xuất</Button>
+      </div>
+    </section>
+    {traceResult ? <RetailerDetailsBar title={`${traceKind} truy xuất`} item={traceResult} empty="Không có kết quả." /> : <EmptyState title="Chưa truy xuất" text="Nhập mã ở trên để xem shipment, listing hoặc order liên quan." />}
+  </RetailerShell>
+}
+
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
 function OrdersPage({ data }) {
   const [selectedOrderId, setSelectedOrderId] = useState('')
   const [depositAmount, setDepositAmount] = useState('')
@@ -637,6 +677,7 @@ function ReportsPage({ data }) {
   async function handleSubmit() {
     setSending(true)
     try {
+<<<<<<< HEAD
       // R-RTL-190 — backend yêu cầu schema {recipientRole, reportType, subject, content}.
       // Severity được encode vào subject vì PlatformReport không có cột severity.
       await createReport({
@@ -645,6 +686,9 @@ function ReportsPage({ data }) {
         subject: `[${severity}] ${title.trim()}`,
         content: description.trim(),
       })
+=======
+      await createReport({ title: title.trim(), description: description.trim(), severity })
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
       window.location.reload()
     } finally {
       setSending(false)

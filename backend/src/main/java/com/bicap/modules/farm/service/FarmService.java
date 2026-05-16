@@ -35,26 +35,34 @@ public class FarmService {
     private final AuditLogService auditLogService;
     private final MediaStorageService mediaStorageService;
     private final MediaFileRepository mediaFileRepository;
+    private final com.bicap.modules.listing.repository.ProductListingRepository productListingRepository;
+    private final com.bicap.modules.subscription.repository.FarmSubscriptionRepository farmSubscriptionRepository;
 
     public FarmService(FarmRepository farmRepository,
                        UserRepository userRepository,
                        UserService userService,
                        AuditLogService auditLogService,
                        MediaStorageService mediaStorageService,
-                       MediaFileRepository mediaFileRepository) {
+                       MediaFileRepository mediaFileRepository,
+                       com.bicap.modules.listing.repository.ProductListingRepository productListingRepository,
+                       com.bicap.modules.subscription.repository.FarmSubscriptionRepository farmSubscriptionRepository) {
         this.farmRepository = farmRepository;
         this.userRepository = userRepository;
         this.userService = userService;
         this.auditLogService = auditLogService;
         this.mediaStorageService = mediaStorageService;
         this.mediaFileRepository = mediaFileRepository;
+        this.productListingRepository = productListingRepository;
+        this.farmSubscriptionRepository = farmSubscriptionRepository;
     }
 
     public List<FarmResponse> getAllFarms() {
         Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
         boolean isAdmin = currentUserHasRole(RoleName.ADMIN, currentUserId);
-        return farmRepository.findAll().stream()
-                .filter(farm -> isAdmin || isApproved(farm) || isOwner(farm, currentUserId))
+        if (isAdmin) {
+            return farmRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+        }
+        return farmRepository.findByApprovalStatusIgnoreCase("APPROVED").stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -214,6 +222,26 @@ public class FarmService {
                 .orElseThrow(() -> new BusinessException("Farm không tồn tại"));
         farm.setApprovalStatus("DEACTIVATED");
         farmRepository.save(farm);
+
+        // Cascade: ngừng listing đang ACTIVE + hủy subscription chưa expire.
+        Long ownerUserId = farm.getOwnerUser() != null ? farm.getOwnerUser().getUserId() : null;
+        if (ownerUserId != null) {
+            productListingRepository.findByFarmOwnerId(ownerUserId).forEach(listing -> {
+                if (com.bicap.core.enums.ListingStatus.ACTIVE.name().equalsIgnoreCase(listing.getStatus())) {
+                    listing.setStatus(com.bicap.core.enums.ListingStatus.INACTIVE.name());
+                    productListingRepository.save(listing);
+                }
+            });
+        }
+        farmSubscriptionRepository.findByFarmOwnerUserUserId(farm.getOwnerUser() != null ? farm.getOwnerUser().getUserId() : -1L)
+                .forEach(subscription -> {
+                    if ("ACTIVE".equalsIgnoreCase(subscription.getSubscriptionStatus())
+                            || "PENDING".equalsIgnoreCase(subscription.getSubscriptionStatus())) {
+                        subscription.setSubscriptionStatus("CANCELLED");
+                        farmSubscriptionRepository.save(subscription);
+                    }
+                });
+
         auditLogService.log(adminId, "DEACTIVATE_FARM", "FARM", farmId);
     }
 

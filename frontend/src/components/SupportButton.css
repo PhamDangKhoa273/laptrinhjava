@@ -1,0 +1,296 @@
+.support-button-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.support-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.support-button--icon {
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  border-color: rgba(31, 107, 74, 0.12);
+  background: rgba(255, 255, 255, 0.55);
+  color: #1f6b4a;
+}
+
+.support-button--icon:hover {
+  background: #1f6b4a;
+  color: #fff;
+  border-color: #1f6b4a;
+}
+
+.support-button--text {
+  padding: 10px 18px;
+  font: 600 14px/1.2 Inter, system-ui, sans-serif;
+  background: #1f6b4a;
+  color: #fff;
+  border-color: #1f6b4a;
+  box-shadow: 0 8px 18px rgba(31, 107, 74, 0.25);
+}
+
+.support-button--text:hover {
+  background: #005234;
+  border-color: #005234;
+}
+
+.support-button .material-symbols-outlined {
+  font-size: 22px;
+}
+
+.support-popover {
+  position: fixed;
+  top: auto;
+  right: 24px;
+  width: 320px;
+  max-width: 92vw;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid rgba(191, 201, 192, 0.6);
+  box-shadow: 0 22px 44px -20px rgba(11, 28, 48, 0.35);
+  z-index: 9999;
+  overflow: hidden;
+  animation: supportPopIn 0.18s ease;
+}
+
+@keyframes supportPopIn {
+  from { transform: translateY(-6px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.support-popover__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px 12px;
+  background: linear-gradient(135deg, #1f6b4a 0%, #0a4a30 100%);
+  color: #fff;
+}
+
+.support-popover__title {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.support-popover__title .material-symbols-outlined {
+  font-size: 26px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px;
+  border-radius: 10px;
+}
+
+.support-popover__title strong {
+  display: block;
+  font: 600 15px/1.3 Inter, system-ui, sans-serif;
+}
+
+.support-popover__title span {
+  display: block;
+  font-size: 12px;
+  opacity: 0.82;
+  margin-top: 2px;
+}
+
+.support-popover__close {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.support-popover__close:hover { background: rgba(255, 255, 255, 0.28); }
+
+.support-popover__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 18px;
+}
+
+.support-channel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f6f9fb;
+  border: 1px solid #e2e8f0;
+  text-decoration: none;
+  color: #0b1c30;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.support-channel:hover {
+  transform: translateY(-1px);
+  border-color: #1f6b4a;
+  background: #eef7f2;
+}
+
+.support-channel__icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.support-channel--telegram .support-channel__icon { background: #229ed9; }
+.support-channel--zalo .support-channel__icon     { background: #0068ff; }
+
+.support-channel__body { flex: 1; min-width: 0; }
+.support-channel__body strong {
+  display: block;
+  font: 600 14px/1.2 Inter, system-ui, sans-serif;
+}
+.support-channel__body span {
+  display: block;
+  font-size: 13px;
+  color: #3f4942;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.support-channel .material-symbols-outlined {
+  color: #6f7972;
+  font-size: 20px;
+}
+
+.support-channel--empty {
+  background: #fff7e6;
+  border-color: #facc15;
+  color: #5e4200;
+  cursor: default;
+}
+
+.support-channel--empty:hover {
+  transform: none;
+  background: #fff7e6;
+  border-color: #facc15;
+}
+
+.support-popover__contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed #e2e8f0;
+  margin-top: 4px;
+}
+
+.support-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  font-size: 12.5px;
+  color: #0b1c30;
+  text-decoration: none;
+  border: 1px solid #e2e8f0;
+}
+
+.support-contact:hover { background: #e2eaf3; }
+
+.support-contact .material-symbols-outlined {
+  font-size: 16px;
+  color: #1f6b4a;
+}
+
+.support-popover__note {
+  font-size: 12.5px;
+  color: #3f4942;
+  margin: 4px 0 0;
+}
+
+
+/* Floating support button used for guest / auth screens */
+.auth-support-floater {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 50;
+}
+
+.auth-support-floater .support-popover {
+  position: fixed;
+  right: 20px;
+  bottom: 80px;
+  top: auto !important;
+}
+
+
+/* Social grid inside support popover */
+.support-socials {
+  display: grid;
+  gap: 8px;
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.support-socials__label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6f7972;
+}
+
+.support-socials__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.support-social {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border-radius: 12px;
+  background: #f6f9fb;
+  border: 1px solid #e2e8f0;
+  text-decoration: none;
+  color: #0b1c30;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: center;
+  transition: border-color 0.12s ease, transform 0.12s ease, background 0.12s ease;
+}
+
+.support-social:hover {
+  transform: translateY(-1px);
+  border-color: var(--social-tone, #1f6b4a);
+  background: #fff;
+}
+
+.support-social .material-symbols-outlined {
+  font-size: 22px;
+  color: var(--social-tone, #1f6b4a);
+}

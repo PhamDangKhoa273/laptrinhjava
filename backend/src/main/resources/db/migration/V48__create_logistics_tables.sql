@@ -1,4 +1,5 @@
 -- V48__create_logistics_tables.sql
+<<<<<<< HEAD
 -- Create missing Logistics module tables with unique names to avoid conflicts
 
 -- Table: logistics_shipments
@@ -86,3 +87,9 @@ ALTER TABLE vehicles
 MODIFY COLUMN capacity INT NOT NULL,
 ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+=======
+-- Phiên bản gốc của V48 tạo các bảng logistics_* và alter orders ADD shipping_manager_id.
+-- Các bảng đó đã được consolidate về module shipment trong V52 (drop logistics_*).
+-- Giữ file cho chuỗi version liên tục; logic thực hiện trong V52.
+SELECT 1;
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd

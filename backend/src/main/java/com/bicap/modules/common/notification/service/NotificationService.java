@@ -109,10 +109,7 @@ public class NotificationService {
 
     private void enforceSendRateLimit(Long senderUserId) {
         LocalDateTime cutoff = LocalDateTime.now().minusMinutes(10);
-        long sentRecently = notificationRepository.findAll().stream()
-                .filter(n -> n.getSenderUser() != null && senderUserId.equals(n.getSenderUser().getUserId()))
-                .filter(n -> n.getCreatedAt() != null && n.getCreatedAt().isAfter(cutoff))
-                .count();
+        long sentRecently = notificationRepository.countBySenderUserUserIdAndCreatedAtAfter(senderUserId, cutoff);
         if (sentRecently >= MAX_NOTIFICATIONS_PER_10_MINUTES) {
             throw new BusinessException("Gửi notification quá nhanh, vui lòng thử lại sau");
         }

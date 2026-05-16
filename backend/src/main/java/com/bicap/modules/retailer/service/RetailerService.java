@@ -121,8 +121,27 @@ public class RetailerService {
     }
 
     @Transactional
-    public RetailerResponse deactivate(Long retailerId, Long currentUserId) {
+    public RetailerResponse review(Long retailerId, String approvalStatus, String reviewComment, Long adminUserId) {
         Retailer retailer = getEntityById(retailerId);
+        User adminUser = userRepository.findById(adminUserId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy admin user"));
+        if (!userService.hasRole(adminUser, RoleName.ADMIN)) {
+            throw new BusinessException("Chỉ ADMIN mới được phê duyệt/từ chối retailer");
+        }
+        String normalizedStatus = approvalStatus == null ? "ACTIVE" : approvalStatus.trim().toUpperCase();
+        if (!List.of("ACTIVE", "INACTIVE", "PENDING", "REJECTED", "APPROVED").contains(normalizedStatus)) {
+            throw new BusinessException("Trạng thái không hợp lệ: " + approvalStatus);
+        }
+        retailer.setStatus(normalizedStatus);
+        Retailer saved = retailerRepository.save(retailer);
+        if (auditLogService != null) {
+            auditLogService.log(adminUserId, "REVIEW_RETAILER_" + normalizedStatus, "RETAILER", saved.getRetailerId());
+        }
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public RetailerResponse deactivate(Long retailerId, Long currentUserId) {        Retailer retailer = getEntityById(retailerId);
         User currentUser = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy user hiện tại"));
 

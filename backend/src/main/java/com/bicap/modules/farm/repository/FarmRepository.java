@@ -11,6 +11,7 @@ public interface FarmRepository extends JpaRepository<Farm, Long> {
     Optional<Farm> findByOwnerUser_UserId(Long userId);
     boolean existsByFarmCode(String farmCode);
     boolean existsByBusinessLicenseNo(String businessLicenseNo);
+    java.util.List<Farm> findByApprovalStatusIgnoreCase(String approvalStatus);
     
     default Optional<Farm> findByOwnerUserUserId(Long userId) {
         return findByOwnerUser_UserId(userId);

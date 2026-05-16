@@ -5,6 +5,7 @@ import { getUsers, replaceUserRole, updateUserStatus } from '../services/busines
 import { createAdminAccount, deleteUserAccount } from '../services/adminService.js'
 import { ROLES, ROLE_LABELS } from '../utils/constants'
 import { getErrorMessage } from '../utils/helpers'
+import '../styles/adminTableFix.css'
 
 const ALL_ROLE_OPTIONS = Object.values(ROLES).map((role) => ({ value: role, label: ROLE_LABELS[role] || role }))
 

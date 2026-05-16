@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
+@lombok.extern.slf4j.Slf4j
 public class AuthService {
 
     private static final Set<RoleName> SELF_REGISTER_ROLES = Set.of(RoleName.FARM, RoleName.RETAILER, RoleName.SHIPPING_MANAGER);
@@ -52,9 +53,13 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final SecurityAuditService securityAuditService;
     private final EmailService emailService;
+    private final com.bicap.core.security.RedisRateLimitService rateLimitService;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
+
+    @Value("${app.auth.password-reset.max-per-hour:5}")
+    private int passwordResetMaxPerHour;
 
     public AuthService(AuthenticationManager authenticationManager,
                        JwtTokenProvider jwtTokenProvider,
@@ -65,7 +70,8 @@ public class AuthService {
                        RefreshTokenSessionRepository refreshTokenSessionRepository,
                        PasswordEncoder passwordEncoder,
                        SecurityAuditService securityAuditService,
-                       EmailService emailService) {
+                       EmailService emailService,
+                       com.bicap.core.security.RedisRateLimitService rateLimitService) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userService = userService;
@@ -76,11 +82,19 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
         this.securityAuditService = securityAuditService;
         this.emailService = emailService;
+        this.rateLimitService = rateLimitService;
     }
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
+<<<<<<< HEAD
         RoleName requestedRole = request.getRole() != null ? request.getRole() : RoleName.FARM;
+=======
+        if (request.getRole() == null) {
+            throw new BusinessException("Role đăng ký là bắt buộc (FARM, RETAILER, SHIPPING_MANAGER)");
+        }
+        RoleName requestedRole = request.getRole();
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
         if (!SELF_REGISTER_ROLES.contains(requestedRole)) {
             throw new BusinessException("Chỉ được tự đăng ký tài khoản Farm, Retailer hoặc Shipping Manager");
         }
@@ -329,9 +343,30 @@ public class AuthService {
     }
 
     private synchronized void throttlePasswordReset(String normalizedEmail, String clientIp) {
-        // Demo/local environment: allow repeated password-reset testing without blocking.
-        // Global API rate limiting still protects the endpoint.
-        return;
+        // Rate limit theo email + IP bằng Redis. Bypass nếu Redis không sẵn sàng để tránh khóa prod.
+        try {
+            rateLimitService.check(
+                    "password-reset",
+                    "email:" + normalizedEmail,
+                    passwordResetMaxPerHour,
+                    passwordResetMaxPerHour * 2,
+                    java.time.Duration.ofHours(1),
+                    java.time.Duration.ofHours(1));
+            if (clientIp != null && !clientIp.isBlank()) {
+                rateLimitService.check(
+                        "password-reset",
+                        "ip:" + clientIp,
+                        passwordResetMaxPerHour * 2,
+                        passwordResetMaxPerHour * 4,
+                        java.time.Duration.ofHours(1),
+                        java.time.Duration.ofHours(1));
+            }
+        } catch (BusinessException ex) {
+            securityAuditService.logAuthFailure(normalizedEmail, "FORGOT_PASSWORD", "RATE_LIMIT");
+            throw ex;
+        } catch (RuntimeException ex) {
+            log.debug("Password reset rate limit bỏ qua vì Redis lỗi: {}", ex.getMessage());
+        }
     }
 
     private String hashResetToken(String token) {

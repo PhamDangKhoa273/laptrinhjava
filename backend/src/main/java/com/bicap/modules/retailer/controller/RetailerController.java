@@ -2,6 +2,7 @@ package com.bicap.modules.retailer.controller;
 
 import com.bicap.core.dto.ApiResponse;
 import com.bicap.modules.retailer.dto.CreateRetailerRequest;
+import com.bicap.modules.retailer.dto.RetailerReviewRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 import com.bicap.modules.retailer.dto.RetailerResponse;
@@ -78,6 +79,17 @@ public class RetailerController {
         return ApiResponse.success(
                 "Ngừng kích hoạt retailer thành công",
                 retailerService.deactivate(id, SecurityUtils.getCurrentUserId())
+        );
+    }
+
+    @PostMapping("/{id}/review")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<RetailerResponse> review(
+            @PathVariable Long id,
+            @RequestBody RetailerReviewRequest request) {
+        return ApiResponse.success(
+                "Cập nhật trạng thái retailer thành công",
+                retailerService.review(id, request.getApprovalStatus(), request.getReviewComment(), SecurityUtils.getCurrentUserId())
         );
     }
 }

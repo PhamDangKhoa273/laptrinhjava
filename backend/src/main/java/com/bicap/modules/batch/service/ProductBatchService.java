@@ -162,12 +162,18 @@ public class ProductBatchService {
         seasonService.findSeasonAndCheckPermission(batch.getSeason().getSeasonId(), currentUserId);
         ensureBatchEligibleForQr(batch);
 
-        String traceCode = resolveTraceCode(batchId);
-        String qrUrl = buildPublicTraceUrl(traceCode);
-        String qrValue = qrUrl;
-        String base64Qr = qrCodeService.generateBase64Png(qrValue);
+        // Thu hồi QR đang ACTIVE nếu có (giữ lại lịch sử trong bảng).
+        qrCodeRepository.findTopByBatch_BatchIdAndStatusOrderByGeneratedAtDesc(batchId, com.bicap.core.enums.QrCodeStatus.ACTIVE.name())
+                .ifPresent(existing -> {
+                    existing.setStatus(com.bicap.core.enums.QrCodeStatus.INACTIVE);
+                    qrCodeRepository.save(existing);
+                });
 
-        QrCode qrCode = qrCodeRepository.findByBatch_BatchId(batchId).orElse(new QrCode());
+        String traceCode = "TRACE-" + batchId + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT);
+        String qrUrl = buildPublicTraceUrl(traceCode);
+        String base64Qr = qrCodeService.generateBase64Png(qrUrl);
+
+        QrCode qrCode = new QrCode();
         qrCode.setBatch(batch);
         qrCode.setSerialNo(buildQrSerial(batch));
         qrCode.setQrValue(traceCode);
@@ -181,7 +187,7 @@ public class ProductBatchService {
                 .batchId(batchId)
                 .serialNo(saved.getSerialNo())
                 .traceCode(traceCode)
-                .qrValue(qrValue)
+                .qrValue(qrUrl)
                 .qrUrl(saved.getQrUrl())
                 .qrImageBase64(base64Qr)
                 .status(saved.getStatus())
@@ -197,7 +203,8 @@ public class ProductBatchService {
             seasonService.findSeasonAndCheckPermission(batch.getSeason().getSeasonId(), currentUserId);
         }
 
-        QrCode qrCode = qrCodeRepository.findByBatch_BatchId(batchId)
+        QrCode qrCode = qrCodeRepository.findTopByBatch_BatchIdAndStatusOrderByGeneratedAtDesc(batchId, com.bicap.core.enums.QrCodeStatus.ACTIVE.name())
+                .or(() -> qrCodeRepository.findByBatch_BatchId(batchId))
                 .orElseThrow(() -> new BusinessException("Chưa tạo mã QR cho lô hàng này."));
 
         String traceCode = qrCode.getQrValue();
@@ -374,15 +381,8 @@ public class ProductBatchService {
         return base + "/public/trace?traceCode=" + traceCode;
     }
 
-    private String resolveTraceCode(Long batchId) {
-        return qrCodeRepository.findByBatch_BatchId(batchId)
-                .map(QrCode::getQrValue)
-                .filter(value -> value != null && !value.isBlank())
-                .orElseGet(() -> "TRACE-" + batchId + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(Locale.ROOT));
-    }
-
     private String buildQrSerial(ProductBatch batch) {
-        return "QR-BATCH-" + batch.getBatchId();
+        return "QR-BATCH-" + batch.getBatchId() + "-" + System.currentTimeMillis();
     }
 
     private boolean canAccessBatch(ProductBatch batch, Long currentUserId) {
@@ -396,7 +396,9 @@ public class ProductBatchService {
     }
 
     private BatchResponse toResponse(ProductBatch batch) {
-        QrCode qrCode = qrCodeRepository.findByBatch_BatchId(batch.getBatchId()).orElse(null);
+        QrCode qrCode = qrCodeRepository
+                .findTopByBatch_BatchIdAndStatusOrderByGeneratedAtDesc(batch.getBatchId(), com.bicap.core.enums.QrCodeStatus.ACTIVE.name())
+                .orElseGet(() -> qrCodeRepository.findByBatch_BatchId(batch.getBatchId()).orElse(null));
         String traceCode = qrCode != null ? qrCode.getQrValue() : null;
         String publicTraceUrl = qrCode != null ? qrCode.getQrUrl() : null;
 

@@ -4,6 +4,10 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { getPrimaryRole } from '../utils/helpers'
 import { ROLES } from '../utils/constants'
 import '../driver-workspace.css'
+<<<<<<< HEAD
+=======
+import { SupportButton } from '../components/SupportButton.jsx'
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
 import {
   driverAddCheckpoint,
   driverConfirmHandover,
@@ -18,6 +22,10 @@ const TABS = [
   { key: 'trips', label: 'Tuyến', icon: 'local_shipping' },
   { key: 'scan', label: 'QR', icon: 'qr_code_scanner' },
   { key: 'actions', label: 'Thao tác', icon: 'handyman' },
+<<<<<<< HEAD
+=======
+  { key: 'tracking', label: 'GPS', icon: 'location_on' },
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
   { key: 'report', label: 'Báo cáo', icon: 'warning' },
 ]
 
@@ -163,6 +171,10 @@ export function DriverMobilePage({ module = 'shipments' }) {
       case 'trips': return <TripsView shipments={activeShipments} current={current} selectedId={selectedId} onSelect={handleSelectShipment} loading={loading} />
       case 'scan': return <ScanView qrCode={qrCode} setQrCode={setQrCode} openScanner={() => setScannerOpen(true)} current={current} shipments={shipments} />
       case 'actions': return <ActionsView current={current} canPickup={canPickup} canCheckpoint={canCheckpoint} canHandover={canHandover} doPickup={doPickup} doCheckpoint={doCheckpoint} doHandover={doHandover} checkpointNote={checkpointNote} setCheckpointNote={setCheckpointNote} checkpointLocation={checkpointLocation} setCheckpointLocation={setCheckpointLocation} handoverNote={handoverNote} setHandoverNote={setHandoverNote} actionLoading={actionLoading} />
+<<<<<<< HEAD
+=======
+      case 'tracking': return <TrackingView current={current} />
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
       case 'report': return <ReportView form={reportForm} setForm={setReportForm} onSubmit={doReport} actionLoading={actionLoading} />
       default: return null
     }
@@ -183,6 +195,10 @@ export function DriverMobilePage({ module = 'shipments' }) {
               <small>{roleLabel}</small>
             </div>
           </div>
+<<<<<<< HEAD
+=======
+          <SupportButton />
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
           <button className="mobile-header-refresh" onClick={loadShipments} disabled={loading} aria-label="Làm mới">
             <span className="material-symbols-outlined">refresh</span>
           </button>
@@ -522,6 +538,141 @@ function ActionsView({ current, canPickup, canCheckpoint, canHandover, doPickup,
   )
 }
 
+<<<<<<< HEAD
+=======
+function TrackingView({ current }) {
+  const [position, setPosition] = useState(null)
+  const [watchId, setWatchId] = useState(null)
+  const [tracking, setTracking] = useState(false)
+  const [history, setHistory] = useState([])
+  const [error, setError] = useState('')
+  const [sending, setSending] = useState(false)
+  const [lastSent, setLastSent] = useState(null)
+
+  function startTracking() {
+    if (!navigator.geolocation) {
+      setError('Thiết bị không hỗ trợ GPS.')
+      return
+    }
+    setError('')
+    setTracking(true)
+    const id = navigator.geolocation.watchPosition(
+      (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, timestamp: new Date().toISOString() }
+        setPosition(coords)
+        setHistory((prev) => [coords, ...prev].slice(0, 20))
+      },
+      (err) => setError(`GPS lỗi: ${err.message}`),
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+    )
+    setWatchId(id)
+  }
+
+  function stopTracking() {
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId)
+    setWatchId(null)
+    setTracking(false)
+  }
+
+  async function sendLocation() {
+    if (!position || !current) { setError('Chưa có vị trí GPS hoặc chưa chọn chuyến hàng.'); return }
+    setSending(true)
+    setError('')
+    try {
+      const { api } = await import('../services/api.js')
+      await api.post('/tracking/location/update', {
+        shipmentId: current.shipmentId || current.id,
+        latitude: position.lat,
+        longitude: position.lng,
+        accuracy: position.accuracy,
+      })
+      setLastSent(new Date().toLocaleTimeString('vi-VN'))
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || 'Không thể gửi vị trí.')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  useEffect(() => () => { if (watchId !== null) navigator.geolocation.clearWatch(watchId) }, [watchId])
+
+  return (
+    <div className="mobile-tracking">
+      <div style={{ padding: '16px' }}>
+        <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '22px', color: '#16a34a' }}>location_on</span>
+          Theo dõi GPS
+        </h2>
+        <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>
+          {current ? `Chuyến hàng #${current.shipmentId || current.id}` : 'Chưa có chuyến hàng đang hoạt động'}
+        </p>
+
+        {error ? <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: '10px', padding: '10px 14px', marginBottom: '12px', fontSize: '13px', color: '#dc2626' }}>{error}</div> : null}
+        {lastSent ? <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '10px', padding: '10px 14px', marginBottom: '12px', fontSize: '13px', color: '#16a34a' }}>✓ Đã gửi vị trí lúc {lastSent}</div> : null}
+
+        {/* Current position */}
+        <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '16px', marginBottom: '16px', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px', color: tracking ? '#16a34a' : '#94a3b8' }}>
+              {tracking ? 'gps_fixed' : 'gps_off'}
+            </span>
+            <strong style={{ fontSize: '14px' }}>{tracking ? 'Đang theo dõi GPS' : 'GPS chưa bật'}</strong>
+            <span style={{ marginLeft: 'auto', width: '8px', height: '8px', borderRadius: '50%', background: tracking ? '#16a34a' : '#94a3b8', animation: tracking ? 'pulse 1.5s infinite' : 'none' }} />
+          </div>
+          {position ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '13px' }}>
+              <div><span style={{ color: '#64748b' }}>Vĩ độ</span><br /><strong>{position.lat.toFixed(6)}</strong></div>
+              <div><span style={{ color: '#64748b' }}>Kinh độ</span><br /><strong>{position.lng.toFixed(6)}</strong></div>
+              <div><span style={{ color: '#64748b' }}>Độ chính xác</span><br /><strong>{position.accuracy ? `±${Math.round(position.accuracy)}m` : 'N/A'}</strong></div>
+              <div><span style={{ color: '#64748b' }}>Cập nhật</span><br /><strong>{new Date(position.timestamp).toLocaleTimeString('vi-VN')}</strong></div>
+            </div>
+          ) : (
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>Chưa có dữ liệu vị trí.</p>
+          )}
+        </div>
+
+        {/* Controls */}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
+          {!tracking ? (
+            <button className="mobile-btn primary" onClick={startTracking} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <span className="material-symbols-outlined">play_arrow</span> Bắt đầu GPS
+            </button>
+          ) : (
+            <button className="mobile-btn" onClick={stopTracking} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fca5a5' }}>
+              <span className="material-symbols-outlined">stop</span> Dừng GPS
+            </button>
+          )}
+          <button
+            className="mobile-btn primary"
+            onClick={sendLocation}
+            disabled={!position || !current || sending}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+          >
+            <span className="material-symbols-outlined">send</span>
+            {sending ? 'Đang gửi...' : 'Gửi vị trí'}
+          </button>
+        </div>
+
+        {/* History */}
+        {history.length > 0 && (
+          <div>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>Lịch sử vị trí ({history.length})</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '200px', overflowY: 'auto' }}>
+              {history.map((h, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: i === 0 ? '#f0fdf4' : '#f8fafc', borderRadius: '8px', fontSize: '12px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ color: '#64748b' }}>{h.lat.toFixed(5)}, {h.lng.toFixed(5)}</span>
+                  <span style={{ color: '#94a3b8' }}>{new Date(h.timestamp).toLocaleTimeString('vi-VN')}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
 function ReportView({ form, setForm, onSubmit, actionLoading }) {
   const types = [
     ['ACCIDENT', 'no_crash'], ['BREAKDOWN', 'build'], ['DELAY', 'traffic'],

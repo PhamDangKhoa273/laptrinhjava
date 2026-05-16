@@ -184,6 +184,7 @@ public class ProductListingService {
 
     public Page<ListingResponse> searchPublicListings(String keyword, String province, String certification, String productCategory, Boolean availableOnly, Boolean verifiedOnly, LocalDate harvestFrom, LocalDate harvestTo, int page, int size, String sort) {
         Pageable pageable = PageRequest.of(page, size, resolvePublicSort(sort));
+<<<<<<< HEAD
         List<ListingResponse> filtered = listingRepository.findByStatusAndApprovalStatus(ListingStatus.ACTIVE.name(), ApprovalStatus.APPROVED.name(), resolvePublicSort(sort))
                 .stream()
                 .map(this::toResponse)
@@ -199,6 +200,29 @@ public class ProductListingService {
         int from = Math.min(page * size, total);
         int to = Math.min(from + size, total);
         return new org.springframework.data.domain.PageImpl<>(filtered.subList(from, to), pageable, total);
+=======
+        org.springframework.data.jpa.domain.Specification<ProductListing> spec =
+                com.bicap.modules.discovery.specification.ProductListingSpecification
+                        .searchListings(keyword, null, null, province, productCategory, certification);
+
+        if (Boolean.TRUE.equals(verifiedOnly)) {
+            spec = spec.and((root, query, cb) -> cb.lower(root.get("batch").get("season").get("farm").get("certificationStatus")).in(java.util.List.of("vietgap", "globalgap", "organic")));
+        }
+        if (harvestFrom != null) {
+            final LocalDate from = harvestFrom;
+            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("batch").get("harvestDate"), from));
+        }
+        if (harvestTo != null) {
+            final LocalDate to = harvestTo;
+            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("batch").get("harvestDate"), to));
+        }
+        if (Boolean.TRUE.equals(availableOnly)) {
+            spec = spec.and((root, query, cb) -> cb.greaterThan(root.get("quantityAvailable"), BigDecimal.ZERO));
+        }
+
+        Page<ProductListing> rows = listingRepository.findAll(spec, pageable);
+        return rows.map(this::toResponse);
+>>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
     }
 
     private boolean matchesKeyword(ListingResponse listing, String keyword) {
