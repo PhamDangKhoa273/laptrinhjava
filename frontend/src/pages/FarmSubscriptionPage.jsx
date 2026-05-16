@@ -24,6 +24,7 @@ function unwrapList(data) {
   return []
 }
 
+// eslint-disable-next-line no-unused-vars
 function statusTone(status = '') {
   const value = String(status).toUpperCase()
   if (value === 'ACTIVE' || value === 'PAID' || value === 'CONFIRMED') return 'green'

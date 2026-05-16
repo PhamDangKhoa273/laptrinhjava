@@ -85,11 +85,7 @@ export function Sidebar({ links, role }) {
           <span className="sidebar-brand-mark">B</span>
           <span className="sidebar-brand-text">
             <span className="sidebar-brand-title">BICAP Workspace</span>
-<<<<<<< HEAD
             <span className="sidebar-brand-subtitle">{brandSubtitle}</span>
-=======
-            <span className="sidebar-brand-subtitle">Hệ sinh thái quản trị</span>
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
           </span>
         </div>
 

@@ -4425,26 +4425,16 @@ button:hover {
 }
 
 .notification-dropdown {
-<<<<<<< HEAD
   position: absolute;
   top: 44px;
   right: 0;
-=======
-  position: fixed;
-  top: auto;
-  right: 24px;
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
   width: 360px;
   max-height: 480px;
   background: #fff;
   border: 1px solid #e4e4e7;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0,0,0,.12);
-<<<<<<< HEAD
   z-index: 1000;
-=======
-  z-index: 9999;
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
   display: flex;
   flex-direction: column;
   overflow: hidden;

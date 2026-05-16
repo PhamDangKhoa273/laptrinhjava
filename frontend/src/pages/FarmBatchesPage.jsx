@@ -22,6 +22,7 @@ const initialBatchForm = {
   batchStatus: 'CREATED',
 }
 
+// eslint-disable-next-line no-unused-vars
 const batchStatuses = ['CREATED', 'READY', 'STORED', 'SOLD_OUT']
 const qualityGrades = ['A', 'B', 'C']
 
@@ -70,6 +71,7 @@ function fmtDate(value) {
 }
 
 export function FarmBatchesPage() {
+  // eslint-disable-next-line no-unused-vars
   const [farmContext, setFarmContext] = useState(null)
   const [seasons, setSeasons] = useState([])
   const [batches, setBatches] = useState([])

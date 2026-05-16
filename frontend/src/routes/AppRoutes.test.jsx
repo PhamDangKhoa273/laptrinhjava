@@ -70,11 +70,7 @@ describe('AppRoutes acceptance', () => {
 
   it.each([
     ['ADMIN', '/dashboard/admin/control-center', /Welcome back, Admin/i, 1],
-<<<<<<< HEAD
-    ['FARM', '/dashboard/farm', /Không gian Nông trại/i, 2],
-=======
     ['FARM', '/dashboard/farm', /Tổng quan Nông trại/i, 1],
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
     ['RETAILER', '/dashboard/retailer', /Retailer Overview/i, 2],
     ['SHIPPING_MANAGER', '/dashboard/shipping-manager', /Tổng quan Vận chuyển/i, 2],
     ['DRIVER', '/dashboard/driver', /Driver Workspace/i, 1],

@@ -39,7 +39,7 @@ export default function BatchPage() {
         if (context.products?.length) {
           setForm((prev) => ({ ...prev, productId: String(context.products[0].productId) }))
         }
-      } catch { }
+      } catch { /* ignore */ }
     }
     init()
   }, [])

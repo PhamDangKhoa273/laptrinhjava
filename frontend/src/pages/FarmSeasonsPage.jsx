@@ -27,6 +27,7 @@ const initialSeasonForm = {
 
 const initialProcessForm = { stepNo: '', stepName: '', performedAt: '', description: '', imageUrl: '' }
 
+// eslint-disable-next-line no-unused-vars
 const seasonStatuses = ['PLANNED', 'IN_PROGRESS', 'HARVESTED', 'COMPLETED']
 
 function Icon({ children, fill = false }) {
@@ -124,6 +125,7 @@ export function FarmSeasonsPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load() }, [])
 
   useEffect(() => {

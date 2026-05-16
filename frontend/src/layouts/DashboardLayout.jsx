@@ -3,12 +3,9 @@ import { Sidebar } from '../components/Sidebar.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { getPrimaryRole } from '../utils/helpers'
 import { ROLES, ROLE_LABELS } from '../utils/constants'
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { getMyNotifications, markNotificationRead } from '../services/workflowService.js'
-<<<<<<< HEAD
-=======
 import { SupportButton } from '../components/SupportButton.jsx'
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
 
 const prototypeLinks = [
   { to: '/dashboard', label: 'Trang chủ', description: '' },
@@ -87,14 +84,6 @@ const roleLinks = {
     { to: '/shipping/profile', label: 'Hồ sơ cá nhân', description: 'Thông tin tài khoản' },
   ],
   [ROLES.DRIVER]: [
-<<<<<<< HEAD
-    { to: '/dashboard/driver', label: 'Tuyến của tôi', description: 'Danh sách và chi tiết chuyến hàng' },
-    { to: '/driver/qr', label: 'Quét QR', description: 'Quét truy xuất tại nông trại' },
-    { to: '/driver/pickup', label: 'Nhận hàng', description: 'Xác nhận nhận hàng từ farm' },
-    { to: '/driver/checkpoint', label: 'Checkpoint', description: 'Cập nhật tiến trình vận chuyển' },
-    { to: '/driver/handover', label: 'Bàn giao', description: 'Xác nhận giao cho retailer' },
-    { to: '/driver/report', label: 'Báo cáo sự cố', description: 'Gửi báo cáo cho quản lý vận chuyển' },
-=======
     { to: '/dashboard/driver', label: 'Tuyến của tôi', description: 'Danh sách/chi tiết chuyến hàng' },
     { to: '/driver/mobile', label: 'Ứng dụng Di động', description: 'Giao diện tối ưu cho điện thoại' },
     { to: '/driver/qr', label: 'Quét QR', description: 'Quét truy xuất tại nông trại' },
@@ -102,7 +91,6 @@ const roleLinks = {
     { to: '/driver/checkpoint', label: 'Checkpoint', description: 'Cập nhật tiến trình' },
     { to: '/driver/handover', label: 'Bàn giao', description: 'Xác nhận bàn giao' },
     { to: '/driver/report', label: 'Báo cáo sự cố', description: 'Báo cáo quản lý vận chuyển' },
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
     { to: '/profile', label: 'Hồ sơ cá nhân', description: 'Thông tin tài khoản' },
   ],
   [ROLES.GUEST]: [
@@ -128,10 +116,7 @@ export function DashboardLayout() {
   const isPrototypeRoute = location.pathname === '/dashboard' || location.pathname === '/profile'
   const isProfileRoute = location.pathname === '/profile'
   const isDriverMobileRoute = role === ROLES.DRIVER && (location.pathname === '/dashboard/driver' || location.pathname.startsWith('/driver/'))
-<<<<<<< HEAD
-=======
   const isFarmWorkspaceRoute = role === ROLES.FARM && (location.pathname === '/dashboard/farm' || location.pathname.startsWith('/farm/'))
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
   const visibleLinks = isPrototypeRoute ? prototypeLinks : filterLinksByRole(role)
   const shellClassName = [
     'dashboard-shell',
@@ -141,10 +126,7 @@ export function DashboardLayout() {
     location.pathname === '/dashboard' ? 'prototype-dashboard-shell' : '',
     isProfileRoute ? 'prototype-profile-shell' : '',
     isDriverMobileRoute ? 'driver-mobile-layout' : '',
-<<<<<<< HEAD
-=======
     isFarmWorkspaceRoute ? 'farm-workspace-layout' : '',
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
   ].filter(Boolean).join(' ')
 
   async function handleGlobalLogout() {
@@ -157,24 +139,15 @@ export function DashboardLayout() {
 
   return (
     <div className={shellClassName}>
-<<<<<<< HEAD
-      {!isDriverMobileRoute ? <Sidebar links={visibleLinks} role={role} /> : null}
-      <div className="dashboard-main">
-        {!isDriverMobileRoute ? <header className="dashboard-topbar" aria-label="Thanh điều hướng không gian làm việc">
-=======
       {!isDriverMobileRoute && !isFarmWorkspaceRoute ? <Sidebar links={visibleLinks} /> : null}
       <div className="dashboard-main">
         {!isDriverMobileRoute && !isFarmWorkspaceRoute ? <header className="dashboard-topbar" aria-label="Thanh điều hướng không gian làm việc">
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
           <div className="dashboard-topbar-main">
             {isProfileRoute ? <span className="dashboard-topbar-title">BICAP</span> : null}
           </div>
           <div className="dashboard-topbar-actions">
             <NotificationBell />
-<<<<<<< HEAD
-=======
             <SupportButton />
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
             <button className="dashboard-icon-button" type="button" aria-label="Cài đặt">
               <span className="material-symbols-outlined" aria-hidden="true">settings</span>
             </button>
@@ -202,18 +175,14 @@ export function DashboardLayout() {
 function NotificationBell() {
   const [notifications, setNotifications] = useState([])
   const [open, setOpen] = useState(false)
-<<<<<<< HEAD
-  const ref = useRef(null)
-=======
   const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 })
   const ref = useRef(null)
   const buttonRef = useRef(null)
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
 
   async function load() {
-    try { setNotifications(await getMyNotifications() || []) } catch { }
+    try { setNotifications(await getMyNotifications() || []) } catch { /* ignore */ }
   }
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/set-state-in-effect
 
   useEffect(() => {
     function handleClick(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
@@ -221,8 +190,6 @@ function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-<<<<<<< HEAD
-=======
   function handleToggle() {
     if (!open && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect()
@@ -235,32 +202,23 @@ function NotificationBell() {
     if (!open) load()
   }
 
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
   const unread = notifications.filter(n => !n.read).length
 
   async function handleMarkRead(id) {
     try {
       await markNotificationRead(id)
       await load()
-    } catch { }
+    } catch { /* ignore */ }
   }
 
   return (
     <div className="notification-bell-wrapper" ref={ref}>
-<<<<<<< HEAD
-      <button className="dashboard-icon-button" type="button" aria-label="Thông báo" onClick={() => { setOpen(!open); if (!open) load() }}>
-=======
       <button ref={buttonRef} className="dashboard-icon-button" type="button" aria-label="Thông báo" onClick={handleToggle}>
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
         <span className="material-symbols-outlined" aria-hidden="true">notifications</span>
         {unread > 0 && <span className="notification-badge">{unread}</span>}
       </button>
       {open && (
-<<<<<<< HEAD
-        <div className="notification-dropdown">
-=======
         <div className="notification-dropdown" style={{ top: dropdownPos.top, right: dropdownPos.right }}>
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
           <div className="notification-dropdown-header">
             <strong>Thông báo</strong>
             <span>{notifications.length} cái</span>

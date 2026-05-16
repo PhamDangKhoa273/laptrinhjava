@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PublicShell } from '../components/public/PublicShell.jsx'
 import { PublicState } from '../components/public/PublicState.jsx'
 import { getPublicAnnouncementFeed } from '../services/workflowService.js'

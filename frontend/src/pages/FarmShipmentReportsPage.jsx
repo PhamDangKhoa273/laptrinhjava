@@ -53,7 +53,7 @@ export function FarmShipmentReportsPage() {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+  const [success, _setSuccess] = useState('')
 
   async function load() {
     setLoading(true)

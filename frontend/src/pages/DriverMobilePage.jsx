@@ -4,10 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { getPrimaryRole } from '../utils/helpers'
 import { ROLES } from '../utils/constants'
 import '../driver-workspace.css'
-<<<<<<< HEAD
-=======
 import { SupportButton } from '../components/SupportButton.jsx'
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
 import {
   driverAddCheckpoint,
   driverConfirmHandover,
@@ -22,10 +19,7 @@ const TABS = [
   { key: 'trips', label: 'Tuyến', icon: 'local_shipping' },
   { key: 'scan', label: 'QR', icon: 'qr_code_scanner' },
   { key: 'actions', label: 'Thao tác', icon: 'handyman' },
-<<<<<<< HEAD
-=======
   { key: 'tracking', label: 'GPS', icon: 'location_on' },
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
   { key: 'report', label: 'Báo cáo', icon: 'warning' },
 ]
 
@@ -72,6 +66,7 @@ export function DriverMobilePage({ module = 'shipments' }) {
     setActiveTab(MODULE_TAB_MAP[module] || 'trips')
   }, [module])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadShipments() }, [])
 
   useEffect(() => {
@@ -171,10 +166,7 @@ export function DriverMobilePage({ module = 'shipments' }) {
       case 'trips': return <TripsView shipments={activeShipments} current={current} selectedId={selectedId} onSelect={handleSelectShipment} loading={loading} />
       case 'scan': return <ScanView qrCode={qrCode} setQrCode={setQrCode} openScanner={() => setScannerOpen(true)} current={current} shipments={shipments} />
       case 'actions': return <ActionsView current={current} canPickup={canPickup} canCheckpoint={canCheckpoint} canHandover={canHandover} doPickup={doPickup} doCheckpoint={doCheckpoint} doHandover={doHandover} checkpointNote={checkpointNote} setCheckpointNote={setCheckpointNote} checkpointLocation={checkpointLocation} setCheckpointLocation={setCheckpointLocation} handoverNote={handoverNote} setHandoverNote={setHandoverNote} actionLoading={actionLoading} />
-<<<<<<< HEAD
-=======
       case 'tracking': return <TrackingView current={current} />
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
       case 'report': return <ReportView form={reportForm} setForm={setReportForm} onSubmit={doReport} actionLoading={actionLoading} />
       default: return null
     }
@@ -195,10 +187,7 @@ export function DriverMobilePage({ module = 'shipments' }) {
               <small>{roleLabel}</small>
             </div>
           </div>
-<<<<<<< HEAD
-=======
           <SupportButton />
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
           <button className="mobile-header-refresh" onClick={loadShipments} disabled={loading} aria-label="Làm mới">
             <span className="material-symbols-outlined">refresh</span>
           </button>
@@ -538,8 +527,6 @@ function ActionsView({ current, canPickup, canCheckpoint, canHandover, doPickup,
   )
 }
 
-<<<<<<< HEAD
-=======
 function TrackingView({ current }) {
   const [position, setPosition] = useState(null)
   const [watchId, setWatchId] = useState(null)
@@ -672,7 +659,6 @@ function TrackingView({ current }) {
   )
 }
 
->>>>>>> 435dc21896bb4f9cdfc25f3a8829c4fe20148ecd
 function ReportView({ form, setForm, onSubmit, actionLoading }) {
   const types = [
     ['ACCIDENT', 'no_crash'], ['BREAKDOWN', 'build'], ['DELAY', 'traffic'],

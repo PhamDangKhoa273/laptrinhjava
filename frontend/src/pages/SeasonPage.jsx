@@ -11,6 +11,7 @@ const initialForm = {
   farmingMethod: "",
 };
 
+// eslint-disable-next-line no-unused-vars
 const seasonStatuses = ["PLANNED", "IN_PROGRESS", "HARVESTED", "COMPLETED"];
 
 function buildSeasonCode(farmCode) {
@@ -38,7 +39,7 @@ export default function SeasonPage() {
           seasonCode: prev.seasonCode || buildSeasonCode(context.farm?.farmCode),
           productId: context.products[0]?.productId ? String(context.products[0].productId) : prev.productId,
         }));
-      } catch { }
+      } catch { /* ignore */ }
     }
     init();
   }, []);

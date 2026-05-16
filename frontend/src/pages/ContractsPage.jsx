@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getFarmContracts, getActiveFarmContracts, getRetailerContracts, createContract, reviewContract, cancelContract } from '../services/contractService'
+import { getFarmContracts, getRetailerContracts, createContract, reviewContract, cancelContract } from '../services/contractService'
 import { getMyFarm, getMyRetailer, getAllFarms } from '../services/businessService'
 import { getRetailers } from '../services/adminService'
 import { getStoredUser } from '../utils/storage'
@@ -38,6 +38,7 @@ export default function ContractsPage() {
   const [userRole, setUserRole] = useState(null)
   const [profileId, setProfileId] = useState(null)
   const [contracts, setContracts] = useState([])
+  // eslint-disable-next-line no-unused-vars
   const [allFarms, setAllFarms] = useState([])
   const [allRetailers, setAllRetailers] = useState([])
   const [form, setForm] = useState(initialForm)
@@ -69,7 +70,7 @@ export default function ContractsPage() {
             setProfileId(retailer.retailerId)
           }
         }
-      } catch { }
+      } catch { /* ignore */ }
     }
     init()
   }, [userRole])
@@ -110,6 +111,7 @@ export default function ContractsPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadData() }, [userRole, profileId])
 
   function handleChange(e) {
