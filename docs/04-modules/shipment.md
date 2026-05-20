@@ -52,6 +52,7 @@ Shipment module sở hữu shipment lifecycle (create → assign → pickup → 
 - 2026-05-20: Driver QR scan now validates scanned trace/batch/shipment codes against the driver's assigned shipment list before showing route details, so public marketplace QR codes no longer appear as successful driver scans unless they belong to an assigned shipment (`R-DRV-030`).
 - 2026-05-20: Driver QR matching accepts same-origin/public trace URLs, `/trace/<code>` paths, QR URL fields, trace codes, batch codes, batch ids, and shipment ids. Selecting a shipment is optimistic so tapping an assigned trip updates immediately while detail refresh runs in the background.
 - 2026-05-20: Driver execution flow requires product QR match before pickup at farm, then requires delivery proof image before driver handover marks the shipment `DELIVERED` (`R-DRV-030`, `R-DRV-050`).
+- 2026-05-21: Shipping Manager sidebar uses explicit icons per menu item instead of the generic shipping icon, and completed-delivery views count both `DELIVERED` and retailer-confirmed `CONFIRMED` shipments as completed.
 
 ## Depends-on
 
