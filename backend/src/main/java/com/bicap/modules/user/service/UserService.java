@@ -86,6 +86,20 @@ public class UserService {
             userRole.setRole(guestRole);
             userRoleRepository.save(userRole);
         }
+        if (request.getInitialRole() != null && request.getInitialRole() != RoleName.GUEST) {
+            Role initialRole = roleRepository.findByRoleName(request.getInitialRole().name())
+                    .orElseThrow(() -> new BusinessException("Role khong ton tai"));
+            if (!userRoleRepository.existsByUserAndRole(saved, initialRole)) {
+                UserRole userRole = new UserRole();
+                userRole.setUser(saved);
+                userRole.setRole(initialRole);
+                userRoleRepository.save(userRole);
+            }
+            userRoleRepository.findByUser(saved).stream()
+                    .filter(userRole -> RoleName.GUEST.name().equalsIgnoreCase(userRole.getRole().getRoleName()))
+                    .forEach(userRoleRepository::delete);
+        }
+        userRoleRepository.flush();
         securityAuditService.logAdminAction(SecurityUtils.getCurrentUserIdOrNull(), "USER_CREATE", String.valueOf(saved.getUserId()), saved.getEmail());
         return toResponse(saved);
     }
@@ -167,7 +181,9 @@ public class UserService {
         User user = getUserEntityById(userId);
         validateStatusTransition(user.getStatus(), request.getStatus());
         user.setStatus(request.getStatus());
-        UserResponse response = toResponse(userRepository.save(user));
+        User saved = userRepository.save(user);
+        userRepository.flush();
+        UserResponse response = getUserById(saved.getUserId());
         securityAuditService.logAdminAction(SecurityUtils.getCurrentUserIdOrNull(), "USER_STATUS_CHANGE", String.valueOf(userId), request.getStatus().name());
         return response;
     }
@@ -199,7 +215,8 @@ public class UserService {
         }
 
         userRoleRepository.delete(userRole);
-        UserResponse response = toResponse(user);
+        userRoleRepository.flush();
+        UserResponse response = getUserById(userId);
         securityAuditService.logAdminAction(SecurityUtils.getCurrentUserIdOrNull(), "USER_ROLE_REMOVE", String.valueOf(userId), roleName.name());
         return response;
     }
@@ -220,8 +237,9 @@ public class UserService {
         userRole.setUser(user);
         userRole.setRole(role);
         userRoleRepository.save(userRole);
+        userRoleRepository.flush();
 
-        UserResponse response = toResponse(user);
+        UserResponse response = getUserById(userId);
         securityAuditService.logAdminAction(SecurityUtils.getCurrentUserIdOrNull(), "USER_ROLE_ASSIGN", String.valueOf(userId), request.getRoleName().name());
         return response;
     }

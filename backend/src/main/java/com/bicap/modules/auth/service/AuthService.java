@@ -1,6 +1,7 @@
 package com.bicap.modules.auth.service;
 
 import com.bicap.core.enums.RoleName;
+import com.bicap.core.enums.UserStatus;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.CustomUserPrincipal;
 import com.bicap.core.security.JwtTokenProvider;
@@ -193,6 +194,11 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy user"));
 
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            revokeSession(session, "USER_DISABLED", null);
+            throw new BusinessException("Tai khoan da bi khoa hoac ngung hoat dong");
+        }
+
         var authorities = userRoleRepository.findByUser(user).stream()
                 .map(userRole -> new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getRoleName()))
                 .toList();
@@ -201,6 +207,7 @@ public class AuthService {
                 user.getUserId(),
                 user.getEmail(),
                 user.getPassword(),
+                user.getFullName(),
                 user.getStatus() != null ? user.getStatus().name() : null,
                 authorities
         );
