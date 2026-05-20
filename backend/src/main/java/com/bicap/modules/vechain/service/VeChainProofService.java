@@ -141,6 +141,7 @@ public class VeChainProofService {
         tx.setRelatedEntityId(relatedEntityId);
         tx.setActionType(actionType);
         tx.setDataPayload(dataPayload);
+        tx.setTxSeed(traceCode + "|" + canonicalHashHexNo0x);
 
         if (!props.isEnabled()) {
             tx.setTxHash("DISABLED-" + canonicalHashHexNo0x);
@@ -150,18 +151,36 @@ public class VeChainProofService {
             return transactionRepository.save(tx);
         }
 
-        try {
-            String txId = commitSeasonExportProof(canonicalHashHexNo0x, traceCode);
-            tx.setTxHash(txId);
+        tx.setTxHash("QUEUED-" + canonicalHashHexNo0x);
+        tx.setTxStatus("QUEUED");
+        tx.setGovernanceStatus(BlockchainGovernanceStatus.PENDING);
+        tx.setGovernanceNote("Queued for async VeChainThor worker");
+        return transactionRepository.save(tx);
+    }
 
-            JsonNode receipt = waitForReceipt(txId, 10, 1500L);
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW, noRollbackFor = Throwable.class)
+    public BlockchainTransaction processQueuedTransaction(Long queuedTxId) {
+        BlockchainTransaction tx = transactionRepository.findById(queuedTxId)
+                .orElseThrow(() -> new IllegalStateException("Blockchain tx not found: " + queuedTxId));
+        if (tx.getGovernanceStatus() != BlockchainGovernanceStatus.PROCESSING) {
+            return tx;
+        }
+        String[] seedParts = tx.getTxSeed() != null ? tx.getTxSeed().split("\\|", 2) : new String[0];
+        String traceCode = seedParts.length > 0 ? seedParts[0] : String.valueOf(tx.getRelatedEntityId());
+        String canonicalHashHexNo0x = seedParts.length > 1 ? seedParts[1] : stripQueuedPrefix(tx.getTxHash());
+
+        try {
+            String submittedTxId = commitSeasonExportProof(canonicalHashHexNo0x, traceCode);
+            tx.setTxHash(submittedTxId);
+
+            JsonNode receipt = waitForReceipt(submittedTxId, 10, 1500L);
             boolean reverted = receipt.path("reverted").asBoolean(false);
             long gasUsed = receipt.path("gasUsed").asLong(0L);
             long blockNumber = receipt.path("meta").path("blockNumber").asLong(-1L);
 
             tx.setTxStatus(reverted ? "REVERTED" : "CONFIRMED");
             tx.setGovernanceStatus(reverted ? BlockchainGovernanceStatus.FAILED : BlockchainGovernanceStatus.SUCCESS);
-            tx.setGovernanceNote("txId=" + txId + ", block=" + blockNumber + ", gasUsed=" + gasUsed + ", reverted=" + reverted);
+            tx.setGovernanceNote("txId=" + submittedTxId + ", block=" + blockNumber + ", gasUsed=" + gasUsed + ", reverted=" + reverted);
             return transactionRepository.save(tx);
         } catch (Throwable e) {
             // Catch Throwable to handle NoClassDefFoundError from devkit/web3j guava mismatch.
@@ -173,9 +192,14 @@ public class VeChainProofService {
                 note += " | cause=" + e.getCause().getClass().getName() + ": " + e.getCause().getMessage();
             }
             tx.setGovernanceNote(note);
-            log.warn("VeChain commit failed for entityType={} entityId={} actionType={} traceCode={}: {}", relatedEntityType, relatedEntityId, actionType, traceCode, note, e);
+            log.warn("VeChain commit failed for entityType={} entityId={} actionType={} traceCode={}: {}", tx.getRelatedEntityType(), tx.getRelatedEntityId(), tx.getActionType(), traceCode, note, e);
             return transactionRepository.save(tx);
         }
+    }
+
+    private String stripQueuedPrefix(String value) {
+        if (value == null) return null;
+        return value.startsWith("QUEUED-") ? value.substring("QUEUED-".length()) : value;
     }
 
     public String commitSeasonExportProof(String canonicalHashHexNo0x, String traceCode) {

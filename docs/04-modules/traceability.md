@@ -41,3 +41,6 @@ Traceability module là cross-cutting facade cho proof of origin: liên kết fa
 ## Open gaps
 
 - pending — public trace media policy nếu media-rich trace mở rộng
+## Change notes
+
+- 2026-05-21: Public trace lookups use Spring cache (`publicTrace`) so repeated QR/product trace reads can be served from Redis in staging/prod (`SPRING_CACHE_TYPE=redis`) instead of hitting DB/blockchain-adjacent services on every scan.

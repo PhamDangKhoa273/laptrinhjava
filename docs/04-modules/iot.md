@@ -74,3 +74,6 @@ sequenceDiagram
 ## Open gaps
 
 - pending — gateway key rotation policy
+## Scalability notes
+
+- 2026-05-21: IoT-scale provenance should aggregate readings into canonical hashes/proofs before VeChain submission. The chain stores immutable proof metadata; detailed high-volume readings remain in MySQL/object storage and alert notifications follow this module's cadence.

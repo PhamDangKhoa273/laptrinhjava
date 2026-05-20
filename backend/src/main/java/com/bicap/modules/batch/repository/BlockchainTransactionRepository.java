@@ -20,4 +20,5 @@ public interface BlockchainTransactionRepository extends JpaRepository<Blockchai
     );
 
     List<BlockchainTransaction> findTop50ByGovernanceStatusInOrderByCreatedAtAsc(List<BlockchainGovernanceStatus> statuses);
+    List<BlockchainTransaction> findByGovernanceStatusInOrderByCreatedAtAsc(List<BlockchainGovernanceStatus> statuses);
 }
