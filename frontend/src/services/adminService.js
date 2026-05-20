@@ -50,6 +50,10 @@ export async function getProducts() {
   return unwrap(await api.get('/products'))
 }
 
+export async function getAdminListings() {
+  return unwrap(await api.get('/listings/admin'))
+}
+
 export async function createProduct(data) {
   return unwrap(await api.post('/products', data))
 }

@@ -113,6 +113,26 @@ class ListingAndDiscoveryControllerTests {
     }
 
     @Test
+    void getAdminListings_shouldReturnAllListingRowsForGovernance() throws Exception {
+        ListingResponse response = ListingResponse.builder()
+                .listingId(2L)
+                .title("Bap ngo moi thu hoach")
+                .productName("Bap ngo")
+                .farmName("Farm A")
+                .status("INACTIVE")
+                .approvalStatus("PENDING")
+                .build();
+
+        when(listingService.getAllListings()).thenReturn(List.of(response));
+
+        listingMockMvc.perform(get("/api/v1/listings/admin"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].listingId").value(2))
+                .andExpect(jsonPath("$.data[0].approvalStatus").value("PENDING"));
+    }
+
+    @Test
     void search_shouldReturnPagedPayloadContract() throws Exception {
         ListingResponse item = ListingResponse.builder()
                 .listingId(1L)

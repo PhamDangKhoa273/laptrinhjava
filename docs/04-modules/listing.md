@@ -34,6 +34,7 @@ Listing module owns marketplace listings, connecting farm-owned products/batches
 
 - `POST /api/v1/listings` - create draft listing from a farm-owned eligible batch.
 - `GET /api/v1/listings/my` - list current farm owner's listings.
+- `GET /api/v1/listings/admin` - admin-only list of all Farm marketplace listings for product governance oversight.
 - `PUT /api/v1/listings/{id}` - update current farm owner's listing.
 - `POST /api/v1/listings/{id}/submit` - submit listing for admin review.
 - `PATCH /api/v1/listings/registrations/{registrationId}/review` - admin review for listing registration.
@@ -46,6 +47,7 @@ Listing module owns marketplace listings, connecting farm-owned products/batches
 - Marketplace filter options are derived from approved active listings, including only product categories that actually have stock on the marketplace.
 - Farm listing UI hides ineligible batches from the create selector and calls out expired/sold-out/no-stock batches before submit, matching backend listing eligibility.
 - Farm listing UI shows the selected batch's catalog category as read-only metadata; category is owned by the product catalog, not manually typed on the listing.
+- Admin product governance uses the admin listing endpoint to monitor all Farm-created marketplace listings, not only the seed catalog rows.
 
 ## Tests
 

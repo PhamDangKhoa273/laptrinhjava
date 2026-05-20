@@ -511,6 +511,22 @@ paths:
       responses:
         '200': { description: OK }
 
+  /listings/admin:
+    get:
+      tags: [admin]
+      operationId: adminListingsList
+      x-doc-id: API-LST-ADM-001
+      summary: List all farm marketplace listings for admin product governance
+      description: |
+        Return all Farm-created marketplace listings, including draft, pending, approved, rejected, active, and inactive rows, so admin product oversight is not limited to the seed product catalog.
+        ---
+        Trả toàn bộ listing do Farm tạo để admin giám sát sản phẩm đăng sàn, không chỉ catalog nền.
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { description: OK }
+        '403': { description: Forbidden }
+
   /shipping-manager/dashboard-summary:
     get:
       tags: [shipping-manager]
