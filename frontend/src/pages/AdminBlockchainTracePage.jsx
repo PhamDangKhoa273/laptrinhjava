@@ -17,7 +17,7 @@ function normalizeList(payload) {
 }
 
 function getBatchId(item) {
-  return item?.batchId || item?.id || item?.batchCode || 'N/A'
+  return item?.batchId || item?.id || item?.batchCode || 'Chua-co-id'
 }
 
 function getTraceCode(item) {
@@ -34,14 +34,14 @@ function statusClass(status) {
   return `status-pill status-${String(status || 'pending').toLowerCase()}`
 }
 
-function shortHash(value) {
-  if (!value) return 'N/A'
+function shortHash(value, fallback = 'Chua co du lieu') {
+  if (!value) return fallback
   const text = String(value)
   return text.length > 22 ? `${text.slice(0, 12)}...${text.slice(-8)}` : text
 }
 
 function formatDateTime(value) {
-  if (!value) return 'N/A'
+  if (!value) return 'Chua co thoi gian'
   return new Date(value).toLocaleString('vi-VN')
 }
 
@@ -226,7 +226,7 @@ export function AdminBlockchainTracePage() {
             <div><span>Phiên bản</span><strong>{governanceConfig?.contractVersion || 'v1'}</strong></div>
             <div><span>Trạng thái</span><strong>{governanceConfig?.deploymentStatus || 'LOADING'}</strong></div>
             <div><span>Ghi on-chain</span><strong>{governanceConfig?.writeMode ? 'Sẵn sàng' : 'Cần cấu hình key'}</strong></div>
-            <div><span>Contract</span><strong>{shortHash(governanceConfig?.contractAddress)}</strong></div>
+            <div><span>Contract</span><strong>{shortHash(governanceConfig?.contractAddress, 'Chua cau hinh contract')}</strong></div>
           </div>
 
           <div className="admin-form-panel">
@@ -295,9 +295,9 @@ export function AdminBlockchainTracePage() {
               </div>
               <div className="admin-blockchain-info-grid">
                 <div><span>Local hash</span><strong>{shortHash(selectedVerify?.localHash)}</strong></div>
-                <div><span>On-chain hash</span><strong>{shortHash(selectedVerify?.onChainHash)}</strong></div>
-                <div><span>Tx hash</span><strong>{shortHash(selectedTrace.blockchainTxHash || selectedTrace.txHash || selectedVerify?.txHash)}</strong></div>
-                <div><span>Block number</span><strong>{selectedVerify?.blockNumber || selectedTrace.blockNumber || 'N/A'}</strong></div>
+                <div><span>On-chain hash</span><strong>{shortHash(selectedVerify?.onChainHash, 'Chua ghi on-chain')}</strong></div>
+                <div><span>Tx hash</span><strong>{shortHash(selectedTrace.blockchainTxHash || selectedTrace.txHash || selectedVerify?.txHash, 'Chua co transaction')}</strong></div>
+                <div><span>Block number</span><strong>{selectedVerify?.blockNumber || selectedTrace.blockNumber || 'Chua co block'}</strong></div>
                 <div><span>Batch ID</span><strong>#{getBatchId(selectedTrace)}</strong></div>
                 <div><span>Entity type</span><strong>BATCH</strong></div>
               </div>
