@@ -19,6 +19,7 @@ import {
   updateSeasonProcess,
   verifyBatch,
 } from '../services/phase3Service'
+import { exportSeason, getLatestSeasonExport } from '../services/seasonExportService.js'
 import { getErrorMessage } from '../utils/helpers'
 
 const initialSeasonForm = {
@@ -76,7 +77,7 @@ function formatDate(value) {
 }
 
 function copyToClipboard(text) {
-  if (!text || !navigator?.clipboard) return Promise.reject(new Error('Clipboard không khả dụng.'))
+  if (!text || !navigator?.clipboard) return Promise.reject(new Error('Clipboard không kh? d?ng.'))
   return navigator.clipboard.writeText(text)
 }
 
@@ -90,7 +91,7 @@ function buildBatchCode(seasonCode) {
   return `${seasonCode || 'BATCH'}-${stamp}`
 }
 
-export function FarmPhase3Page() {
+export function FarmPhase3Page({ module = 'all' }) {
   const [farmContext, setFarmContext] = useState(null)
   const [products, setProducts] = useState([])
   const [seasons, setSeasons] = useState([])
@@ -98,6 +99,8 @@ export function FarmPhase3Page() {
   const [seasonTimeline, setSeasonTimeline] = useState(null)
   const [traceResult, setTraceResult] = useState(null)
   const [verifyResult, setVerifyResult] = useState(null)
+  const [seasonExports, setSeasonExports] = useState({}) // seasonId ? SeasonExportResponse
+  const [exportingSeasonId, setExportingSeasonId] = useState('')
   const [selectedSeasonId, setSelectedSeasonId] = useState('')
   const [selectedBatchId, setSelectedBatchId] = useState('')
   const [editingSeasonId, setEditingSeasonId] = useState('')
@@ -189,7 +192,7 @@ export function FarmPhase3Page() {
 
       setError('')
     } catch (err) {
-      setError(getErrorMessage(err, 'Không thể tải dữ liệu Phase 3.'))
+      setError(getErrorMessage(err, 'Không th? t?i d? li?u Phase 3.'))
     } finally {
       setLoading(false)
     }
@@ -254,7 +257,7 @@ export function FarmPhase3Page() {
   async function handleSeasonSubmit(event) {
     event.preventDefault()
     if (!isPositiveNumber(seasonForm.farmId) || !isPositiveNumber(seasonForm.productId)) {
-      setError('Farm ID và Product ID phải là số dương.')
+      setError('Farm ID và Product ID ph?i là s? dương.')
       return
     }
 
@@ -275,27 +278,27 @@ export function FarmPhase3Page() {
       let result
       if (editingSeasonId) {
         result = await updateSeason(Number(editingSeasonId), payload)
-        setSuccess('Cập nhật mùa vụ thành công.')
+        setSuccess('C?p nh?t mùa v? thành công.')
       } else {
         result = await createSeason(payload)
-        setSuccess('Tạo mùa vụ thành công.')
+        setSuccess('T?o mùa v? thành công.')
       }
 
       resetSeasonForm()
       await loadDashboard({ preferredSeasonId: result?.id })
     } catch (err) {
-      setError(getErrorMessage(err, 'Không thể lưu mùa vụ.'))
+      setError(getErrorMessage(err, 'Không th? lưu mùa v?.'))
     }
   }
 
   async function handleProcessSubmit(event) {
     event.preventDefault()
     if (!selectedSeasonId) {
-      setError('Hãy chọn mùa vụ trước khi thêm quy trình.')
+      setError('H?y ch?n mùa v? trước khi thêm quy tr?nh.')
       return
     }
     if (!isPositiveNumber(processForm.stepNo)) {
-      setError('Số bước phải là số dương.')
+      setError('S? bước ph?i là s? dương.')
       return
     }
 
@@ -312,27 +315,27 @@ export function FarmPhase3Page() {
 
       if (editingProcessId) {
         await updateSeasonProcess(Number(editingProcessId), payload)
-        setSuccess('Cập nhật bước quy trình thành công.')
+        setSuccess('C?p nh?t bước quy tr?nh thành công.')
       } else {
         await createSeasonProcess(Number(selectedSeasonId), payload)
-        setSuccess('Thêm bước quy trình thành công.')
+        setSuccess('Thêm bước quy tr?nh thành công.')
       }
 
       resetProcessForm()
       setSeasonTimeline(await getSeasonProcesses(Number(selectedSeasonId)))
     } catch (err) {
-      setError(getErrorMessage(err, 'Không thể lưu bước quy trình.'))
+      setError(getErrorMessage(err, 'Không th? lưu bước quy tr?nh.'))
     }
   }
 
   async function handleBatchSubmit(event) {
     event.preventDefault()
     if (!isPositiveNumber(batchForm.seasonId) || !isPositiveNumber(batchForm.productId)) {
-      setError('Season ID và Product ID phải là số dương.')
+      setError('Season ID và Product ID ph?i là s? dương.')
       return
     }
     if (!isPositiveNumber(batchForm.quantity) || !isPositiveNumber(batchForm.availableQuantity)) {
-      setError('Số lượng phải là số dương.')
+      setError('S? lượng ph?i là s? dương.')
       return
     }
 
@@ -354,16 +357,16 @@ export function FarmPhase3Page() {
       let result
       if (editingBatchId) {
         result = await updateBatch(Number(editingBatchId), payload)
-        setSuccess('Cập nhật lô sản phẩm thành công.')
+        setSuccess('C?p nh?t lô s?n ph?m thành công.')
       } else {
         result = await createBatch(payload)
-        setSuccess('Tạo lô sản phẩm thành công.')
+        setSuccess('T?o lô s?n ph?m thành công.')
       }
 
       resetBatchForm()
       await loadDashboard({ preferredBatchId: result?.batchId })
     } catch (err) {
-      setError(getErrorMessage(err, 'Không thể lưu lô sản phẩm.'))
+      setError(getErrorMessage(err, 'Không th? lưu lô s?n ph?m.'))
     }
   }
 
@@ -376,9 +379,9 @@ export function FarmPhase3Page() {
       setSelectedBatchId(String(batchId))
       setTraceResult(traceData)
       setVerifyResult(verifyData)
-      setSuccess('Tạo QR thành công.')
+      setSuccess('T?o QR thành công.')
     } catch (err) {
-      setError(getErrorMessage(err, 'Không thể tạo QR.'))
+      setError(getErrorMessage(err, 'Không th? t?o QR.'))
     }
   }
 
@@ -391,7 +394,7 @@ export function FarmPhase3Page() {
       setTraceResult(traceData)
       setVerifyResult(verifyData)
     } catch (err) {
-      setError(getErrorMessage(err, 'Không thể tải truy xuất lô hàng.'))
+      setError(getErrorMessage(err, 'Không th? t?i truy xu?t lô hàng.'))
     }
   }
 
@@ -410,7 +413,7 @@ export function FarmPhase3Page() {
         }))
       }
     } catch (err) {
-      setError(getErrorMessage(err, 'Không thể tải timeline mùa vụ.'))
+      setError(getErrorMessage(err, 'Không th? t?i timeline mùa v?.'))
     }
   }
 
@@ -459,7 +462,7 @@ export function FarmPhase3Page() {
     setSuccess('')
     try {
       await deleteSeasonProcess(processId)
-      setSuccess('Đã xóa bước quy trình.')
+      setSuccess('Đã xóa bước quy tr?nh.')
       if (selectedSeasonId) {
         setSeasonTimeline(await getSeasonProcesses(Number(selectedSeasonId)))
       }
@@ -467,7 +470,7 @@ export function FarmPhase3Page() {
         resetProcessForm()
       }
     } catch (err) {
-      setError(getErrorMessage(err, 'Không thể xóa bước quy trình.'))
+      setError(getErrorMessage(err, 'Không th? xóa bước quy tr?nh.'))
     }
   }
 
@@ -478,60 +481,130 @@ export function FarmPhase3Page() {
     setSuccess('')
     try {
       await reorderSeasonProcess(processId, nextStepNo)
-      setSuccess('Đã đổi thứ tự bước quy trình.')
+      setSuccess('Đã đổi th? t? bước quy tr?nh.')
       if (selectedSeasonId) {
         setSeasonTimeline(await getSeasonProcesses(Number(selectedSeasonId)))
       }
     } catch (err) {
-      setError(getErrorMessage(err, 'Không thể đổi thứ tự bước quy trình.'))
+      setError(getErrorMessage(err, 'Không th? đổi th? t? bước quy tr?nh.'))
     }
   }
 
   async function handleCopyQrUrl() {
     try {
       await copyToClipboard(traceResult?.qrInfo?.qrUrl)
-      setSuccess('Đã copy đường dẫn QR.')
+      setSuccess('Đã copy đường d?n QR.')
     } catch (err) {
-      setError(getErrorMessage(err, 'Không thể copy đường dẫn QR.'))
+      setError(getErrorMessage(err, 'Không th? copy đường d?n QR.'))
     }
   }
+
+  // Bullet #10 + #11 — Xu?t mùa v? + t?o QR (ghi blockchain).
+  // Backend `SeasonExportService.exportSeason()` builds payload, hashes it,
+  // commits a VeChainThor proof, and persists `SeasonExport` with `traceCode` + `publicTraceUrl`.
+  async function handleExportSeason(seasonId) {
+    if (!seasonId) return
+    setError('')
+    setSuccess('')
+    setExportingSeasonId(String(seasonId))
+    try {
+      const response = await exportSeason(Number(seasonId))
+      setSeasonExports((current) => ({ ...current, [String(seasonId)]: response }))
+      setSuccess(
+        `Đã xu?t mùa v? #${seasonId}. Trace code: ${response?.traceCode || 'N/A'}. QR public trace URL đã s?n sàng.`,
+      )
+    } catch (err) {
+      setError(getErrorMessage(err, 'Không th? xu?t mùa v?. Đảm b?o farm đã APPROVED và mùa v? đã có quy tr?nh.'))
+    } finally {
+      setExportingSeasonId('')
+    }
+  }
+
+  async function handleViewLatestExport(seasonId) {
+    if (!seasonId) return
+    setError('')
+    setSuccess('')
+    try {
+      const response = await getLatestSeasonExport(Number(seasonId))
+      setSeasonExports((current) => ({ ...current, [String(seasonId)]: response }))
+    } catch (err) {
+      const status = err?.response?.status
+      if (status === 404) {
+        setError('Mùa v? chưa được xu?t l?n nào.')
+      } else {
+        setError(getErrorMessage(err, 'Không th? t?i b?n xu?t m?i nh?t.'))
+      }
+    }
+  }
+
+  async function handleCopyTraceUrl(traceUrl) {
+    try {
+      await copyToClipboard(traceUrl)
+      setSuccess('Đã copy đường d?n truy xu?t công khai.')
+    } catch (err) {
+      setError(getErrorMessage(err, 'Không th? copy đường d?n.'))
+    }
+  }
+
+  const moduleTitles = {
+    seasons: { eyebrow: 'S?n xu?t / Mùa v?', title: 'Qu?n l? mùa v?', subtitle: 'T?o mùa v?, ghi nh?t k? quy tr?nh canh tác, theo d?i ti?n độ thu ho?ch.' },
+    batches: { eyebrow: 'S?n xu?t / Lô hàng', title: 'Qu?n l? lô hàng', subtitle: 'T?o batch t? mùa v? đã thu ho?ch, qu?n l? s? lượng và ch?t lượng.' },
+    trace: { eyebrow: 'S?n xu?t / Truy xu?t QR', title: 'M? QR & Truy xu?t ngu?n g?c', subtitle: 'Generate QR cho batch, xem trace blockchain và payload công khai.' },
+    all: { eyebrow: 'Phase 3 workspace', title: 'Season, process, batch và truy xu?t ngu?n g?c', subtitle: 'Lu?ng FARM hoàn ch?nh hơn, dùng được hơn và b?t nh?p tay k? thu?t hơn trước.' },
+  }
+  const head = moduleTitles[module] || moduleTitles.all
+  const showSeasons = module === 'all' || module === 'seasons'
+  const showBatches = module === 'all' || module === 'batches'
+  const showTrace = module === 'all' || module === 'trace'
 
   return (
     <section className="page-section">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Phase 3 workspace</p>
-          <h2>Season, process, batch và truy xuất nguồn gốc</h2>
-          <p>Luồng FARM hoàn chỉnh hơn, dùng được hơn và bớt nhập tay kỹ thuật hơn trước.</p>
+          <p className="eyebrow">{head.eyebrow}</p>
+          <h2>{head.title}</h2>
+          <p>{head.subtitle}</p>
         </div>
       </div>
 
-      {loading ? <div className="glass-card">Đang tải dữ liệu Phase 3...</div> : null}
+      {loading ? <div className="glass-card">Đang t?i d? li?u Phase 3...</div> : null}
       {error ? <div className="alert alert-error">{error}</div> : null}
       {success ? <div className="alert alert-success">{success}</div> : null}
 
       <div className="content-grid">
         <article className="glass-card">
-          <h3>Ngữ cảnh nông trại hiện tại</h3>
-          <ul className="feature-list">
-            <li>Farm: {farmContext?.farmName || 'Chưa tải được farm profile'}</li>
-            <li>Farm code: {farmContext?.farmCode || 'N/A'}</li>
-            <li>Approval: {farmContext?.approvalStatus || 'N/A'}</li>
-            <li>Sản phẩm khả dụng: {products.length}</li>
-          </ul>
+          <h3>Ng? c?nh nông tr?i hi?n t?i</h3>
+          {!farmContext ? (
+            <div>
+              <p style={{ marginBottom: 12 }}>
+                <strong>B?n chưa đăng k? nông tr?i.</strong> H?y t?o h? sơ nông tr?i trước khi t?o mùa v? và lô hàng.
+              </p>
+              <a href="/farm/profile" className="business-card" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 16px', textDecoration: 'none' }}>
+                <span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                Đăng k? nông tr?i t?i H? sơ farm
+              </a>
+            </div>
+          ) : (
+            <ul className="feature-list">
+              <li>Farm: {farmContext.farmName || 'N/A'}</li>
+              <li>Farm code: {farmContext.farmCode || 'N/A'}</li>
+              <li>Approval: {farmContext.approvalStatus || 'N/A'}</li>
+              <li>S?n ph?m kh? d?ng: {products.length}</li>
+            </ul>
+          )}
         </article>
       </div>
 
-      <div className="content-grid top-gap">
+      <div className="content-grid top-gap" id="seasons" hidden={!showSeasons}>
         <article className="glass-card">
-          <h3>{editingSeasonId ? 'Cập nhật mùa vụ' : 'Tạo mùa vụ'}</h3>
+          <h3>{editingSeasonId ? 'C?p nh?t mùa v?' : 'T?o mùa v?'}</h3>
           <form className="form-grid" onSubmit={handleSeasonSubmit}>
             <div className="grid-two">
               <TextInput label="Farm ID" name="farmId" value={seasonForm.farmId} onChange={handleSeasonChange} required disabled={Boolean(farmContext?.farmId)} />
               <label className="field-group">
                 <span className="field-label">Product</span>
                 <select className="field-input" name="productId" value={seasonForm.productId} onChange={handleSeasonChange}>
-                  <option value="">Chọn sản phẩm</option>
+                  <option value="">Ch?n s?n ph?m</option>
                   {products.map((product) => (
                     <option key={product.productId} value={product.productId}>
                       {product.productCode ? `${product.productCode} - ` : ''}{product.productName}
@@ -560,16 +633,18 @@ export function FarmPhase3Page() {
               </label>
             </div>
             <div className="flex gap-3">
-              <Button type="submit">{editingSeasonId ? 'Lưu cập nhật mùa vụ' : 'Tạo mùa vụ'}</Button>
-              <Button type="button" variant="secondary" onClick={resetSeasonForm}>Làm mới form</Button>
+              <Button type="submit">{editingSeasonId ? 'Lưu c?p nh?t mùa v?' : 'T?o mùa v?'}</Button>
+              <Button type="button" variant="secondary" onClick={resetSeasonForm}>Làm m?i form</Button>
             </div>
           </form>
 
-          <h3 className="top-gap">Danh sách mùa vụ</h3>
+          <h3 className="top-gap">Danh sách mùa v?</h3>
           <div className="form-grid">
-            {seasons.length === 0 ? <p>Chưa có mùa vụ.</p> : null}
+            {seasons.length === 0 ? <p>Chưa có mùa v?.</p> : null}
             {seasons.map((season) => {
               const isActive = String(season.id) === String(selectedSeasonId)
+              const exportInfo = seasonExports[String(season.id)]
+              const isExporting = String(exportingSeasonId) === String(season.id)
               return (
                 <div key={season.id} className="business-card">
                   <div>
@@ -577,13 +652,44 @@ export function FarmPhase3Page() {
                     <p>Farm: {season.farmName} | Product: {season.productName || season.productId}</p>
                     <p>Method: {season.farmingMethod || 'N/A'}</p>
                     <p>Status: {season.seasonStatus}</p>
-                    <p>Bắt đầu: {formatDate(season.startDate)} | Dự kiến thu hoạch: {formatDate(season.expectedHarvestDate)}</p>
+                    <p>B?t đầu: {formatDate(season.startDate)} | D? ki?n thu ho?ch: {formatDate(season.expectedHarvestDate)}</p>
+                    {exportInfo ? (
+                      <div className="trace-export-info">
+                        <p>
+                          <strong>Trace code:</strong> {exportInfo.traceCode || 'N/A'}
+                        </p>
+                        {exportInfo.publicTraceUrl ? (
+                          <p>
+                            <strong>Public URL:</strong>{' '}
+                            <a href={exportInfo.publicTraceUrl} target="_blank" rel="noreferrer">
+                              {exportInfo.publicTraceUrl}
+                            </a>
+                          </p>
+                        ) : null}
+                        {exportInfo.dataHash ? (
+                          <p style={{ wordBreak: 'break-all' }}>
+                            <strong>Data hash:</strong> {exportInfo.dataHash}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex gap-3" style={{ flexWrap: 'wrap' }}>
                     <Button variant={isActive ? 'primary' : 'secondary'} onClick={() => handleSelectSeason(season.id)}>
                       {isActive ? 'Đang xem timeline' : 'Xem timeline'}
                     </Button>
-                    <Button variant="secondary" onClick={() => fillSeason(season)}>Sửa</Button>
+                    <Button variant="secondary" onClick={() => fillSeason(season)}>S?a</Button>
+                    <Button variant="primary" onClick={() => handleExportSeason(season.id)} disabled={isExporting}>
+                      {isExporting ? 'Đang xu?t...' : exportInfo ? 'Xu?t l?i + t?o QR' : 'Xu?t mùa v? + t?o QR'}
+                    </Button>
+                    <Button variant="secondary" onClick={() => handleViewLatestExport(season.id)}>
+                      Xem export g?n nh?t
+                    </Button>
+                    {exportInfo?.publicTraceUrl ? (
+                      <Button variant="secondary" onClick={() => handleCopyTraceUrl(exportInfo.publicTraceUrl)}>
+                        Copy URL truy xu?t
+                      </Button>
+                    ) : null}
                   </div>
                 </div>
               )
@@ -592,11 +698,11 @@ export function FarmPhase3Page() {
         </article>
 
         <article className="glass-card">
-          <h3>{editingProcessId ? 'Cập nhật bước quy trình' : 'Thêm bước quy trình'}</h3>
-          <p>Mùa vụ đang chọn: <strong>{selectedSeason?.seasonCode || 'Chưa chọn'}</strong></p>
+          <h3>{editingProcessId ? 'C?p nh?t bước quy tr?nh' : 'Thêm bước quy tr?nh'}</h3>
+          <p>Mùa v? đang ch?n: <strong>{selectedSeason?.seasonCode || 'Chưa ch?n'}</strong></p>
           {seasonTimeline?.seasonInfo ? (
             <p>
-              Trạng thái: {seasonTimeline.seasonInfo.seasonStatus || 'N/A'} | Bắt đầu: {formatDate(seasonTimeline.seasonInfo.startDate)}
+              Tr?ng thái: {seasonTimeline.seasonInfo.seasonStatus || 'N/A'} | B?t đầu: {formatDate(seasonTimeline.seasonInfo.startDate)}
             </p>
           ) : null}
           <form className="form-grid" onSubmit={handleProcessSubmit}>
@@ -608,12 +714,12 @@ export function FarmPhase3Page() {
             <TextAreaField label="Description" name="description" value={processForm.description} onChange={handleProcessChange} />
             <TextInput label="Image URL" name="imageUrl" value={processForm.imageUrl} onChange={handleProcessChange} />
             <div className="flex gap-3">
-              <Button type="submit">{editingProcessId ? 'Lưu cập nhật bước' : 'Thêm bước mới'}</Button>
-              <Button type="button" variant="secondary" onClick={resetProcessForm}>Làm mới form</Button>
+              <Button type="submit">{editingProcessId ? 'Lưu c?p nh?t bước' : 'Thêm bước m?i'}</Button>
+              <Button type="button" variant="secondary" onClick={resetProcessForm}>Làm m?i form</Button>
             </div>
           </form>
 
-          <h3 className="top-gap">Timeline quy trình</h3>
+          <h3 className="top-gap">Timeline quy tr?nh</h3>
           <div className="form-grid">
             {seasonTimeline?.steps?.length ? seasonTimeline.steps.map((process) => (
               <div key={process.id} className="business-card">
@@ -621,30 +727,30 @@ export function FarmPhase3Page() {
                   <strong>Bước {process.stepNo}: {process.stepName}</strong>
                   <p>Performed at: {formatDateTime(process.performedAt)}</p>
                   <p>Recorded by: {process.recordedByName || 'N/A'}</p>
-                  <p>{process.description || 'Không có mô tả.'}</p>
+                  <p>{process.description || 'Không có mô t?.'}</p>
                   {process.imageUrl ? <p>Image: {process.imageUrl}</p> : null}
                 </div>
                 <div className="flex gap-3">
-                  <Button variant="secondary" onClick={() => fillProcess(process)}>Sửa</Button>
-                  <Button variant="secondary" onClick={() => handleReorderProcess(process.id, Math.max(1, (process.stepNo || 1) - 1))}>↑</Button>
-                  <Button variant="secondary" onClick={() => handleReorderProcess(process.id, (process.stepNo || 1) + 1)}>↓</Button>
+                  <Button variant="secondary" onClick={() => fillProcess(process)}>S?a</Button>
+                  <Button variant="secondary" onClick={() => handleReorderProcess(process.id, Math.max(1, (process.stepNo || 1) - 1))}>?</Button>
+                  <Button variant="secondary" onClick={() => handleReorderProcess(process.id, (process.stepNo || 1) + 1)}>?</Button>
                   <Button variant="danger" onClick={() => handleDeleteProcess(process.id)}>Xóa</Button>
                 </div>
               </div>
-            )) : <p>Chưa có quy trình cho mùa vụ này.</p>}
+            )) : <p>Chưa có quy tr?nh cho mùa v? này.</p>}
           </div>
         </article>
       </div>
 
-      <div className="content-grid top-gap">
+      <div className="content-grid top-gap" id="batches" hidden={!showBatches}>
         <article className="glass-card">
-          <h3>{editingBatchId ? 'Cập nhật lô sản phẩm' : 'Tạo lô sản phẩm'}</h3>
+          <h3>{editingBatchId ? 'C?p nh?t lô s?n ph?m' : 'T?o lô s?n ph?m'}</h3>
           <form className="form-grid" onSubmit={handleBatchSubmit}>
             <div className="grid-two">
               <label className="field-group">
                 <span className="field-label">Season</span>
                 <select className="field-input" name="seasonId" value={batchForm.seasonId} onChange={handleBatchChange}>
-                  <option value="">Chọn mùa vụ</option>
+                  <option value="">Ch?n mùa v?</option>
                   {seasons.map((season) => (
                     <option key={season.id} value={season.id}>{season.seasonCode}</option>
                   ))}
@@ -653,7 +759,7 @@ export function FarmPhase3Page() {
               <label className="field-group">
                 <span className="field-label">Product</span>
                 <select className="field-input" name="productId" value={batchForm.productId} onChange={handleBatchChange}>
-                  <option value="">Chọn sản phẩm</option>
+                  <option value="">Ch?n s?n ph?m</option>
                   {products.map((product) => (
                     <option key={product.productId} value={product.productId}>
                       {product.productCode ? `${product.productCode} - ` : ''}{product.productName}
@@ -667,7 +773,7 @@ export function FarmPhase3Page() {
               <label className="field-group">
                 <span className="field-label">Quality grade</span>
                 <select className="field-input" name="qualityGrade" value={batchForm.qualityGrade} onChange={handleBatchChange}>
-                  <option value="">Chọn chất lượng</option>
+                  <option value="">Ch?n ch?t lượng</option>
                   {qualityGrades.map((grade) => (
                     <option key={grade} value={grade}>{grade}</option>
                   ))}
@@ -691,8 +797,8 @@ export function FarmPhase3Page() {
               </select>
             </label>
             <div className="flex gap-3">
-              <Button type="submit">{editingBatchId ? 'Lưu cập nhật batch' : 'Tạo batch'}</Button>
-              <Button type="button" variant="secondary" onClick={resetBatchForm}>Làm mới form</Button>
+              <Button type="submit">{editingBatchId ? 'Lưu c?p nh?t batch' : 'T?o batch'}</Button>
+              <Button type="button" variant="secondary" onClick={resetBatchForm}>Làm m?i form</Button>
             </div>
           </form>
 
@@ -711,8 +817,8 @@ export function FarmPhase3Page() {
                     <p>Harvest: {formatDate(batch.harvestDate)} | Expiry: {formatDate(batch.expiryDate)}</p>
                   </div>
                   <div className="flex gap-3">
-                    <Button variant="secondary" onClick={() => fillBatch(batch)}>Sửa</Button>
-                    <Button variant="secondary" onClick={() => handleGenerateQr(batch.batchId)}>Tạo QR</Button>
+                    <Button variant="secondary" onClick={() => fillBatch(batch)}>S?a</Button>
+                    <Button variant="secondary" onClick={() => handleGenerateQr(batch.batchId)}>T?o QR</Button>
                     <Button variant={isActive ? 'primary' : 'secondary'} onClick={() => handleLoadTrace(batch.batchId)}>
                       {isActive ? 'Đang xem trace' : 'Xem trace'}
                     </Button>
@@ -722,9 +828,11 @@ export function FarmPhase3Page() {
             })}
           </div>
         </article>
+      </div>
 
-        <article className="glass-card">
-          <h3>Truy xuất nguồn gốc</h3>
+      <div className="content-grid top-gap" hidden={!showTrace}>
+        <article className="glass-card" id="trace">
+          <h3>Truy xu?t ngu?n g?c & M? QR</h3>
           {traceResult?.batch ? (
             <div className="form-grid">
               <div className="business-card">
@@ -751,9 +859,9 @@ export function FarmPhase3Page() {
               <div className="business-card">
                 <div>
                   <strong>QR info</strong>
-                  <p>Serial: {traceResult.qrInfo?.serialNo || 'Chưa tạo'}</p>
-                  <p>URL: {traceResult.qrInfo?.qrUrl || 'Chưa tạo'}</p>
-                  <p>Payload: {traceResult.qrInfo?.qrValue || 'Chưa tạo'}</p>
+                  <p>Serial: {traceResult.qrInfo?.serialNo || 'Chưa t?o'}</p>
+                  <p>URL: {traceResult.qrInfo?.qrUrl || 'Chưa t?o'}</p>
+                  <p>Payload: {traceResult.qrInfo?.qrValue || 'Chưa t?o'}</p>
                   <div className="flex gap-3">
                     <Button type="button" variant="secondary" onClick={handleCopyQrUrl} disabled={!traceResult.qrInfo?.qrUrl}>Copy URL</Button>
                   </div>
@@ -785,7 +893,7 @@ export function FarmPhase3Page() {
                 </div>
               </div>
             </div>
-          ) : <p>Chọn một batch để xem truy xuất nguồn gốc.</p>}
+          ) : <p>Ch?n m?t batch để xem truy xu?t ngu?n g?c.</p>}
         </article>
       </div>
     </section>

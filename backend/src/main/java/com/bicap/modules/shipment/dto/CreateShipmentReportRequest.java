@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 
 public class CreateShipmentReportRequest {
     @NotBlank
-    private String issueType; // DELAY, DAMAGED, WRONG_BATCH, SHORTAGE, ROUTE_ISSUE
+    private String issueType; // ACCIDENT, BREAKDOWN, DELAY, DAMAGED, THEFT, OTHER, WRONG_BATCH, SHORTAGE, ROUTE_ISSUE
     @NotBlank
     private String description;
     private String severity; // LOW, MEDIUM, HIGH

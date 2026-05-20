@@ -88,7 +88,7 @@ export function FarmPackagesPage() {
             {subscriptions.length === 0 ? <li>No subscriptions yet.</li> : null}
             {subscriptions.map((item) => (
               <li key={item.subscriptionId}>
-                {item.packageName} - {item.subscriptionStatus} ({item.startDate} → {item.endDate})
+                {item.packageName} - {item.subscriptionStatus} ({item.startDate} ? {item.endDate})
               </li>
             ))}
           </ul>

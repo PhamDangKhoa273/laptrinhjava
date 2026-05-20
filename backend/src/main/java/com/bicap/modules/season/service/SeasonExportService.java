@@ -3,8 +3,7 @@ package com.bicap.modules.season.service;
 import com.bicap.core.enums.RoleName;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.SecurityUtils;
-import com.bicap.modules.common.notification.dto.CreateNotificationRequest;
-import com.bicap.modules.common.notification.service.NotificationService;
+import com.bicap.modules.common.notification.service.NotificationDispatcher;
 import com.bicap.modules.batch.entity.BlockchainTransaction;
 import com.bicap.modules.batch.service.QrCodeService;
 import com.bicap.modules.batch.util.HashUtils;
@@ -26,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Service
+@lombok.extern.slf4j.Slf4j
 public class SeasonExportService {
 
     private final SeasonExportRepository exportRepository;
@@ -34,7 +34,7 @@ public class SeasonExportService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final QrCodeService qrCodeService;
-    private final NotificationService notificationService;
+    private final NotificationDispatcher notificationDispatcher;
     private final TraceabilityProofService traceabilityProofService;
 
     @Value("${app.frontend.url:http://localhost:5173}")
@@ -46,7 +46,7 @@ public class SeasonExportService {
                               UserRepository userRepository,
                               UserService userService,
                               QrCodeService qrCodeService,
-                              NotificationService notificationService,
+                              NotificationDispatcher notificationDispatcher,
                               TraceabilityProofService traceabilityProofService) {
         this.exportRepository = exportRepository;
         this.seasonRepository = seasonRepository;
@@ -54,13 +54,14 @@ public class SeasonExportService {
         this.userRepository = userRepository;
         this.userService = userService;
         this.qrCodeService = qrCodeService;
-        this.notificationService = notificationService;
+        this.notificationDispatcher = notificationDispatcher;
         this.traceabilityProofService = traceabilityProofService;
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = Throwable.class)
     public SeasonExportResponse exportSeason(Long seasonId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
+        try {
         FarmingSeason season = seasonRepository.findById(seasonId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy mùa vụ."));
 
@@ -102,65 +103,65 @@ public class SeasonExportService {
             return toResponse(existingExport, "DEDUPED", "Duplicate export payload, reusing latest persisted export record.");
         }
 
-        BlockchainTransaction veChainTx = null;
-        try {
-            veChainTx = traceabilityProofService.commitSeasonExportProof(
-                    canonicalJson,
-                    dataHash,
-                    traceCode,
-                    season.getSeasonId()
-            );
-        } catch (Exception e) {
-            veChainTx = new BlockchainTransaction();
-            veChainTx.setRelatedEntityType("SEASON_EXPORT");
-            veChainTx.setRelatedEntityId(season.getSeasonId());
-            veChainTx.setActionType("EXPORT");
-            veChainTx.setTxHash("FAILED-" + strip0x(dataHash));
-            veChainTx.setTxStatus("FAILED");
-            veChainTx.setGovernanceStatus(com.bicap.core.enums.BlockchainGovernanceStatus.FAILED);
-            veChainTx.setGovernanceNote(normalizeError(e));
-            veChainTx.setCreatedAt(LocalDateTime.now());
-        }
-
+        // Save export record first with placeholder txHash — blockchain commit happens after.
         String qrImageBase64 = qrCodeService.generateBase64Png(publicTraceUrl);
-
         SeasonExport export = exportRepository.findTopBySeason_SeasonIdOrderByExportedAtDesc(season.getSeasonId())
                 .orElse(new SeasonExport());
         export.setSeason(season);
         export.setTraceCode(traceCode);
         export.setPublicTraceUrl(publicTraceUrl);
         export.setDataHash(dataHash);
-        export.setVechainTxId(veChainTx.getTxHash());
+        export.setVechainTxId("PENDING-" + strip0x(dataHash));
         export.setPayloadJson(canonicalJson);
         export.setQrImageBase64(qrImageBase64);
         export.setExportedAt(LocalDateTime.now());
         export.setCreatedByUserId(currentUserId);
-
         SeasonExport saved = exportRepository.save(export);
 
-        // Notifications
+        // Notifications — use NotificationDispatcher (NOT_SUPPORTED propagation) to avoid
+        // marking the outer transaction rollback-only if notification fails.
         if (season.getFarm() != null && season.getFarm().getOwnerUser() != null) {
-            CreateNotificationRequest farmNotification = new CreateNotificationRequest();
-            farmNotification.setRecipientUserId(season.getFarm().getOwnerUser().getUserId());
-            farmNotification.setTitle("Season exported");
-            farmNotification.setMessage("Mùa vụ " + season.getSeasonCode() + " đã được export. Trace: " + traceCode);
-            farmNotification.setNotificationType("SEASON_EXPORT");
-            farmNotification.setTargetType("SEASON_EXPORT");
-            farmNotification.setTargetId(saved.getExportId());
-            notificationService.create(farmNotification);
+            try {
+                notificationDispatcher.send(
+                        season.getFarm().getOwnerUser().getUserId(), null,
+                        "Mùa vụ đã xuất thành công",
+                        "Mùa vụ " + season.getSeasonCode() + " đã được export. Trace code: " + traceCode,
+                        "SEASON_EXPORT", null, null);
+            } catch (Exception ignored) { }
+        }
+        try {
+            notificationDispatcher.send(
+                    null, "ADMIN",
+                    "Farm vừa xuất mùa vụ",
+                    "Farm " + (season.getFarm() != null ? season.getFarm().getFarmName() : "N/A")
+                            + " đã export mùa vụ " + season.getSeasonCode() + ". Trace: " + traceCode,
+                    "SEASON_EXPORT", null, null);
+        } catch (Exception ignored) { }
+
+        // Blockchain commit is best-effort — runs AFTER the export is saved so any Error
+        // from devkit/web3j does not roll back the export record.
+        String txStatus = "PENDING";
+        String txNote = "Blockchain commit deferred";
+        try {
+            BlockchainTransaction veChainTx = traceabilityProofService.commitSeasonExportProof(
+                    canonicalJson, dataHash, traceCode, season.getSeasonId());
+            txStatus = veChainTx != null ? veChainTx.getTxStatus() : "UNKNOWN";
+            txNote = veChainTx != null ? veChainTx.getGovernanceNote() : "";
+            // Update export with real txHash.
+            saved.setVechainTxId(veChainTx != null ? veChainTx.getTxHash() : saved.getVechainTxId());
+            exportRepository.save(saved);
+        } catch (Throwable e) {
+            txStatus = "FAILED";
+            txNote = normalizeError(e);
+            saved.setVechainTxId("FAILED-" + strip0x(dataHash));
+            try { exportRepository.save(saved); } catch (Exception ignored) { }
         }
 
-        CreateNotificationRequest adminNotification = new CreateNotificationRequest();
-        adminNotification.setRecipientRole("ADMIN");
-        adminNotification.setTitle("Season export created");
-        adminNotification.setMessage("Farm " + (season.getFarm() != null ? season.getFarm().getFarmName() : "N/A")
-                + " đã export mùa vụ " + season.getSeasonCode() + ". Trace: " + traceCode);
-        adminNotification.setNotificationType("SEASON_EXPORT");
-        adminNotification.setTargetType("SEASON_EXPORT");
-        adminNotification.setTargetId(saved.getExportId());
-        notificationService.create(adminNotification);
-
-        return toResponse(saved, veChainTx.getTxStatus(), veChainTx.getGovernanceNote());
+        return toResponse(saved, txStatus, txNote);
+        } catch (Throwable t) {
+            log.error("exportSeason FAILED seasonId={}: {}", seasonId, t.getMessage(), t);
+            throw t;
+        }
     }
 
     private String strip0x(String hex) {
@@ -168,7 +169,7 @@ public class SeasonExportService {
         return hex.startsWith("0x") || hex.startsWith("0X") ? hex.substring(2) : hex;
     }
 
-    private String normalizeError(Exception e) {
+    private String normalizeError(Throwable e) {
         String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
         msg = msg.replaceAll("\\s+", " ").trim();
         return msg.length() > 500 ? msg.substring(0, 500) : msg;

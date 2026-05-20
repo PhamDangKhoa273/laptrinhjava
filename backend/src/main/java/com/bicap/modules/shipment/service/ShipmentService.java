@@ -38,6 +38,12 @@ import java.util.Set;
 @Service
 @Slf4j
 public class ShipmentService {
+    private static final Set<String> ALLOWED_REPORT_ISSUE_TYPES = Set.of(
+            "ACCIDENT", "BREAKDOWN", "DELAY", "DAMAGED", "THEFT", "OTHER",
+            "WRONG_BATCH", "SHORTAGE", "ROUTE_ISSUE"
+    );
+    private static final Set<String> DISPUTE_REPORT_ISSUE_TYPES = Set.of("DAMAGED", "SHORTAGE", "WRONG_BATCH", "THEFT");
+
     private final ShipmentRepository shipmentRepository;
     private final OrderRepository orderRepository;
     private final DriverRepository driverRepository;
@@ -72,7 +78,7 @@ public class ShipmentService {
         Order order = orderRepository.findById(request.getOrderId()).orElseThrow(() -> new BusinessException("Không tìm thấy order để tạo shipment"));
         if (order.getStatusEnum() != OrderStatus.READY_FOR_SHIPMENT) throw new BusinessException("Chỉ order READY_FOR_SHIPMENT mới được tạo shipment");
         if (order.getPaymentStatusEnum() != OrderPaymentStatus.DEPOSIT_PAID) throw new BusinessException("Order phải đặt cọc trước khi tạo shipment");
-        if (shipmentRepository.findByOrderId(request.getOrderId()).isPresent()) throw new BusinessException("Order này đã có shipment");
+        if (shipmentRepository.findByOrderIdAndStatusNot(request.getOrderId(), ShipmentStatus.CANCELLED).isPresent()) throw new BusinessException("Order này đã có shipment chưa hủy");
 
         Shipment shipment = new Shipment();
         shipment.setOrderId(order.getOrderId());
@@ -131,16 +137,33 @@ public class ShipmentService {
         return orderRepository.findAll().stream()
                 .filter(order -> order.getStatusEnum() == OrderStatus.READY_FOR_SHIPMENT)
                 .filter(order -> order.getPaymentStatusEnum() == OrderPaymentStatus.DEPOSIT_PAID)
-                .filter(order -> shipmentRepository.findByOrderId(order.getOrderId()).isEmpty())
+                .filter(order -> shipmentRepository.findByOrderIdAndStatusNot(order.getOrderId(), ShipmentStatus.CANCELLED).isEmpty())
                 .map(this::toEligibleOrderShipmentResponse)
                 .toList();
     }
 
     public List<ShipmentReportResponse> getReportsForReview() {
+        // Bullet R-SHM-090: shipping_manager + admin xem mọi báo cáo.
         if (!hasAnyRole("ADMIN", "SHIPPING_MANAGER")) {
             throw new BusinessException("Bạn không có quyền xem báo cáo sự cố shipment");
         }
         return reportRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(this::toReportResponse)
+                .toList();
+    }
+
+    /**
+     * Bullet R-FRM-170 / BR-SHP-090: farm owner xem báo cáo của shipment liên quan tới farm của mình.
+     * Defense-in-depth: lookup farmId từ owner user, không nhận tham số từ client.
+     */
+    public List<ShipmentReportResponse> getReportsForFarm() {
+        if (!hasAnyRole("FARM")) {
+            throw new BusinessException("Endpoint này chỉ dành cho FARM. SHIPPING_MANAGER/ADMIN dùng /reports.");
+        }
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        Farm farm = farmRepository.findByOwnerUserUserId(currentUserId)
+                .orElseThrow(() -> new BusinessException("Farm chưa được đăng ký cho user hiện tại."));
+        return reportRepository.findAllByFarmIdOrderByCreatedAtDesc(farm.getFarmId()).stream()
                 .map(this::toReportResponse)
                 .toList();
     }
@@ -208,6 +231,12 @@ public class ShipmentService {
         log.setNote(request.getNote());
         log.setImageUrl(request.getImageUrl());
         logRepository.save(log);
+        if (shipment.getStatus() == ShipmentStatus.PICKED_UP) {
+            shipment.setStatus(ShipmentStatus.IN_TRANSIT);
+            Shipment saved = shipmentRepository.save(shipment);
+            syncOrderStatus(saved);
+            return toResponse(saved);
+        }
         return toResponse(shipment);
     }
 
@@ -253,6 +282,7 @@ public class ShipmentService {
         Driver driver = driverRepository.findByUserUserId(currentUserId).orElseThrow(() -> new BusinessException("User không gắn với Driver resource nào."));
         Shipment shipment = shipmentRepository.findById(shipmentId).orElseThrow(() -> new BusinessException("Shipment không tồn tại"));
         if (!driver.getDriverId().equals(shipment.getDriverId())) throw new BusinessException("Shipment này không được gán cho bạn.");
+        if (request.getEvidence() == null || request.getEvidence().isBlank()) throw new BusinessException("Delivery proof image is required before handover.");
         request.setStatus(ShipmentStatus.DELIVERED.name());
         validateTransition(shipment, ShipmentStatus.DELIVERED);
         shipment.setStatus(ShipmentStatus.DELIVERED);
@@ -271,7 +301,7 @@ public class ShipmentService {
         Shipment shipment = shipmentRepository.findById(shipmentId).orElseThrow(() -> new BusinessException("Shipment không tồn tại"));
         if (!driver.getDriverId().equals(shipment.getDriverId())) throw new BusinessException("Shipment này không được gán cho bạn.");
         String issueType = request.getIssueType() != null ? request.getIssueType().trim().toUpperCase() : "";
-        if (!Set.of("DELAY", "DAMAGED", "WRONG_BATCH", "SHORTAGE", "ROUTE_ISSUE").contains(issueType)) throw new BusinessException("Issue type không hợp lệ");
+        if (!ALLOWED_REPORT_ISSUE_TYPES.contains(issueType)) throw new BusinessException("Issue type không hợp lệ");
         ShipmentReport report = new ShipmentReport();
         report.setShipmentId(shipmentId);
         report.setDriverId(driver.getDriverId());
@@ -279,14 +309,16 @@ public class ShipmentService {
         report.setDescription(request.getDescription());
         report.setSeverity(request.getSeverity());
         reportRepository.save(report);
-        shipment.setStatus(("DAMAGED".equals(issueType) || "SHORTAGE".equals(issueType) || "WRONG_BATCH".equals(issueType)) ? ShipmentStatus.DISPUTED : ShipmentStatus.ESCALATED);
-        shipment.setCancelReason(request.getDescription());
-        shipmentRepository.save(shipment);
         Order order = orderRepository.findById(shipment.getOrderId()).orElseThrow(() -> new BusinessException("Không tìm thấy order của shipment"));
-        order.setStatus(OrderStatus.DISPUTED);
-        order.setDisputeRaisedAt(LocalDateTime.now());
-        order.setDisputeNote(issueType + ": " + request.getDescription());
-        orderRepository.save(order);
+        if (DISPUTE_REPORT_ISSUE_TYPES.contains(issueType)) {
+            shipment.setStatus(ShipmentStatus.DISPUTED);
+            shipment.setCancelReason(request.getDescription());
+            shipmentRepository.save(shipment);
+            order.setStatus(OrderStatus.DISPUTED);
+            order.setDisputeRaisedAt(LocalDateTime.now());
+            order.setDisputeNote(issueType + ": " + request.getDescription());
+            orderRepository.save(order);
+        }
         notifyShipmentIssue(shipment, driver, request);
         auditLogService.log(currentUserId, "DRIVER_REPORT_ISSUE", "SHIPMENT", shipmentId, "type=" + request.getIssueType() + ", note=" + request.getDescription());
     }
@@ -310,8 +342,8 @@ public class ShipmentService {
     private void notifyDriverAssignment(Shipment shipment, Driver driver) { if (driver == null || driver.getUser() == null) return; notificationDispatcher.send(driver.getUser().getUserId(), null, "Bạn được gán shipment mới", "Shipment #" + shipment.getShipmentId() + " đã được shipping manager phân công cho bạn.", "SHIPMENT_ASSIGNED", "SHIPMENT", shipment.getShipmentId()); }
     private void notifyShipmentIssue(Shipment shipment, Driver driver, CreateShipmentReportRequest request) { Order order = orderRepository.findById(shipment.getOrderId()).orElse(null); if (order == null) return; Farm farm = farmRepository.findById(order.getFarmId()).orElse(null); Retailer retailer = retailerRepository.findById(order.getRetailerId()).orElse(null); notificationDispatcher.send(null, "ADMIN", "Sự cố shipment #" + shipment.getShipmentId(), driver.getDriverCode() + " báo " + request.getIssueType() + ": " + request.getDescription(), "DRIVER_ISSUE", "SHIPMENT", shipment.getShipmentId()); if (farm != null && farm.getOwnerUser() != null) notificationDispatcher.send(farm.getOwnerUser().getUserId(), null, "Thông báo sự cố shipment #" + shipment.getShipmentId(), request.getDescription(), "DRIVER_ISSUE", "SHIPMENT", shipment.getShipmentId()); if (retailer != null && retailer.getUser() != null) notificationDispatcher.send(retailer.getUser().getUserId(), null, "Thông báo giao vận shipment #" + shipment.getShipmentId(), request.getDescription(), "DRIVER_ISSUE", "SHIPMENT", shipment.getShipmentId()); }
     private ShipmentLog makeLog(Long shipmentId, String type, UpdateShipmentStatusRequest request) { ShipmentLog log = new ShipmentLog(); log.setShipmentId(shipmentId); log.setType(type); log.setNote(request.getNote()); log.setQrEvidence(request.getEvidence()); log.setOverrideReason(request.getOverrideReason()); return log; }
-    private void validateTransition(Shipment shipment, ShipmentStatus newStatus) { ShipmentStatus currentStatus = shipment.getStatus(); if (currentStatus == newStatus) throw new BusinessException("Shipment đã ở trạng thái " + newStatus.name()); boolean allowed = switch (currentStatus) { case CREATED -> newStatus == ShipmentStatus.ASSIGNED || newStatus == ShipmentStatus.CANCELLED || newStatus == ShipmentStatus.DISPUTED || newStatus == ShipmentStatus.ESCALATED || newStatus == ShipmentStatus.REJECTED; case ASSIGNED -> newStatus == ShipmentStatus.PICKED_UP || newStatus == ShipmentStatus.CANCELLED || newStatus == ShipmentStatus.DISPUTED || newStatus == ShipmentStatus.ESCALATED || newStatus == ShipmentStatus.REJECTED; case PICKED_UP -> newStatus == ShipmentStatus.IN_TRANSIT || newStatus == ShipmentStatus.DELIVERED || newStatus == ShipmentStatus.CANCELLED || newStatus == ShipmentStatus.DISPUTED || newStatus == ShipmentStatus.ESCALATED || newStatus == ShipmentStatus.REJECTED; case IN_TRANSIT -> newStatus == ShipmentStatus.DELIVERED || newStatus == ShipmentStatus.CANCELLED || newStatus == ShipmentStatus.DISPUTED || newStatus == ShipmentStatus.ESCALATED || newStatus == ShipmentStatus.REJECTED; case DELIVERED, CANCELLED, REJECTED, DISPUTED, ESCALATED -> false; default -> false; }; if (!allowed) throw new BusinessException("Không thể chuyển shipment từ " + currentStatus.name() + " sang " + newStatus.name()); }
-    private void syncOrderStatus(Shipment shipment) { Order order = orderRepository.findById(shipment.getOrderId()).orElseThrow(() -> new BusinessException("Không tìm thấy order của shipment")); if ((shipment.getStatus() == ShipmentStatus.PICKED_UP || shipment.getStatus() == ShipmentStatus.IN_TRANSIT) && order.getStatusEnum() == OrderStatus.READY_FOR_SHIPMENT) { order.setStatus(OrderStatus.SHIPPING); orderRepository.save(order); } else if (shipment.getStatus() == ShipmentStatus.DELIVERED) { order.setStatus(OrderStatus.DELIVERED); orderRepository.save(order); } else if (shipment.getStatus() == ShipmentStatus.CANCELLED && order.getStatusEnum() == OrderStatus.READY_FOR_SHIPMENT) { order.setStatus(OrderStatus.CONFIRMED); orderRepository.save(order); } else if (shipment.getStatus() == ShipmentStatus.DISPUTED || shipment.getStatus() == ShipmentStatus.REJECTED || shipment.getStatus() == ShipmentStatus.ESCALATED) { order.setStatus(OrderStatus.DISPUTED); order.setDisputeRaisedAt(LocalDateTime.now()); order.setDisputeNote(shipment.getCancelReason()); orderRepository.save(order); } }
+    private void validateTransition(Shipment shipment, ShipmentStatus newStatus) { ShipmentStatus currentStatus = shipment.getStatus(); if (currentStatus == newStatus) throw new BusinessException("Shipment đã ở trạng thái " + newStatus.name()); boolean allowed = switch (currentStatus) { case CREATED -> newStatus == ShipmentStatus.ASSIGNED || newStatus == ShipmentStatus.CANCELLED || newStatus == ShipmentStatus.DISPUTED || newStatus == ShipmentStatus.ESCALATED || newStatus == ShipmentStatus.REJECTED; case ASSIGNED -> newStatus == ShipmentStatus.PICKED_UP || newStatus == ShipmentStatus.CANCELLED || newStatus == ShipmentStatus.DISPUTED || newStatus == ShipmentStatus.ESCALATED || newStatus == ShipmentStatus.REJECTED; case PICKED_UP -> newStatus == ShipmentStatus.IN_TRANSIT || newStatus == ShipmentStatus.DELIVERED || newStatus == ShipmentStatus.CANCELLED || newStatus == ShipmentStatus.DISPUTED || newStatus == ShipmentStatus.ESCALATED || newStatus == ShipmentStatus.REJECTED; case IN_TRANSIT -> newStatus == ShipmentStatus.DELIVERED || newStatus == ShipmentStatus.CANCELLED || newStatus == ShipmentStatus.DISPUTED || newStatus == ShipmentStatus.ESCALATED || newStatus == ShipmentStatus.REJECTED; case DELIVERED -> newStatus == ShipmentStatus.CONFIRMED; case CONFIRMED, CANCELLED, REJECTED, DISPUTED, ESCALATED -> false; default -> false; }; if (!allowed) throw new BusinessException("Không thể chuyển shipment từ " + currentStatus.name() + " sang " + newStatus.name()); }
+    private void syncOrderStatus(Shipment shipment) { Order order = orderRepository.findById(shipment.getOrderId()).orElseThrow(() -> new BusinessException("Không tìm thấy order của shipment")); if ((shipment.getStatus() == ShipmentStatus.PICKED_UP || shipment.getStatus() == ShipmentStatus.IN_TRANSIT) && order.getStatusEnum() == OrderStatus.READY_FOR_SHIPMENT) { order.setStatus(OrderStatus.SHIPPING); orderRepository.save(order); } else if (shipment.getStatus() == ShipmentStatus.DELIVERED) { order.setStatus(OrderStatus.DELIVERED); if (order.getShippingProofImageUrl() == null || order.getShippingProofImageUrl().isBlank()) order.setShippingProofImageUrl("shipment:" + shipment.getShipmentId() + ":driver-handover"); orderRepository.save(order); } else if (shipment.getStatus() == ShipmentStatus.CANCELLED) { if (order.getStatusEnum() == OrderStatus.READY_FOR_SHIPMENT || order.getStatusEnum() == OrderStatus.SHIPPING) { order.setStatus(OrderStatus.READY_FOR_SHIPMENT); orderRepository.save(order); } } else if (shipment.getStatus() == ShipmentStatus.DISPUTED || shipment.getStatus() == ShipmentStatus.REJECTED || shipment.getStatus() == ShipmentStatus.ESCALATED) { order.setStatus(OrderStatus.DISPUTED); order.setDisputeRaisedAt(LocalDateTime.now()); order.setDisputeNote(shipment.getCancelReason()); orderRepository.save(order); } }
 
     private void assertCanViewShipment(Shipment shipment, Long currentUserId) {
         if (hasAnyRole("ADMIN")) return;
@@ -330,7 +362,7 @@ public class ShipmentService {
 
     private void assertCanManageShipment(Shipment shipment, Long currentUserId) {
         if (hasAnyRole("ADMIN")) return;
-        if (hasAnyRole("SHIPPING_MANAGER") && currentUserId.equals(shipment.getShippingManagerUserId())) return;
+        if (hasAnyRole("SHIPPING_MANAGER")) return;
         throw new BusinessException("Bạn không có quyền cập nhật shipment này");
     }
 

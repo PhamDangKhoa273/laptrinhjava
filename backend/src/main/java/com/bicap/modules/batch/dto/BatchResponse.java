@@ -8,6 +8,8 @@ public class BatchResponse {
     private Long batchId;
     private Long seasonId;
     private Long productId;
+    private String productName;
+    private String productCategory;
     private String batchCode;
     private LocalDate harvestDate;
     private BigDecimal quantity;
@@ -26,6 +28,10 @@ public class BatchResponse {
     public void setSeasonId(Long id) { this.seasonId = id; }
     public Long getProductId() { return productId; }
     public void setProductId(Long id) { this.productId = id; }
+    public String getProductName() { return productName; }
+    public void setProductName(String s) { this.productName = s; }
+    public String getProductCategory() { return productCategory; }
+    public void setProductCategory(String s) { this.productCategory = s; }
     public String getBatchCode() { return batchCode; }
     public void setBatchCode(String s) { this.batchCode = s; }
     public LocalDate getHarvestDate() { return harvestDate; }
@@ -55,6 +61,8 @@ public class BatchResponse {
         public Builder batchId(Long id) { r.setBatchId(id); return this; }
         public Builder seasonId(Long id) { r.setSeasonId(id); return this; }
         public Builder productId(Long id) { r.setProductId(id); return this; }
+        public Builder productName(String s) { r.setProductName(s); return this; }
+        public Builder productCategory(String s) { r.setProductCategory(s); return this; }
         public Builder batchCode(String s) { r.setBatchCode(s); return this; }
         public Builder harvestDate(LocalDate d) { r.setHarvestDate(d); return this; }
         public Builder quantity(BigDecimal d) { r.setQuantity(d); return this; }

@@ -26,7 +26,7 @@ export function RoleDashboardPage({ title, description, highlights, checklist, m
 
       <div className="content-grid">
         <article className="glass-card">
-          <h3>Chức năng chính</h3>
+          <h3>Ch?c năng chính</h3>
           <ul className="feature-list">
             {checklist.map((item) => (
               <li key={item}>{item}</li>
@@ -34,9 +34,9 @@ export function RoleDashboardPage({ title, description, highlights, checklist, m
           </ul>
         </article>
         <article className="glass-card">
-          <h3>Bảo mật</h3>
+          <h3>B?o m?t</h3>
           <p>
-            Route được bảo vệ theo vai trò; backend vẫn là lớp kiểm soát quyền cuối cùng cho API.
+            Route được b?o v? theo vai tr?; backend v?n là l?p ki?m soát quy?n cu?i cùng cho API.
           </p>
         </article>
       </div>

@@ -3,7 +3,7 @@ package com.bicap.core.service;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 
-@Service
+@Service("blockchainStubService")
 public class BlockchainService {
 
     /**

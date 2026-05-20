@@ -6,6 +6,7 @@ import com.bicap.modules.order.entity.OrderItem;
 import com.bicap.modules.order.repository.OrderRepository;
 import com.bicap.modules.listing.entity.ProductListing;
 import com.bicap.modules.listing.repository.ProductListingRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,9 @@ public class OrderReservationCleanupJob {
     private final OrderRepository orderRepository;
     private final ProductListingRepository listingRepository;
 
+    @Value("${app.order.reservation-timeout-minutes:30}")
+    private long reservationTimeoutMinutes;
+
     public OrderReservationCleanupJob(OrderRepository orderRepository, ProductListingRepository listingRepository) {
         this.orderRepository = orderRepository;
         this.listingRepository = listingRepository;
@@ -28,7 +32,8 @@ public class OrderReservationCleanupJob {
     @Scheduled(fixedDelayString = "PT5M")
     @Transactional
     public void releaseExpiredReservations() {
-        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(30);
+        if (reservationTimeoutMinutes <= 0) return;
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(reservationTimeoutMinutes);
         List<Order> expired = orderRepository.findAll().stream()
                 .filter(order -> order.getStatusEnum() == OrderStatus.PENDING)
                 .filter(order -> order.getCreatedAt() != null && order.getCreatedAt().isBefore(cutoff))

@@ -62,6 +62,13 @@ public class ShipmentController {
         return ResponseEntity.ok(ApiResponse.success(shipmentService.getReportsForReview()));
     }
 
+    /** Bullet R-FRM-170 — Farm owner xem báo cáo shipment liên quan farm của mình. */
+    @GetMapping("/reports/farm")
+    @PreAuthorize("hasRole('FARM')")
+    public ResponseEntity<ApiResponse<List<ShipmentReportResponse>>> getReportsForFarm() {
+        return ResponseEntity.ok(ApiResponse.success(shipmentService.getReportsForFarm()));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('SHIPPING_MANAGER','DRIVER','FARM','RETAILER','ADMIN')")
     public ResponseEntity<ApiResponse<ShipmentResponse>> getById(@PathVariable Long id) {

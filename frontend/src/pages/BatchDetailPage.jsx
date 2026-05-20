@@ -44,35 +44,35 @@ function statusLabel(status) {
 const timelineSteps = [
   {
     icon: 'inventory_2',
-    title: 'Lô hàng được tạo',
+    title: 'Lô hàng được t?o',
     time: 'Oct 14, 2023 | 08:30',
     meta: 'By Green Valley Farm',
     tone: 'neutral',
   },
   {
     icon: 'inventory',
-    title: 'Đóng gói & Kiểm định',
+    title: 'Đóng gói & Ki?m định',
     time: 'Oct 15, 2023 | 14:15',
     meta: 'Quality Pass (A+)',
     tone: 'success',
   },
   {
     icon: 'qr_code',
-    title: 'Xuất mã định danh QR',
+    title: 'Xu?t m? định danh QR',
     time: 'Oct 15, 2023 | 16:00',
     meta: 'UID: BCH-29384',
     tone: 'secondary',
   },
   {
     icon: 'storefront',
-    title: 'Niêm yết Marketplace',
+    title: 'Niêm y?t Marketplace',
     time: 'Oct 16, 2023 | 09:00',
     meta: 'Live Status',
     tone: 'warning',
   },
   {
     icon: 'local_shipping',
-    title: 'Lập lệnh vận chuyển',
+    title: 'L?p l?nh v?n chuy?n',
     time: 'Oct 17, 2023 | 11:45',
     meta: '#SHP-88219',
     tone: 'neutral',
@@ -100,7 +100,7 @@ export function BatchDetailPage() {
         setBatch(res.data.data)
         setError('')
       } catch (err) {
-        setError('Không thể tải thông tin batch')
+        setError('Không th? t?i thông tin batch')
         console.error('Load batch error:', err)
       } finally {
         setLoading(false)
@@ -118,7 +118,7 @@ export function BatchDetailPage() {
     const availableQuantity = formatQuantity(batch?.availableQuantity, quantity)
     const grade = valueOf(batch?.qualityGrade, batch?.grade, 'Premium Grade')
     const productName = valueOf(batch?.productName, batch?.product?.name, batch?.cropName, 'Organic Arabica Beans')
-    const category = valueOf(batch?.categoryName, batch?.product?.categoryName, 'Cà phê hạt')
+    const category = valueOf(batch?.categoryName, batch?.product?.categoryName, 'Cà phê h?t')
     const farmName = valueOf(batch?.farmName, batch?.farm?.farmName, batch?.producerName, 'Green Valley Estates')
     const farmLocation = valueOf(batch?.farmLocation, batch?.farm?.address, batch?.originLocation, 'Dalat, Vietnam')
     const seasonId = valueOf(batch?.seasonCode, batch?.seasonId, '#SEA-2024-QT1')
@@ -152,8 +152,8 @@ export function BatchDetailPage() {
       <main className="batch-detail-page batch-detail-state">
         <div className="batch-loading-card">
           <Icon>progress_activity</Icon>
-          <strong>Đang tải chi tiết lô hàng...</strong>
-          <p>Đang đồng bộ dữ liệu batch, QR và blockchain verification.</p>
+          <strong>Đang t?i chi ti?t lô hàng...</strong>
+          <p>Đang đồng b? d? li?u batch, QR và blockchain verification.</p>
         </div>
       </main>
     )
@@ -165,7 +165,7 @@ export function BatchDetailPage() {
         <div className="batch-loading-card is-error">
           <Icon>error</Icon>
           <strong>{error}</strong>
-          <p>Vui lòng thử lại hoặc kiểm tra kết nối API.</p>
+          <p>Vui l?ng th? l?i ho?c ki?m tra k?t n?i API.</p>
         </div>
       </main>
     )
@@ -176,8 +176,8 @@ export function BatchDetailPage() {
       <main className="batch-detail-page batch-detail-state">
         <div className="batch-loading-card">
           <Icon>inventory_2</Icon>
-          <strong>Không tìm thấy batch</strong>
-          <p>Lô hàng này không tồn tại hoặc đã bị gỡ khỏi hệ thống.</p>
+          <strong>Không t?m th?y batch</strong>
+          <p>Lô hàng này không t?n t?i ho?c đã b? g? kh?i h? th?ng.</p>
         </div>
       </main>
     )
@@ -190,9 +190,9 @@ export function BatchDetailPage() {
           <nav className="batch-breadcrumb" aria-label="Breadcrumb">
             <span>Registry</span>
             <Icon>chevron_right</Icon>
-            <span>Chi tiết Lô hàng</span>
+            <span>Chi ti?t Lô hàng</span>
           </nav>
-          <h1>Chi tiết Lô hàng</h1>
+          <h1>Chi ti?t Lô hàng</h1>
           <div className="batch-title-meta">
             <span className="batch-code-pill">#{viewModel.batchCode}</span>
             <span className="batch-verified-pill">
@@ -204,11 +204,11 @@ export function BatchDetailPage() {
         <div className="batch-header-actions">
           <button type="button" className="batch-button batch-button-secondary">
             <Icon>share</Icon>
-            Chia sẻ
+            Chia s?
           </button>
           <button type="button" className="batch-button batch-button-primary">
             <Icon>edit</Icon>
-            Cập nhật
+            C?p nh?t
           </button>
         </div>
       </section>
@@ -224,26 +224,26 @@ export function BatchDetailPage() {
             <div className="batch-product-content">
               <div className="batch-card-heading-row">
                 <div>
-                  <span className="batch-kicker">Sản phẩm</span>
+                  <span className="batch-kicker">S?n ph?m</span>
                   <h2>{viewModel.productName}</h2>
                 </div>
                 <span className="batch-grade-pill">{viewModel.grade}</span>
               </div>
               <div className="batch-facts-grid">
                 <div>
-                  <span>Danh mục</span>
+                  <span>Danh m?c</span>
                   <strong>{viewModel.category}</strong>
                 </div>
                 <div>
-                  <span>Khối lượng</span>
+                  <span>Kh?i lượng</span>
                   <strong>{viewModel.quantity}</strong>
                 </div>
                 <div>
-                  <span>Khả dụng</span>
+                  <span>Kh? d?ng</span>
                   <strong>{viewModel.availableQuantity}</strong>
                 </div>
                 <div>
-                  <span>Độ ẩm</span>
+                  <span>Độ ?m</span>
                   <strong>{viewModel.moisture}</strong>
                 </div>
               </div>
@@ -253,7 +253,7 @@ export function BatchDetailPage() {
           <article className="batch-card batch-origin-card">
             <div className="batch-section-title">
               <span className="batch-icon-box"><Icon>agriculture</Icon></span>
-              <h2>Nguồn gốc & Canh tác</h2>
+              <h2>Ngu?n g?c & Canh tác</h2>
             </div>
             <div className="batch-origin-grid">
               <div className="batch-farm-profile">
@@ -281,7 +281,7 @@ export function BatchDetailPage() {
             <div className="batch-card-heading-row">
               <div className="batch-section-title compact">
                 <span className="batch-icon-box blue"><Icon>token</Icon></span>
-                <h2>Xác thực Blockchain</h2>
+                <h2>Xác th?c Blockchain</h2>
               </div>
               <span className="batch-immutable-pill"><Icon>shield</Icon>Immutable Record</span>
             </div>
@@ -310,7 +310,7 @@ export function BatchDetailPage() {
 
         <aside className="batch-side-column">
           <article className="batch-card batch-qr-card">
-            <h2>Mã định danh QR</h2>
+            <h2>M? định danh QR</h2>
             <div className="batch-qr-frame">
               <div className="batch-qr-inner"><Icon>qr_code_2</Icon></div>
               <span className="batch-qr-verified"><Icon>verified_user</Icon></span>
@@ -344,7 +344,7 @@ export function BatchDetailPage() {
         <article className="batch-card batch-timeline-card">
           <div className="batch-section-title">
             <span className="batch-icon-box"><Icon>history</Icon></span>
-            <h2>Hành trình Lô hàng</h2>
+            <h2>Hành tr?nh Lô hàng</h2>
           </div>
           <div className="batch-timeline-scroll">
             <div className="batch-timeline">

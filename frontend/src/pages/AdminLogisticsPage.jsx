@@ -29,7 +29,7 @@ function getDriverName(driver) {
 }
 
 function getVehiclePlate(vehicle) {
-  return vehicle?.licensePlate || vehicle?.plateNumber || vehicle?.vehicleCode || 'Chưa có biển số'
+  return vehicle?.licensePlate || vehicle?.plateNumber || vehicle?.vehicleCode || 'Chưa có bi?n s?'
 }
 
 function getShipmentKeyword(item) {
@@ -113,7 +113,7 @@ export function AdminLogisticsPage() {
         if (!selectedShipmentId && nextShipments.length > 0) setSelectedShipmentId(getShipmentId(nextShipments[0]))
       }
       if (driverData.status === 'rejected' || vehicleData.status === 'rejected' || shipmentData.status === 'rejected') {
-        setError('Một phần dữ liệu vận chuyển chưa tải được. Kiểm tra quyền API hoặc backend logistics.')
+        setError('M?t ph?n d? li?u v?n chuy?n chưa t?i được. Ki?m tra quy?n API ho?c backend logistics.')
       }
     } catch (err) {
       setError(getErrorMessage(err))
@@ -126,21 +126,21 @@ export function AdminLogisticsPage() {
     <section className="page-section admin-page admin-logistics-page">
       <div className="section-heading">
         <div>
-          <h2>Quản lý vận chuyển</h2>
+          <h2>Qu?n l? v?n chuy?n</h2>
         </div>
         <div className="section-actions">
-          <Button variant="secondary" onClick={loadLogistics} disabled={loading}>{loading ? 'Đang tải...' : 'Làm mới'}</Button>
+          <Button variant="secondary" onClick={loadLogistics} disabled={loading}>{loading ? 'Đang t?i...' : 'Làm m?i'}</Button>
         </div>
       </div>
 
       {error ? <div className="alert alert-error">{error}</div> : null}
 
       <div className="status-grid admin-overview-grid">
-        <article className="status-card"><span>Tổng shipment</span><strong>{stats.shipments}</strong></article>
-        <article className="status-card"><span>Chờ điều phối</span><strong>{stats.pendingShipments}</strong></article>
-        <article className="status-card"><span>Đang vận chuyển</span><strong>{stats.inTransitShipments}</strong></article>
-        <article className="status-card"><span>Chưa gán tài xế</span><strong>{stats.unassignedShipments}</strong></article>
-        <article className="status-card"><span>Tài xế / xe hoạt động</span><strong>{stats.activeDrivers}/{stats.activeVehicles}</strong></article>
+        <article className="status-card"><span>T?ng shipment</span><strong>{stats.shipments}</strong></article>
+        <article className="status-card"><span>Ch? điều ph?i</span><strong>{stats.pendingShipments}</strong></article>
+        <article className="status-card"><span>Đang v?n chuy?n</span><strong>{stats.inTransitShipments}</strong></article>
+        <article className="status-card"><span>Chưa gán tài x?</span><strong>{stats.unassignedShipments}</strong></article>
+        <article className="status-card"><span>Tài x? / xe ho?t động</span><strong>{stats.activeDrivers}/{stats.activeVehicles}</strong></article>
       </div>
 
       <div className="admin-logistics-workspace">
@@ -151,11 +151,11 @@ export function AdminLogisticsPage() {
               className="form-input"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Tìm mã shipment/tài xế/biển số"
+              placeholder="T?m m? shipment/tài x?/bi?n s?"
             />
             <select className="form-input" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
               {availableStatuses.map((status) => (
-                <option key={status} value={status}>{status === 'ALL' ? 'Tất cả trạng thái' : status}</option>
+                <option key={status} value={status}>{status === 'ALL' ? 'T?t c? tr?ng thái' : status}</option>
               ))}
             </select>
           </div>
@@ -173,7 +173,7 @@ export function AdminLogisticsPage() {
                 >
                   <div className="admin-user-item-main">
                     <strong className="admin-user-name">{item.shipmentCode || item.traceCode || `Shipment #${id}`}</strong>
-                    <span className="admin-user-email">Đơn hàng: {item.orderCode || item.orderId || 'Chưa liên kết'}</span>
+                    <span className="admin-user-email">Đơn hàng: {item.orderCode || item.orderId || 'Chưa liên k?t'}</span>
                   </div>
                   <div className="admin-user-item-meta">
                     <div className="admin-user-item-meta-left">
@@ -184,7 +184,7 @@ export function AdminLogisticsPage() {
                 </button>
               )
             })}
-            {!loading && filteredShipments.length === 0 ? <p className="muted-inline">Chưa có shipment phù hợp.</p> : null}
+            {!loading && filteredShipments.length === 0 ? <p className="muted-inline">Chưa có shipment phù h?p.</p> : null}
           </div>
         </aside>
 
@@ -195,75 +195,75 @@ export function AdminLogisticsPage() {
                 <div>
                   <span className="feature-badge">Shipment control</span>
                   <h3>{selectedShipment.shipmentCode || selectedShipment.traceCode || `Shipment #${getShipmentId(selectedShipment)}`}</h3>
-                  <p>Đơn hàng: {selectedShipment.orderCode || selectedShipment.orderId || 'Chưa liên kết'}</p>
+                  <p>Đơn hàng: {selectedShipment.orderCode || selectedShipment.orderId || 'Chưa liên k?t'}</p>
                 </div>
                 <span className={statusClass(getShipmentStatus(selectedShipment))}>{getShipmentStatus(selectedShipment)}</span>
               </div>
 
               <div className="admin-logistics-info-grid">
-                <div><span>Tài xế phụ trách</span><strong>{selectedShipment.driverName || (selectedShipment.driverId ? `#${selectedShipment.driverId}` : 'Chưa gán')}</strong></div>
-                <div><span>Phương tiện</span><strong>{selectedShipment.vehiclePlate || (selectedShipment.vehicleId ? `#${selectedShipment.vehicleId}` : 'Chưa gán')}</strong></div>
-                <div><span>Điểm lấy hàng</span><strong>{selectedShipment.pickupAddress || selectedShipment.fromAddress || 'Chưa cập nhật'}</strong></div>
-                <div><span>Điểm giao hàng</span><strong>{selectedShipment.deliveryAddress || selectedShipment.toAddress || 'Chưa cập nhật'}</strong></div>
-                <div><span>Thời gian tạo</span><strong>{selectedShipment.createdAt || selectedShipment.createdDate || 'Chưa cập nhật'}</strong></div>
-                <div><span>Cập nhật cuối</span><strong>{selectedShipment.updatedAt || selectedShipment.updatedDate || 'Chưa cập nhật'}</strong></div>
+                <div><span>Tài x? ph? trách</span><strong>{selectedShipment.driverName || (selectedShipment.driverId ? `#${selectedShipment.driverId}` : 'Chưa gán')}</strong></div>
+                <div><span>Phương ti?n</span><strong>{selectedShipment.vehiclePlate || (selectedShipment.vehicleId ? `#${selectedShipment.vehicleId}` : 'Chưa gán')}</strong></div>
+                <div><span>Điểm l?y hàng</span><strong>{selectedShipment.pickupAddress || selectedShipment.fromAddress || 'Chưa c?p nh?t'}</strong></div>
+                <div><span>Điểm giao hàng</span><strong>{selectedShipment.deliveryAddress || selectedShipment.toAddress || 'Chưa c?p nh?t'}</strong></div>
+                <div><span>Th?i gian t?o</span><strong>{selectedShipment.createdAt || selectedShipment.createdDate || 'Chưa c?p nh?t'}</strong></div>
+                <div><span>C?p nh?t cu?i</span><strong>{selectedShipment.updatedAt || selectedShipment.updatedDate || 'Chưa c?p nh?t'}</strong></div>
               </div>
 
               <div className="admin-logistics-checklist">
-                <h3>Kiểm tra điều phối</h3>
+                <h3>Ki?m tra điều ph?i</h3>
                 <ul className="feature-list">
                   <li className={selectedShipment.driverId || selectedShipment.driverName ? 'is-ok' : 'is-warning'}>
-                    {selectedShipment.driverId || selectedShipment.driverName ? 'Đã gán tài xế.' : 'Shipment chưa gán tài xế.'}
+                    {selectedShipment.driverId || selectedShipment.driverName ? 'Đã gán tài x?.' : 'Shipment chưa gán tài x?.'}
                   </li>
                   <li className={selectedShipment.vehicleId || selectedShipment.vehiclePlate ? 'is-ok' : 'is-warning'}>
-                    {selectedShipment.vehicleId || selectedShipment.vehiclePlate ? 'Đã gán phương tiện.' : 'Shipment chưa gán phương tiện.'}
+                    {selectedShipment.vehicleId || selectedShipment.vehiclePlate ? 'Đã gán phương ti?n.' : 'Shipment chưa gán phương ti?n.'}
                   </li>
                   <li className={String(getShipmentStatus(selectedShipment)).toUpperCase() === 'DELIVERED' ? 'is-ok' : 'is-warning'}>
-                    {String(getShipmentStatus(selectedShipment)).toUpperCase() === 'DELIVERED' ? 'Shipment đã giao thành công.' : 'Shipment chưa hoàn tất.'}
+                    {String(getShipmentStatus(selectedShipment)).toUpperCase() === 'DELIVERED' ? 'Shipment đã giao thành công.' : 'Shipment chưa hoàn t?t.'}
                   </li>
                 </ul>
               </div>
             </>
           ) : (
-            <p className="muted-inline">Chưa có shipment để hiển thị.</p>
+            <p className="muted-inline">Chưa có shipment để hi?n th?.</p>
           )}
         </main>
       </div>
 
       <div className="content-grid admin-logistics-resource-grid">
         <article className="glass-card admin-logistics-resource-card">
-          <div className="admin-table-head"><h3>Tài xế</h3><span>{drivers.length} hồ sơ</span></div>
+          <div className="admin-table-head"><h3>Tài x?</h3><span>{drivers.length} h? sơ</span></div>
           <div className="admin-table-wrap">
             <table className="admin-table">
-              <thead><tr><th>Tài xế</th><th>Liên hệ</th><th>Trạng thái</th></tr></thead>
+              <thead><tr><th>Tài x?</th><th>Liên h?</th><th>Tr?ng thái</th></tr></thead>
               <tbody>
                 {drivers.map((driver) => (
                   <tr key={driver.driverId || driver.id || driver.email}>
                     <td><strong>{getDriverName(driver)}</strong><br /><small>#{driver.driverId || driver.id || '-'}</small></td>
-                    <td>{driver.phone || driver.email || 'Chưa cập nhật'}</td>
+                    <td>{driver.phone || driver.email || 'Chưa c?p nh?t'}</td>
                     <td><span className={statusClass(driver.status)}>{driver.status || 'ACTIVE'}</span></td>
                   </tr>
                 ))}
-                {!loading && drivers.length === 0 ? <tr><td colSpan="3">Chưa có dữ liệu tài xế.</td></tr> : null}
+                {!loading && drivers.length === 0 ? <tr><td colSpan="3">Chưa có d? li?u tài x?.</td></tr> : null}
               </tbody>
             </table>
           </div>
         </article>
 
         <article className="glass-card admin-logistics-resource-card">
-          <div className="admin-table-head"><h3>Phương tiện</h3><span>{vehicles.length} xe</span></div>
+          <div className="admin-table-head"><h3>Phương ti?n</h3><span>{vehicles.length} xe</span></div>
           <div className="admin-table-wrap">
             <table className="admin-table">
-              <thead><tr><th>Biển số</th><th>Loại xe</th><th>Trạng thái</th></tr></thead>
+              <thead><tr><th>Bi?n s?</th><th>Lo?i xe</th><th>Tr?ng thái</th></tr></thead>
               <tbody>
                 {vehicles.map((vehicle) => (
                   <tr key={vehicle.vehicleId || vehicle.id || vehicle.licensePlate}>
                     <td><strong>{getVehiclePlate(vehicle)}</strong><br /><small>#{vehicle.vehicleId || vehicle.id || '-'}</small></td>
-                    <td>{vehicle.vehicleType || vehicle.type || 'Chưa cập nhật'}</td>
+                    <td>{vehicle.vehicleType || vehicle.type || 'Chưa c?p nh?t'}</td>
                     <td><span className={statusClass(vehicle.status)}>{vehicle.status || 'ACTIVE'}</span></td>
                   </tr>
                 ))}
-                {!loading && vehicles.length === 0 ? <tr><td colSpan="3">Chưa có dữ liệu phương tiện.</td></tr> : null}
+                {!loading && vehicles.length === 0 ? <tr><td colSpan="3">Chưa có d? li?u phương ti?n.</td></tr> : null}
               </tbody>
             </table>
           </div>

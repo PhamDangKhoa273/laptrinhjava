@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/listings")
@@ -64,6 +65,7 @@ public class ProductListingController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String province,
             @RequestParam(required = false) String certification,
+            @RequestParam(required = false) String productCategory,
             @RequestParam(required = false) Boolean availableOnly,
             @RequestParam(required = false) Boolean verifiedOnly,
             @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate harvestFrom,
@@ -71,8 +73,13 @@ public class ProductListingController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort) {
-        Page<ListingResponse> listings = listingService.searchPublicListings(keyword, province, certification, availableOnly, verifiedOnly, harvestFrom, harvestTo, page, size, sort);
+        Page<ListingResponse> listings = listingService.searchPublicListings(keyword, province, certification, productCategory, availableOnly, verifiedOnly, harvestFrom, harvestTo, page, size, sort);
         return ResponseEntity.ok(ApiResponse.success("Tim listing cong khai thanh cong", PagedResponse.of(listings.getContent(), listings.getNumber(), listings.getSize(), listings.getTotalElements(), listings.getTotalPages(), sort)));
+    }
+
+    @GetMapping("/filter-options")
+    public ResponseEntity<ApiResponse<Map<String, List<String>>>> getFilterOptions() {
+        return ResponseEntity.ok(ApiResponse.success(listingService.getFilterOptions()));
     }
 
     @GetMapping("/{id}")

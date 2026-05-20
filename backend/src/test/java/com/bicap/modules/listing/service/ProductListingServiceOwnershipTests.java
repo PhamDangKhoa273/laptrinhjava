@@ -12,6 +12,7 @@ import com.bicap.modules.listing.entity.ProductListing;
 import com.bicap.modules.listing.repository.ListingRegistrationRequestRepository;
 import com.bicap.modules.listing.repository.ProductListingRepository;
 import com.bicap.modules.product.entity.Product;
+import com.bicap.modules.subscription.entity.FarmSubscription;
 import com.bicap.modules.subscription.repository.FarmSubscriptionRepository;
 import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.repository.UserRepository;
@@ -27,6 +28,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -108,6 +110,62 @@ class ProductListingServiceOwnershipTests {
         try (MockedStatic<SecurityUtils> security = mockStatic(SecurityUtils.class)) {
             security.when(SecurityUtils::getCurrentUserIdOrNull).thenReturn(null);
             assertThatThrownBy(() -> service.getListingById(60L)).isInstanceOf(BusinessException.class);
+        }
+    }
+
+    @Test
+    void createListing_shouldReturnBusinessErrorWhenBatchHasNoFarm() {
+        batch.setSeason(null);
+
+        CreateListingRequest request = new CreateListingRequest();
+        request.setBatchId(50L);
+        request.setTitle("Listing");
+        request.setPrice(BigDecimal.valueOf(100000));
+        request.setQuantityAvailable(BigDecimal.ONE);
+        request.setUnit("kg");
+
+        when(batchRepository.findById(50L)).thenReturn(Optional.of(batch));
+
+        try (MockedStatic<SecurityUtils> security = mockStatic(SecurityUtils.class)) {
+            security.when(SecurityUtils::getCurrentUserId).thenReturn(10L);
+            assertThatThrownBy(() -> service.createListing(request))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Batch");
+        }
+    }
+
+    @Test
+    void createListing_shouldAllowGracePeriodSubscription() {
+        batch.getSeason().setSeasonStatus("HARVESTED");
+
+        FarmSubscription subscription = new FarmSubscription();
+        subscription.setStartDate(java.time.LocalDate.now().minusDays(1));
+        subscription.setEndDate(java.time.LocalDate.now().plusDays(1));
+        subscription.setSubscriptionStatus("GRACE_PERIOD");
+
+        CreateListingRequest request = new CreateListingRequest();
+        request.setBatchId(50L);
+        request.setTitle("Listing");
+        request.setPrice(BigDecimal.valueOf(100000));
+        request.setQuantityAvailable(BigDecimal.ONE);
+        request.setUnit("kg");
+
+        when(batchRepository.findById(50L)).thenReturn(Optional.of(batch));
+        when(qrCodeRepository.existsByBatchBatchIdAndStatus(50L, "ACTIVE")).thenReturn(true);
+        when(qrCodeRepository.findByBatch_BatchId(50L)).thenReturn(Optional.empty());
+        when(farmSubscriptionRepository.findByFarmOwnerUserUserIdAndSubscriptionStatusIgnoreCase(10L, "ACTIVE")).thenReturn(java.util.List.of());
+        when(farmSubscriptionRepository.findByFarmOwnerUserUserIdAndSubscriptionStatusIgnoreCase(10L, "EXPIRING_SOON")).thenReturn(java.util.List.of());
+        when(farmSubscriptionRepository.findByFarmOwnerUserUserIdAndSubscriptionStatusIgnoreCase(10L, "GRACE_PERIOD")).thenReturn(java.util.List.of(subscription));
+        when(listingRepository.sumListedQuantityByBatchId(50L, null)).thenReturn(BigDecimal.ZERO);
+        when(listingRepository.save(any(ProductListing.class))).thenAnswer(invocation -> {
+            ProductListing saved = invocation.getArgument(0);
+            saved.setListingId(70L);
+            return saved;
+        });
+
+        try (MockedStatic<SecurityUtils> security = mockStatic(SecurityUtils.class)) {
+            security.when(SecurityUtils::getCurrentUserId).thenReturn(10L);
+            service.createListing(request);
         }
     }
 }

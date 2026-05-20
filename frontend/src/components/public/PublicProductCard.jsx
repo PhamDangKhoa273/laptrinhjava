@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { repairText } from '../../utils/textRepair'
 
 const fallbackImages = [
   'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=900&q=80',
@@ -12,7 +13,7 @@ function statusLabel(value) {
   if (key === 'PENDING') return 'Chờ xác thực'
   if (key === 'PENDING_REVIEW') return 'Chờ duyệt'
   if (key === 'APPROVED') return 'Đã duyệt'
-  return value
+  return repairText(value)
 }
 
 export function formatPublicPrice(value) {
@@ -24,9 +25,9 @@ export function formatPublicPrice(value) {
 
 export function PublicProductCard({ item, onOpen }) {
   const id = item.listingId || item.id
-  const title = item.title || item.productName || 'Listing chưa có tên'
-  const farm = item.farmName || item.producerName || 'Chưa cập nhật nông trại'
-  const region = item.province || item.location || item.address || 'Chưa cập nhật xuất xứ'
+  const title = repairText(item.title || item.productName || 'Listing chưa có tên')
+  const farm = repairText(item.farmName || item.producerName || 'Chưa cập nhật nông trại')
+  const region = repairText(item.province || item.location || item.address || 'Chưa cập nhật xuất xứ')
   const img = item.imageUrl || fallbackImages[id ? Number(id) % fallbackImages.length : 0]
   const traceHref = item.traceCode ? `/public/trace?traceCode=${encodeURIComponent(item.traceCode)}` : `/public/trace?batchId=${item.batchId || ''}`
   const detailHref = id ? `/listings/${id}` : '/marketplace'
@@ -42,7 +43,7 @@ export function PublicProductCard({ item, onOpen }) {
       </div>
       <div className="public-product-body">
         <h3>{title}</h3>
-        <div className="public-product-footer"><strong>{formatPublicPrice(item.price)}</strong><small> / {item.unit || 'kg'}</small></div>
+        <div className="public-product-footer"><strong>{formatPublicPrice(item.price)}</strong><small> / {repairText(item.unit || 'kg')}</small></div>
         <div style={{ margin: '12px 0 24px', flex: 1 }}>
           <p className="public-muted"><span className="material-symbols-outlined" style={{ color: 'var(--proto-tertiary)', fontSize: 16 }}>agriculture</span>{farm}</p>
           <p className="public-muted"><span className="material-symbols-outlined" style={{ color: 'var(--proto-outline)', fontSize: 16 }}>location_on</span>{region}</p>

@@ -5,8 +5,8 @@ const phoneRegex = /^(0|\+84)(3|5|7|8|9)\d{8}$/
 export function validateRegisterForm(form) {
   const errors = {}
 
-  if (!form.fullName?.trim()) errors.fullName = 'Full name is required.'
-  if (!form.email?.trim()) errors.email = 'Email is required.'
+  if (!form.fullName?.trim()) errors.fullName = 'Vui lòng nhập họ tên.'
+  if (!form.email?.trim()) errors.email = 'Vui lòng nhập email.'
   if (form.email && !form.email.includes('@')) errors.email = 'Email format is invalid.'
   const passwordRegex = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8,}$/
   if (!form.password || form.password.length < 8) {
@@ -24,8 +24,8 @@ export function validateRegisterForm(form) {
 export function validateProfileForm(form, role) {
   const errors = {}
 
-  if (!form.fullName?.trim()) errors.fullName = 'Full name is required.'
-  if (!form.email?.trim()) errors.email = 'Email is required.'
+  if (!form.fullName?.trim()) errors.fullName = 'Vui lòng nhập họ tên.'
+  if (!form.email?.trim()) errors.email = 'Vui lòng nhập email.'
   if (form.email && !form.email.includes('@')) errors.email = 'Email format is invalid.'
   if (form.phoneNumber && !phoneRegex.test(form.phoneNumber.trim())) errors.phoneNumber = 'Vietnamese phone number is invalid.'
 

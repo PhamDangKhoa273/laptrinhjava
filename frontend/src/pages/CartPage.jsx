@@ -12,9 +12,9 @@ export default function CartPage() {
     return (
       <section className="page-section cart-page">
         <PageEmptyState
-          icon="🧺"
-          title="Giỏ hàng chưa có sản phẩm"
-          message="Chọn một tin bán nông sản từ marketplace để bắt đầu tạo đơn hàng hoặc đặt cọc với farm."
+          icon="??"
+          title="Gi? hàng chưa có s?n ph?m"
+          message="Ch?n m?t tin bán nông s?n t? marketplace để b?t đầu t?o đơn hàng ho?c đặt c?c v?i farm."
           actionLabel="Khám phá marketplace"
           onAction={() => navigate('/marketplace')}
         />
@@ -27,36 +27,36 @@ export default function CartPage() {
       <div className="section-heading">
         <div>
           <p className="eyebrow">Retailer checkout</p>
-          <h2>Giỏ hàng sẵn sàng đặt mua</h2>
-          <p>Kiểm tra nhanh sản phẩm trước khi chuyển sang quy trình tạo đơn hàng chính thức.</p>
+          <h2>Gi? hàng s?n sàng đặt mua</h2>
+          <p>Ki?m tra nhanh s?n ph?m trước khi chuy?n sang quy tr?nh t?o đơn hàng chính th?c.</p>
         </div>
       </div>
 
       <div className="content-grid cart-summary-grid">
         <article className="glass-card cart-intent-card">
           <span className="feature-badge">Listing #{listingId}</span>
-          <h3>Đơn hàng mới từ marketplace</h3>
+          <h3>Đơn hàng m?i t? marketplace</h3>
           <p className="muted-inline">
-            BICAP sẽ tạo đơn hàng từ listing đã chọn, sau đó retailer có thể theo dõi đặt cọc,
-            vận chuyển và xác nhận giao nhận trong workspace.
+            BICAP s? t?o đơn hàng t? listing đã ch?n, sau đó retailer có th? theo d?i đặt c?c,
+            v?n chuy?n và xác nh?n giao nh?n trong workspace.
           </p>
           <ul className="feature-list">
-            <li>Xác minh tồn kho và trạng thái phê duyệt của listing.</li>
-            <li>Chuẩn bị luồng đặt cọc 30% theo cấu hình backend.</li>
-            <li>Liên kết sang workspace để quản lý vòng đời đơn hàng.</li>
+            <li>Xác minh t?n kho và tr?ng thái phê duy?t c?a listing.</li>
+            <li>Chu?n b? lu?ng đặt c?c 30% theo c?u h?nh backend.</li>
+            <li>Liên k?t sang workspace để qu?n l? v?ng đời đơn hàng.</li>
           </ul>
         </article>
 
         <article className="glass-card cart-checkout-card">
-          <h3>Bước tiếp theo</h3>
+          <h3>Bước ti?p theo</h3>
           <div className="cart-step-list">
-            <span>1. Xem lại listing và số lượng</span>
-            <span>2. Tạo đơn hàng trong retailer workspace</span>
-            <span>3. Theo dõi đặt cọc và vận chuyển</span>
+            <span>1. Xem l?i listing và s? lượng</span>
+            <span>2. T?o đơn hàng trong retailer workspace</span>
+            <span>3. Theo d?i đặt c?c và v?n chuy?n</span>
           </div>
           <div className="inline-actions top-gap">
-            <Button onClick={() => navigate('/retailer/workspace')}>Mở workspace</Button>
-            <Button variant="secondary" onClick={() => navigate('/checkout')}>Tiếp tục thanh toán</Button>
+            <Button onClick={() => navigate('/retailer/workspace')}>M? workspace</Button>
+            <Button variant="secondary" onClick={() => navigate('/checkout')}>Ti?p t?c thanh toán</Button>
             <Button variant="secondary" onClick={() => navigate('/marketplace')}>Mua thêm</Button>
           </div>
         </article>

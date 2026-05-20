@@ -23,6 +23,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
@@ -53,6 +54,17 @@ public class SubscriptionPaymentService {
                 && subscription.getFarm().getOwnerUser().getUserId().equals(currentUserId);
         if (!isAdmin && !isFarmOwner) {
             throw new BusinessException("Bạn không có quyền thanh toán subscription này");
+        }
+
+        Long subscriptionId = subscription.getSubscriptionId();
+        if (subscriptionPaymentRepository.existsByFarmSubscriptionSubscriptionIdAndPaymentStatusIgnoreCase(subscriptionId, "PAID")) {
+            throw new BusinessException("Subscription này đã được thanh toán");
+        }
+        if (subscriptionPaymentRepository.existsByFarmSubscriptionSubscriptionIdAndPaymentStatusIgnoreCase(subscriptionId, "PENDING")) {
+            return subscriptionPaymentRepository
+                    .findFirstByFarmSubscriptionSubscriptionIdAndPaymentStatusIgnoreCaseOrderByPaymentIdDesc(subscriptionId, "PENDING")
+                    .map(this::toResponse)
+                    .orElseThrow(() -> new BusinessException("Subscription này đang có giao dịch chờ xác nhận"));
         }
 
         String idempotencyKey = normalizeKey(request.getTransactionRef());
@@ -127,9 +139,7 @@ public class SubscriptionPaymentService {
 
         SubscriptionPayment saved = saveRetrySafe(payment);
         if ("PAID".equals(saved.getPaymentStatus())) {
-            FarmSubscription subscription = saved.getFarmSubscription();
-            subscription.setSubscriptionStatus("ACTIVE");
-            farmSubscriptionRepository.save(subscription);
+            syncSubscriptionStatusAfterPayment(saved.getFarmSubscription());
         }
         auditLogService.log(null, "PAYMENT_STATE_CHANGE", "SUBSCRIPTION_PAYMENT", saved.getSubscriptionPaymentId(), "status=" + saved.getPaymentStatus());
         return toResponse(saved);
@@ -138,12 +148,13 @@ public class SubscriptionPaymentService {
     @Transactional
     public SubscriptionPaymentResponse adminOverrideActivate(Long paymentId, Long adminUserId, String note) {
         SubscriptionPayment payment = getEntityById(paymentId);
+        if ("PAID".equalsIgnoreCase(payment.getPaymentStatus())) {
+            return toResponse(payment);
+        }
         payment.setPaymentStatus("PAID");
 
         SubscriptionPayment saved = saveRetrySafe(payment);
-        FarmSubscription subscription = saved.getFarmSubscription();
-        subscription.setSubscriptionStatus("ACTIVE");
-        farmSubscriptionRepository.save(subscription);
+        syncSubscriptionStatusAfterPayment(saved.getFarmSubscription());
 
         auditLogService.log(adminUserId, "ADMIN_OVERRIDE_SUBSCRIPTION_PAYMENT", "SUBSCRIPTION_PAYMENT", saved.getSubscriptionPaymentId());
         auditLogService.log(adminUserId, "PAYMENT_STATE_CHANGE", "SUBSCRIPTION_PAYMENT", saved.getSubscriptionPaymentId(), "status=PAID,source=ADMIN_OVERRIDE");
@@ -204,6 +215,51 @@ public class SubscriptionPaymentService {
                 .transactionRef(payment.getTransactionRef())
                 .paidAt(payment.getPaidAt())
                 .build();
+    }
+
+    private void syncSubscriptionStatusAfterPayment(FarmSubscription subscription) {
+        if (subscription == null) {
+            return;
+        }
+        LocalDate today = LocalDate.now();
+
+        // Find currently effective ACTIVE subscription for the same farm (excluding the new one)
+        FarmSubscription currentActive = farmSubscriptionRepository
+                .findByFarmOwnerUserUserIdAndSubscriptionStatusIgnoreCase(
+                        subscription.getFarm().getOwnerUser().getUserId(), "ACTIVE")
+                .stream()
+                .filter(s -> !Objects.equals(s.getSubscriptionId(), subscription.getSubscriptionId()))
+                .filter(s -> s.getStartDate() != null && s.getEndDate() != null)
+                .filter(s -> !s.getStartDate().isAfter(today) && !s.getEndDate().isBefore(today))
+                .findFirst()
+                .orElse(null);
+
+        // If there is an active current package and the newly paid package is more expensive,
+        // treat this as an immediate upgrade:
+        //   - cancel current package now
+        //   - activate new package immediately from today
+        // This matches user expectation: pay upgrade -> use higher tier right away.
+        if (currentActive != null
+                && currentActive.getServicePackage() != null
+                && subscription.getServicePackage() != null
+                && currentActive.getServicePackage().getPrice() != null
+                && subscription.getServicePackage().getPrice() != null
+                && subscription.getServicePackage().getPrice().compareTo(currentActive.getServicePackage().getPrice()) > 0) {
+            currentActive.setSubscriptionStatus("CANCELLED");
+            farmSubscriptionRepository.save(currentActive);
+            subscription.setStartDate(today);
+            subscription.setEndDate(today.plusDays(subscription.getServicePackage().getDurationDays()));
+            subscription.setSubscriptionStatus("ACTIVE");
+            farmSubscriptionRepository.save(subscription);
+            return;
+        }
+
+        // Default behavior:
+        //   - if startDate is in future => keep PENDING (queued subscription)
+        //   - otherwise => activate now
+        LocalDate startDate = subscription.getStartDate();
+        subscription.setSubscriptionStatus(startDate != null && startDate.isAfter(today) ? "PENDING" : "ACTIVE");
+        farmSubscriptionRepository.save(subscription);
     }
 
     private boolean isSuccess(String status) {

@@ -13,6 +13,11 @@ import com.bicap.core.enums.BlockchainGovernanceStatus;
 public interface BlockchainTransactionRepository extends JpaRepository<BlockchainTransaction, Long> {
     List<BlockchainTransaction> findByRelatedEntityTypeAndRelatedEntityId(String relatedEntityType, Long relatedEntityId);
     Optional<BlockchainTransaction> findTopByRelatedEntityTypeAndRelatedEntityIdOrderByCreatedAtDesc(String relatedEntityType, Long relatedEntityId);
+    Optional<BlockchainTransaction> findTopByRelatedEntityTypeAndRelatedEntityIdAndGovernanceStatusOrderByCreatedAtDesc(
+            String relatedEntityType,
+            Long relatedEntityId,
+            BlockchainGovernanceStatus governanceStatus
+    );
 
     List<BlockchainTransaction> findTop50ByGovernanceStatusInOrderByCreatedAtAsc(List<BlockchainGovernanceStatus> statuses);
 }

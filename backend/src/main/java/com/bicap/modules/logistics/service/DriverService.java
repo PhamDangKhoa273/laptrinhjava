@@ -10,7 +10,12 @@ import com.bicap.modules.logistics.entity.Driver;
 import com.bicap.modules.logistics.repository.DriverRepository;
 import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.repository.UserRepository;
+import com.bicap.core.enums.RoleName;
+import com.bicap.modules.logistics.dto.CreateDriverWithUserRequest;
+import com.bicap.modules.user.dto.UserResponse;
 import com.bicap.modules.user.service.UserService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +30,9 @@ public class DriverService {
     private final UserRepository userRepository;
     private final UserService userService;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Transactional
     public DriverResponse create(CreateDriverRequest request, Long currentUserId) {
         if (driverRepository.existsByDriverCode(request.getDriverCode())) {
@@ -38,6 +46,39 @@ public class DriverService {
         }
 
         User driverUser = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
+        User managerUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Manager không tồn tại"));
+
+        Driver driver = new Driver();
+        driver.setDriverCode(request.getDriverCode().trim());
+        driver.setLicenseNo(request.getLicenseNo().trim());
+        driver.setUser(driverUser);
+        driver.setManagerUser(managerUser);
+        driver.setStatus(resolveStatus(request.getStatus()));
+
+        return toResponse(driverRepository.save(driver));
+    }
+
+    @Transactional
+    public DriverResponse createWithUser(CreateDriverWithUserRequest request, Long currentUserId) {
+        if (driverRepository.existsByDriverCode(request.getDriverCode())) {
+            throw new BadRequestException("driverCode đã tồn tại");
+        }
+        if (driverRepository.existsByLicenseNo(request.getLicenseNo())) {
+            throw new BadRequestException("licenseNo đã tồn tại");
+        }
+
+        UserResponse userResponse = userService.createUser(
+                request.getFullName(),
+                request.getEmail(),
+                request.getPassword(),
+                null,
+                null,
+                RoleName.DRIVER
+        );
+
+        User driverUser = userRepository.findById(userResponse.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
         User managerUser = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Manager không tồn tại"));
@@ -71,8 +112,9 @@ public class DriverService {
         if (!driver.getManagerUser().getUserId().equals(currentUserId)) {
             User actingUser = userRepository.findById(currentUserId)
                     .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
-            boolean isAdmin = userService.hasRole(actingUser, com.bicap.core.enums.RoleName.ADMIN);
-            if (!isAdmin) {
+            boolean isAuthorized = userService.hasRole(actingUser, com.bicap.core.enums.RoleName.ADMIN)
+                || userService.hasRole(actingUser, com.bicap.core.enums.RoleName.SHIPPING_MANAGER);
+            if (!isAuthorized) {
                 throw new BusinessException("Bạn không có quyền cập nhật driver này");
             }
         }
@@ -96,11 +138,16 @@ public class DriverService {
         if (!driver.getManagerUser().getUserId().equals(currentUserId)) {
             User actingUser = userRepository.findById(currentUserId)
                     .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
-            boolean isAdmin = userService.hasRole(actingUser, com.bicap.core.enums.RoleName.ADMIN);
-            if (!isAdmin) {
+            boolean isAuthorized = userService.hasRole(actingUser, com.bicap.core.enums.RoleName.ADMIN)
+                || userService.hasRole(actingUser, com.bicap.core.enums.RoleName.SHIPPING_MANAGER);
+            if (!isAuthorized) {
                 throw new BusinessException("Bạn không có quyền xóa driver này");
             }
         }
+
+        entityManager.createNativeQuery("UPDATE shipments SET driver_id = NULL WHERE driver_id = ?1")
+                .setParameter(1, id)
+                .executeUpdate();
 
         driverRepository.delete(driver);
     }
@@ -112,8 +159,9 @@ public class DriverService {
         if (!driver.getManagerUser().getUserId().equals(currentUserId)) {
             User actingUser = userRepository.findById(currentUserId)
                     .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
-            boolean isAdmin = userService.hasRole(actingUser, com.bicap.core.enums.RoleName.ADMIN);
-            if (!isAdmin) {
+            boolean isAuthorized = userService.hasRole(actingUser, com.bicap.core.enums.RoleName.ADMIN)
+                || userService.hasRole(actingUser, com.bicap.core.enums.RoleName.SHIPPING_MANAGER);
+            if (!isAuthorized) {
                 throw new BusinessException("Bạn không có quyền ngừng kích hoạt driver này");
             }
         }

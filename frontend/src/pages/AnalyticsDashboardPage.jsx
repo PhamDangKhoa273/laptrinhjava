@@ -21,14 +21,14 @@ function AnalyticsPanel({ title, subtitle, data, accent }) {
         <div>
           <span className="feature-badge">{title}</span>
           <h3>{subtitle}</h3>
-          <p>Theo dõi tín hiệu vận hành, xu hướng và gợi ý hành động theo thời gian thực.</p>
+          <p>Theo d?i tín hi?u v?n hành, xu hướng và g?i ? hành động theo th?i gian th?c.</p>
         </div>
       </div>
       <div className="admin-analytics-metric-grid">
         {cards.map((card) => (
           <div key={card.label} className="admin-analytics-metric-card">
             <span>{card.label}</span>
-            <strong>{card.value?.label || card.value?.scope || 'Chưa có dữ liệu'}</strong>
+            <strong>{card.value?.label || card.value?.scope || 'Chưa có d? li?u'}</strong>
             <em>{formatMetric(card.value)}</em>
             {card.value?.trend ? <small>Trend: {card.value.trend}</small> : null}
             {card.value?.confidence ? <small>Confidence: {Math.round((card.value.confidence || 0) * 100)}%</small> : null}
@@ -50,7 +50,7 @@ export function AnalyticsDashboardPage() {
       setError('')
       setDashboard(await getAnalyticsDashboard())
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || 'Không tải được analytics dashboard.')
+      setError(err?.response?.data?.message || err?.message || 'Không t?i được analytics dashboard.')
     } finally {
       setLoading(false)
     }
@@ -78,10 +78,10 @@ export function AnalyticsDashboardPage() {
       <div className="section-heading">
         <div>
           <h2>Analytics & forecasting</h2>
-          <p>Control room cho tăng trưởng, đơn hàng, tồn kho, vận chuyển và tín hiệu rủi ro IoT.</p>
+          <p>Control room cho tăng trưởng, đơn hàng, t?n kho, v?n chuy?n và tín hi?u r?i ro IoT.</p>
         </div>
         <div className="section-actions">
-          <button type="button" className="button button-secondary" onClick={loadDashboard} disabled={loading}>{loading ? 'Đang tải...' : 'Làm mới'}</button>
+          <button type="button" className="button button-secondary" onClick={loadDashboard} disabled={loading}>{loading ? 'Đang t?i...' : 'Làm m?i'}</button>
         </div>
       </div>
 
@@ -106,7 +106,7 @@ export function AnalyticsDashboardPage() {
           <div>
             <span className="feature-badge">Action center</span>
             <h3>Recommended actions</h3>
-            <p>Ưu tiên xử lý dựa trên các tín hiệu dự báo hiện tại.</p>
+            <p>Ưu tiên x? l? d?a trên các tín hi?u d? báo hi?n t?i.</p>
           </div>
         </div>
         {dashboard?.recommendations?.length ? (
@@ -114,7 +114,7 @@ export function AnalyticsDashboardPage() {
             {dashboard.recommendations.map((item) => <li key={item} className="is-ok">{item}</li>)}
           </ul>
         ) : (
-          <p className="muted-inline">Chưa có khuyến nghị mới.</p>
+          <p className="muted-inline">Chưa có khuy?n ngh? m?i.</p>
         )}
       </article>
     </section>

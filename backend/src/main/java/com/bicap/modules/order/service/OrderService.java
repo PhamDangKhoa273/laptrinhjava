@@ -4,6 +4,7 @@ import com.bicap.core.AuditLogService;
 import com.bicap.core.security.MetricsSecurityEvents;
 import com.bicap.core.enums.OrderPaymentStatus;
 import com.bicap.core.enums.OrderStatus;
+import com.bicap.core.enums.ShipmentStatus;
 import com.bicap.core.exception.BusinessException;
 import com.bicap.core.security.SecurityUtils;
 import com.bicap.modules.batch.service.BlockchainService;
@@ -29,6 +30,7 @@ import com.bicap.modules.shipment.repository.ShipmentRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.OptimisticLockingFailureException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -66,6 +68,7 @@ public class OrderService {
     private final FarmRetailerContractService contractService;
     private final DriverRepository driverRepository;
     private final MetricsSecurityEvents metrics;
+    private final Environment environment;
 
     private static final Map<OrderStatus, Set<OrderStatus>> STATUS_TRANSITIONS = Map.of(
             OrderStatus.PENDING, EnumSet.of(OrderStatus.CONFIRMED, OrderStatus.REJECTED, OrderStatus.CANCELLED),
@@ -83,6 +86,9 @@ public class OrderService {
     @Value("${app.order.deposit.gateway-secret:}")
     private String orderDepositGatewaySecret;
 
+    @Value("${app.order.deposit.local-auto-confirm:false}")
+    private boolean orderDepositLocalAutoConfirm;
+
     public OrderService(OrderRepository orderRepository,
                         RetailerRepository retailerRepository,
                         FarmRepository farmRepository,
@@ -95,7 +101,8 @@ public class OrderService {
                         FarmRetailerContractService contractService,
                         DriverRepository driverRepository,
                         AuditLogService auditLogService,
-                        MetricsSecurityEvents metrics) {
+                        MetricsSecurityEvents metrics,
+                        Environment environment) {
         this.orderRepository = orderRepository;
         this.retailerRepository = retailerRepository;
         this.farmRepository = farmRepository;
@@ -109,6 +116,7 @@ public class OrderService {
         this.driverRepository = driverRepository;
         this.auditLogService = auditLogService;
         this.metrics = metrics;
+        this.environment = environment;
     }
 
     @Transactional
@@ -195,6 +203,18 @@ public class OrderService {
         }
         appendHistory(orderId, order.getStatus(), order.getStatus(), "Deposit pending via " + request.getMethod().trim().toUpperCase() + " - ref: " + transactionRef + ", amount=" + request.getAmount(), "PENDING:" + transactionRef);
         if (auditLogService != null) auditLogService.log(currentUserId, "ORDER_DEPOSIT_PENDING", "ORDER", orderId, "ref=" + transactionRef + ", amount=" + request.getAmount());
+        if (isLocalDepositAutoConfirmEnabled()) {
+            order.setDepositAmount(request.getAmount());
+            order.setDepositPaidAt(LocalDateTime.now());
+            order.setPaymentStatus(OrderPaymentStatus.DEPOSIT_PAID);
+            OrderStatus previousStatus = order.getStatusEnum();
+            order.setStatus(OrderStatus.READY_FOR_SHIPMENT);
+            appendHistory(order.getOrderId(), previousStatus.name(), OrderStatus.READY_FOR_SHIPMENT.name(), "Local deposit auto-confirmed - ref: " + transactionRef + ", amount=" + request.getAmount(), "LOCAL_DEPOSIT:" + transactionRef);
+            Order saved = orderRepository.save(order);
+            notifyFarmOrderEvent(saved, "Retailer da thanh toan dat coc", "Order #" + saved.getOrderId() + " da duoc xac nhan dat coc local voi so tien " + request.getAmount(), "ORDER_DEPOSIT", saved.getOrderId());
+            if (auditLogService != null) auditLogService.log(currentUserId, "ORDER_DEPOSIT_LOCAL_CONFIRMED", "ORDER", saved.getOrderId(), "ref=" + transactionRef);
+            return toResponse(saved);
+        }
         return toResponse(order);
     }
 
@@ -277,7 +297,11 @@ public class OrderService {
         Order order = getOrderForInternalFlow(orderId);
         assertCanUploadShippingProof(order, SecurityUtils.getCurrentUserId());
         if (order.getStatusEnum() == null || order.getStatusEnum() != OrderStatus.SHIPPING) throw new BusinessException("Chỉ đơn hàng đang SHIPPING mới được cập nhật proof vận chuyển");
-        return mediaStorageService.storeProof(file, "shipping", orderId);
+        MediaFileResponse media = mediaStorageService.storeProof(file, "shipping", orderId);
+        order.setShippingProofImageUrl(media.getFileUrl());
+        appendHistory(orderId, order.getStatus(), order.getStatus(), "Shipping proof file uploaded, proofUploaded=true", null);
+        orderRepository.save(order);
+        return media;
     }
 
     @Transactional
@@ -294,7 +318,11 @@ public class OrderService {
         order.setDeliveryConfirmedAt(LocalDateTime.now());
         order.setDeliveryConfirmedByUserId(currentUserId);
         order.setCloseEligibleAt(LocalDateTime.now().plusHours(24));
-        shipmentRepository.findByOrderId(orderId).ifPresent(shipment -> shipment.setDeliveryConfirmedAt(LocalDateTime.now()));
+        shipmentRepository.findByOrderId(orderId).ifPresent(shipment -> {
+            shipment.setDeliveryConfirmedAt(LocalDateTime.now());
+            shipment.setStatus(ShipmentStatus.CONFIRMED);
+            shipmentRepository.save(shipment);
+        });
         appendHistory(orderId, OrderStatus.DELIVERED.name(), OrderStatus.DELIVERED.name(), (request.getNote() != null ? request.getNote().trim() : "Retailer confirmed delivery") + ", deliveryConfirmedByUserId=" + currentUserId, null);
         Order saved = saveRetrySafe(order);
         notifyOrderStatusChange(saved, OrderStatus.DELIVERED.name(), request.getNote());
@@ -306,7 +334,11 @@ public class OrderService {
         Order order = getOrderForInternalFlow(orderId);
         if (order.getStatusEnum() != OrderStatus.DELIVERED) throw new BusinessException("Chỉ đơn hàng DELIVERED mới được upload proof giao hàng");
         if (order.getShippingProofImageUrl() == null || order.getShippingProofImageUrl().isBlank()) throw new BusinessException("Đơn hàng phải có bằng chứng vận chuyển trước khi upload proof giao hàng");
-        return mediaStorageService.storeProof(file, "delivery", orderId);
+        MediaFileResponse media = mediaStorageService.storeProof(file, "delivery", orderId);
+        order.setDeliveryProofImageUrl(media.getFileUrl());
+        appendHistory(orderId, order.getStatus(), order.getStatus(), "Delivery proof file uploaded, proofUploaded=true", null);
+        orderRepository.save(order);
+        return media;
     }
 
     @Transactional
@@ -516,6 +548,14 @@ public class OrderService {
         return "GATEWAY_DEPOSIT:" + gatewayTransactionId.trim();
     }
 
+    private boolean isLocalDepositAutoConfirmEnabled() {
+        if (!orderDepositLocalAutoConfirm || environment == null) return false;
+        for (String profile : environment.getActiveProfiles()) {
+            if ("local".equalsIgnoreCase(profile) || "test".equalsIgnoreCase(profile)) return true;
+        }
+        return false;
+    }
+
     private boolean hasHistoryIdempotencyKey(Long orderId, String idempotencyKey) {
         return statusHistoryRepository.findByOrderIdOrderByChangedAtDesc(orderId).stream()
                 .anyMatch(history -> idempotencyKey.equalsIgnoreCase(history.getIdempotencyKey()));
@@ -568,10 +608,14 @@ public class OrderService {
     private String trimToNull(String value) { return value == null ? null : value.trim().isBlank() ? null : value.trim(); }
 
     private OrderResponse toResponse(Order order) {
+        Farm farm = order.getFarmId() == null ? null : farmRepository.findById(order.getFarmId()).orElse(null);
+        Retailer retailer = order.getRetailerId() == null ? null : retailerRepository.findById(order.getRetailerId()).orElse(null);
         OrderResponse.Builder b = OrderResponse.builder()
                 .orderId(order.getOrderId())
                 .retailerId(order.getRetailerId())
                 .farmId(order.getFarmId())
+                .retailerName(retailer == null ? null : retailer.getRetailerName())
+                .farmName(farm == null ? null : farm.getFarmName())
                 .totalAmount(order.getTotalAmount())
                 .status(order.getStatus())
                 .paymentStatus(order.getPaymentStatus())

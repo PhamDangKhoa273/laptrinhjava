@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
-import { getErrorMessage, mapBackendValidationErrors } from '../utils/helpers'
+import { getDashboardPathForUser, getErrorMessage, mapBackendValidationErrors } from '../utils/helpers'
 
 const initialState = { email: '', password: '' }
 
@@ -15,12 +15,33 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const canSubmit = useMemo(() => Boolean(form.email && form.password), [form])
 
-  function handleChange(event) { const { name, value } = event.target; setForm((prev) => ({ ...prev, [name]: value })); setErrors((prev) => ({ ...prev, [name]: '' })) }
+  function handleChange(event) {
+    const { name, value } = event.target
+    setForm((prev) => ({ ...prev, [name]: value }))
+    setErrors((prev) => ({ ...prev, [name]: '' }))
+    setError('')
+  }
+
   async function handleSubmit(event) {
-    event.preventDefault(); if (loading) return; setError(''); setErrors({}); setLoading(true)
-    try { await login({ email: form.email.trim(), password: form.password }); if (typeof window !== 'undefined') { window.location.replace('/auth/landing'); return } navigate('/auth/landing', { replace: true }) }
-    catch (err) { const fieldErrors = mapBackendValidationErrors(err); if (Object.keys(fieldErrors).length > 0) setErrors(fieldErrors); setError(getErrorMessage(err, 'Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.')) }
-    finally { setLoading(false) }
+    event.preventDefault()
+    if (loading) return
+    setError('')
+    setErrors({})
+    setLoading(true)
+    try {
+      const nextUser = await login({ email: form.email.trim(), password: form.password.trim() })
+      if (typeof window !== 'undefined') {
+        window.location.replace(getDashboardPathForUser(nextUser))
+        return
+      }
+      navigate('/auth/landing', { replace: true })
+    } catch (err) {
+      const fieldErrors = mapBackendValidationErrors(err)
+      if (Object.keys(fieldErrors).length > 0) setErrors(fieldErrors)
+      setError(getErrorMessage(err, 'Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.'))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -43,9 +64,14 @@ export function LoginPage() {
       </section>
       <aside className="auth-image-pane">
         <div className="auth-image-content">
-          <h3 className="auth-title" style={{ color: '#fff', fontSize: 36, whiteSpace: 'nowrap' }}>Hệ sinh thái Nông nghiệp Số</h3>
-          <p style={{ color: 'rgba(255,255,255,.82)', fontSize: 18, lineHeight: 1.6 }}>Kết nối nông dân, nhà phân phối và người tiêu dùng thông qua nền tảng minh bạch và an toàn.</p>
-          {[[ 'qr_code_scanner', 'Truy xuất nguồn gốc', 'Theo dõi chi tiết vòng đời sản phẩm từ nông trại đến bàn ăn.' ], [ 'lan', 'Blockchain minh bạch', 'Dữ liệu được xác thực và không thể thay đổi.' ], [ 'local_shipping', 'Quản lý vận chuyển', 'Tối ưu hóa logistics và giám sát bảo quản.' ], [ 'storefront', 'Marketplace nông sản', 'Giao dịch trực tiếp, cắt giảm trung gian.' ]].map(([icon, title, desc]) => <div className="auth-feature" key={title}><span className="material-symbols-outlined filled" style={{ color: 'var(--proto-primary-fixed)', fontSize: 28 }}>{icon}</span><div><strong>{title}</strong><p style={{ margin: '4px 0 0', color: 'rgba(255,255,255,.72)' }}>{desc}</p></div></div>)}
+          <h3 className="auth-title" style={{ color: '#fff', fontSize: 36, whiteSpace: 'nowrap' }}>Hệ sinh thái nông nghiệp số</h3>
+          <p style={{ color: 'rgba(255,255,255,.82)', fontSize: 18, lineHeight: 1.6 }}>Kết nối nông dân, nhà phân phối và người tiêu dùng qua nền tảng minh bạch, an toàn.</p>
+          {[
+            ['qr_code_scanner', 'Truy xuất nguồn gốc', 'Theo dõi vòng đời sản phẩm từ nông trại đến bàn ăn.'],
+            ['lan', 'Blockchain minh bạch', 'Dữ liệu được xác thực và khó thay đổi.'],
+            ['local_shipping', 'Quản lý vận chuyển', 'Tối ưu logistics và giám sát bảo quản.'],
+            ['storefront', 'Marketplace nông sản', 'Giao dịch trực tiếp, giảm trung gian.'],
+          ].map(([icon, title, desc]) => <div className="auth-feature" key={title}><span className="material-symbols-outlined filled" style={{ color: 'var(--proto-primary-fixed)', fontSize: 28 }}>{icon}</span><div><strong>{title}</strong><p style={{ margin: '4px 0 0', color: 'rgba(255,255,255,.72)' }}>{desc}</p></div></div>)}
         </div>
       </aside>
     </div>

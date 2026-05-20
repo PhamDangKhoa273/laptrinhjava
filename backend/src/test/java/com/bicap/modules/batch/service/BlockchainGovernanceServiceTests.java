@@ -84,7 +84,7 @@ class BlockchainGovernanceServiceTests {
         verify(authorizationService).requirePermission(PermissionName.BLOCKCHAIN_GOVERNANCE);
         ArgumentCaptor<BlockchainTransaction> captor = ArgumentCaptor.forClass(BlockchainTransaction.class);
         verify(transactionRepository).save(captor.capture());
-        assertEquals("GOVERNANCE_VALIDATE", captor.getValue().getActionType());
+        assertEquals("SMART_CONTRACT_VALIDATE", captor.getValue().getActionType());
         assertEquals(BlockchainGovernanceStatus.GOVERNED, captor.getValue().getGovernanceStatus());
     }
 
@@ -103,7 +103,8 @@ class BlockchainGovernanceServiceTests {
         assertEquals("NEEDS_PRIVATE_KEY", response.getDeploymentStatus());
         ArgumentCaptor<BlockchainTransaction> captor = ArgumentCaptor.forClass(BlockchainTransaction.class);
         verify(transactionRepository).save(captor.capture());
-        assertEquals(BlockchainGovernanceStatus.FAILED, captor.getValue().getGovernanceStatus());
+        assertEquals("SMART_CONTRACT_DEPLOY", captor.getValue().getActionType());
+        assertEquals(BlockchainGovernanceStatus.CONFIG_BLOCKED, captor.getValue().getGovernanceStatus());
     }
 
     @Test
@@ -113,8 +114,8 @@ class BlockchainGovernanceServiceTests {
         tx.setRelatedEntityId(0L);
         tx.setGovernanceStatus(BlockchainGovernanceStatus.FAILED);
         tx.setRetryCount(1);
-        when(transactionRepository.findTopByRelatedEntityTypeAndRelatedEntityIdOrderByCreatedAtDesc("GOVERNANCE", 0L))
-                .thenReturn(Optional.of(tx));
+        when(transactionRepository.findTopByRelatedEntityTypeAndRelatedEntityIdAndGovernanceStatusOrderByCreatedAtDesc(
+                "GOVERNANCE", 0L, BlockchainGovernanceStatus.FAILED)).thenReturn(Optional.of(tx));
         when(transactionRepository.save(any(BlockchainTransaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         BlockchainTransactionResponse response = service.retryLatestFailed("governance", 0L);
@@ -122,6 +123,19 @@ class BlockchainGovernanceServiceTests {
         assertEquals("RETRY_SCHEDULED", response.getGovernanceStatus());
         assertEquals(2, response.getRetryCount());
         verify(authorizationService).requirePermission(PermissionName.BLOCKCHAIN_GOVERNANCE);
+    }
+
+    @Test
+    void deployOrValidateContract_shouldMarkDisabledConfigAsBlockedNotRetryableFailure() {
+        when(transactionRepository.save(any(BlockchainTransaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        DeployContractResponse response = service.deployOrValidateContract(new DeployContractRequest());
+
+        assertFalse(response.isActive());
+        assertEquals("DISABLED", response.getDeploymentStatus());
+        ArgumentCaptor<BlockchainTransaction> captor = ArgumentCaptor.forClass(BlockchainTransaction.class);
+        verify(transactionRepository).save(captor.capture());
+        assertEquals(BlockchainGovernanceStatus.CONFIG_BLOCKED, captor.getValue().getGovernanceStatus());
     }
 
     @Test

@@ -10,7 +10,11 @@ public interface SubscriptionPaymentRepository extends JpaRepository<Subscriptio
     boolean existsByTransactionRef(String transactionRef);
     boolean existsByGatewayTransactionId(String gatewayTransactionId);
     boolean existsByIdempotencyKey(String idempotencyKey);
+    boolean existsByFarmSubscriptionSubscriptionIdAndPaymentStatusIgnoreCase(Long subscriptionId, String paymentStatus);
+    Optional<SubscriptionPayment> findFirstByFarmSubscriptionSubscriptionIdAndPaymentStatusIgnoreCaseOrderByPaymentIdDesc(Long subscriptionId, String paymentStatus);
     Optional<SubscriptionPayment> findByGatewayTransactionId(String gatewayTransactionId);
     Optional<SubscriptionPayment> findByTransactionRef(String transactionRef);
+    Optional<SubscriptionPayment> findFirstByGatewayTransactionIdIgnoreCase(String gatewayTransactionId);
+    Optional<SubscriptionPayment> findFirstByTransactionRefIgnoreCaseOrderByPaymentIdDesc(String transactionRef);
     List<SubscriptionPayment> findByFarmSubscriptionFarmOwnerUserUserIdOrderByPaidAtDesc(Long userId);
 }

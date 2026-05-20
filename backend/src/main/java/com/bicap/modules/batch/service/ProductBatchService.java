@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -156,6 +157,11 @@ public class ProductBatchService {
 
     @Transactional
     public QrCodeResponse generateQrCode(Long batchId) {
+        return generateQrCode(batchId, null);
+    }
+
+    @Transactional
+    public QrCodeResponse generateQrCode(Long batchId, String requestOrigin) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         ProductBatch batch = productBatchRepository.findById(batchId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng với ID: " + batchId));
@@ -163,7 +169,7 @@ public class ProductBatchService {
         ensureBatchEligibleForQr(batch);
 
         String traceCode = resolveTraceCode(batchId);
-        String qrUrl = buildPublicTraceUrl(traceCode);
+        String qrUrl = buildPublicTraceUrl(traceCode, requestOrigin);
         String qrValue = qrUrl;
         String base64Qr = qrCodeService.generateBase64Png(qrValue);
 
@@ -190,6 +196,10 @@ public class ProductBatchService {
     }
 
     public QrCodeResponse getQrCode(Long batchId) {
+        return getQrCode(batchId, null);
+    }
+
+    public QrCodeResponse getQrCode(Long batchId, String requestOrigin) {
         ProductBatch batch = productBatchRepository.findById(batchId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng với ID: " + batchId));
         Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
@@ -201,14 +211,15 @@ public class ProductBatchService {
                 .orElseThrow(() -> new BusinessException("Chưa tạo mã QR cho lô hàng này."));
 
         String traceCode = qrCode.getQrValue();
-        String base64Qr = qrCodeService.generateBase64Png(qrCode.getQrUrl());
+        String qrUrl = resolveQrUrlForRequest(traceCode, qrCode.getQrUrl(), requestOrigin);
+        String base64Qr = qrCodeService.generateBase64Png(qrUrl);
         return QrCodeResponse.builder()
                 .qrCodeId(qrCode.getQrCodeId())
                 .batchId(batchId)
                 .serialNo(qrCode.getSerialNo())
                 .traceCode(traceCode)
-                .qrValue(qrCode.getQrUrl())
-                .qrUrl(qrCode.getQrUrl())
+                .qrValue(qrUrl)
+                .qrUrl(qrUrl)
                 .qrImageBase64(base64Qr)
                 .status(qrCode.getStatus())
                 .generatedAt(qrCode.getGeneratedAt())
@@ -216,12 +227,20 @@ public class ProductBatchService {
     }
 
     public TraceBatchResponse traceBatch(Long id) {
+        return traceBatch(id, null);
+    }
+
+    public TraceBatchResponse traceBatch(Long id, String requestOrigin) {
         ProductBatch batch = productBatchRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng để truy xuất: " + id));
-        return buildTraceBatchResponse(batch);
+        return buildTraceBatchResponse(batch, requestOrigin);
     }
 
     public TraceBatchResponse traceBatchByTraceCode(String traceCode) {
+        return traceBatchByTraceCode(traceCode, null);
+    }
+
+    public TraceBatchResponse traceBatchByTraceCode(String traceCode, String requestOrigin) {
         String normalizedTraceCode = normalizeText(traceCode, "Trace code không hợp lệ.").toUpperCase(Locale.ROOT);
         QrCode qrCode = qrCodeRepository.findByQrValue(normalizedTraceCode)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy QR cho trace code này."));
@@ -229,7 +248,7 @@ public class ProductBatchService {
         if (batch == null) {
             throw new BusinessException("QR này chưa được ánh xạ tới batch hợp lệ.");
         }
-        return buildTraceBatchResponse(batch);
+        return buildTraceBatchResponse(batch, requestOrigin);
     }
 
     public VerifyTraceResponse verifyBatch(Long batchId) {
@@ -275,13 +294,13 @@ public class ProductBatchService {
         return new VerifyTraceResponse(batchId, localHash, onChainHash, matched);
     }
 
-    private TraceBatchResponse buildTraceBatchResponse(ProductBatch batch) {
+    private TraceBatchResponse buildTraceBatchResponse(ProductBatch batch, String requestOrigin) {
         FarmingSeason season = batch.getSeason();
         List<FarmingProcess> processes = farmingProcessRepository.findBySeason_SeasonIdOrderByStepNoAsc(season.getSeasonId());
 
         QrCodeResponse qrResponse = null;
         try {
-            qrResponse = getQrCode(batch.getBatchId());
+            qrResponse = getQrCode(batch.getBatchId(), requestOrigin);
         } catch (Exception ex) {
             log.debug("Không tìm thấy QR khi dựng trace batchId={}", batch.getBatchId(), ex);
         }
@@ -367,11 +386,64 @@ public class ProductBatchService {
     }
 
     private String buildPublicTraceUrl(String traceCode) {
-        String base = frontendUrl == null ? "http://localhost:5173" : frontendUrl.trim();
+        return buildPublicTraceUrl(traceCode, null);
+    }
+
+    private String buildPublicTraceUrl(String traceCode, String requestOrigin) {
+        String base = resolveFrontendBase(requestOrigin);
         if (base.endsWith("/")) {
             base = base.substring(0, base.length() - 1);
         }
         return base + "/public/trace?traceCode=" + traceCode;
+    }
+
+    private String resolveQrUrlForRequest(String traceCode, String storedQrUrl, String requestOrigin) {
+        String originBase = normalizeFrontendOrigin(requestOrigin);
+        if (originBase != null && isLocalFrontendUrl(storedQrUrl)) {
+            return buildPublicTraceUrl(traceCode, originBase);
+        }
+        if (storedQrUrl == null || storedQrUrl.isBlank()) {
+            return buildPublicTraceUrl(traceCode, requestOrigin);
+        }
+        return storedQrUrl;
+    }
+
+    private String resolveFrontendBase(String requestOrigin) {
+        String originBase = normalizeFrontendOrigin(requestOrigin);
+        if (originBase != null) {
+            return originBase;
+        }
+        return frontendUrl == null || frontendUrl.isBlank() ? "http://localhost:5173" : frontendUrl.trim();
+    }
+
+    private String normalizeFrontendOrigin(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            URI uri = URI.create(value.trim());
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+            if (scheme == null || host == null || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
+                return null;
+            }
+            int port = uri.getPort();
+            return scheme.toLowerCase(Locale.ROOT) + "://" + host + (port > 0 ? ":" + port : "");
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    private boolean isLocalFrontendUrl(String value) {
+        if (value == null || value.isBlank()) {
+            return true;
+        }
+        try {
+            String host = URI.create(value.trim()).getHost();
+            return host == null || "localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host);
+        } catch (IllegalArgumentException ex) {
+            return true;
+        }
     }
 
     private String resolveTraceCode(Long batchId) {
@@ -404,6 +476,8 @@ public class ProductBatchService {
                 .batchId(batch.getBatchId())
                 .seasonId(batch.getSeason() != null ? batch.getSeason().getSeasonId() : null)
                 .productId(batch.getProduct() != null ? batch.getProduct().getProductId() : null)
+                .productName(batch.getProduct() != null ? batch.getProduct().getProductName() : null)
+                .productCategory(batch.getProduct() != null && batch.getProduct().getCategory() != null ? batch.getProduct().getCategory().getCategoryName() : null)
                 .batchCode(batch.getBatchCode())
                 .harvestDate(batch.getHarvestDate())
                 .quantity(batch.getQuantity())

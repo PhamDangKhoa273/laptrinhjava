@@ -7,7 +7,7 @@ export function RoleCoveragePanel({ eyebrow = 'Coverage', title, description, it
           <h3>{title}</h3>
           {description ? <p>{description}</p> : null}
         </div>
-        <span className="coverage-badge">{items.length} chức năng</span>
+        <span className="coverage-badge">{items.length} ch?c năng</span>
       </div>
       <div className="role-feature-grid">
         {items.map((item) => (
@@ -15,7 +15,7 @@ export function RoleCoveragePanel({ eyebrow = 'Coverage', title, description, it
             <span className={`coverage-dot coverage-dot--${item.tone || 'ready'}`} />
             <strong>{item.title}</strong>
             <p>{item.description}</p>
-            <span className="role-feature-card__action">Mở chức năng</span>
+            <span className="role-feature-card__action">M? ch?c năng</span>
           </a>
         ))}
       </div>

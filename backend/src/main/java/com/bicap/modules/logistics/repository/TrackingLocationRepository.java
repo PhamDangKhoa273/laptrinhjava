@@ -21,7 +21,7 @@ public interface TrackingLocationRepository extends JpaRepository<TrackingLocati
     /**
      * Tìm tất cả vị trí theo dõi cho một tài xế, mới nhất trước
      */
-    List<TrackingLocation> findByDriverIdOrderByCreatedAtDesc(Long driverId);
+    List<TrackingLocation> findByDriverDriverIdOrderByCreatedAtDesc(Long driverId);
     
     /**
      * Tìm vị trí gần đây nhất cho một đơn vận chuyển
@@ -31,7 +31,7 @@ public interface TrackingLocationRepository extends JpaRepository<TrackingLocati
     /**
      * Tìm vị trí gần đây nhất cho một tài xế
      */
-    Optional<TrackingLocation> findFirstByDriverIdOrderByCreatedAtDesc(Long driverId);
+    Optional<TrackingLocation> findFirstByDriverDriverIdOrderByCreatedAtDesc(Long driverId);
     
     /**
      * Tìm các vị trí theo dõi trong khoảng thời gian nhất định cho một đơn vận chuyển

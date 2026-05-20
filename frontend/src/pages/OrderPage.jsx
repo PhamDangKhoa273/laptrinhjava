@@ -28,7 +28,7 @@ export default function OrderPage() {
       const response = await getOrders()
       setOrders(normalizeOrders(response))
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || 'Không tải được danh sách đơn hàng.')
+      setError(err?.response?.data?.message || err?.message || 'Không t?i được danh sách đơn hàng.')
     } finally {
       setLoading(false)
     }
@@ -50,28 +50,28 @@ export default function OrderPage() {
       <div className="section-heading">
         <div>
           <p className="eyebrow">Order operations</p>
-          <h2>Quản lý đơn hàng</h2>
-          <p>Theo dõi trạng thái đặt cọc, vận chuyển và xác nhận giao nhận theo dữ liệu backend.</p>
+          <h2>Qu?n l? đơn hàng</h2>
+          <p>Theo d?i tr?ng thái đặt c?c, v?n chuy?n và xác nh?n giao nh?n theo d? li?u backend.</p>
         </div>
         <div className="section-actions">
-          <Button variant="secondary" onClick={loadOrders} disabled={loading}>Làm mới</Button>
+          <Button variant="secondary" onClick={loadOrders} disabled={loading}>Làm m?i</Button>
         </div>
       </div>
 
       <div className="status-grid">
-        <article className="status-card"><span className="status-card-label">Tổng đơn</span><strong>{orders.length}</strong></article>
-        <article className="status-card"><span className="status-card-label">Đang xử lý</span><strong>{metrics.active}</strong></article>
-        <article className="status-card"><span className="status-card-label">Đã đặt cọc/thanh toán</span><strong>{metrics.depositPaid}</strong></article>
-        <article className="status-card"><span className="status-card-label">Giá trị đơn</span><strong>{formatMoney(metrics.total)}</strong></article>
+        <article className="status-card"><span className="status-card-label">T?ng đơn</span><strong>{orders.length}</strong></article>
+        <article className="status-card"><span className="status-card-label">Đang x? l?</span><strong>{metrics.active}</strong></article>
+        <article className="status-card"><span className="status-card-label">Đã đặt c?c/thanh toán</span><strong>{metrics.depositPaid}</strong></article>
+        <article className="status-card"><span className="status-card-label">Giá tr? đơn</span><strong>{formatMoney(metrics.total)}</strong></article>
       </div>
 
-      {loading ? <PageLoadingState title="Đang tải đơn hàng" message="Đang lấy dữ liệu order mới nhất từ backend." /> : null}
-      {!loading && error ? <PageErrorState title="Không tải được đơn hàng" message={error} actionLabel="Thử lại" onAction={loadOrders} /> : null}
+      {loading ? <PageLoadingState title="Đang t?i đơn hàng" message="Đang l?y d? li?u order m?i nh?t t? backend." /> : null}
+      {!loading && error ? <PageErrorState title="Không t?i được đơn hàng" message={error} actionLabel="Th? l?i" onAction={loadOrders} /> : null}
       {!loading && !error && orders.length === 0 ? (
         <PageEmptyState
-          icon="📦"
+          icon="??"
           title="Chưa có đơn hàng"
-          message="Khi retailer tạo đơn từ marketplace, đơn hàng sẽ xuất hiện ở đây cùng trạng thái đặt cọc và vận chuyển."
+          message="Khi retailer t?o đơn t? marketplace, đơn hàng s? xu?t hi?n ? đây cùng tr?ng thái đặt c?c và v?n chuy?n."
         />
       ) : null}
 
@@ -84,14 +84,14 @@ export default function OrderPage() {
                 <div className="admin-table-head">
                   <div>
                     <h3>Đơn #{order.orderId || order.id}</h3>
-                    <p>{items.length} mặt hàng • Farm #{order.farmId || 'N/A'} • Retailer #{order.retailerId || 'N/A'}</p>
+                    <p>{items.length} m?t hàng • Farm #{order.farmId || 'N/A'} • Retailer #{order.retailerId || 'N/A'}</p>
                   </div>
                   <span className={`status-pill status-${String(order.status || 'unknown').toLowerCase()}`}>{order.status || 'UNKNOWN'}</span>
                 </div>
                 <div className="order-card-meta">
-                  <span><strong>{formatMoney(order.totalAmount)}</strong><small>Tổng giá trị</small></span>
+                  <span><strong>{formatMoney(order.totalAmount)}</strong><small>T?ng giá tr?</small></span>
                   <span><strong>{order.paymentStatus || 'UNPAID'}</strong><small>Thanh toán</small></span>
-                  <span><strong>{order.minimumDepositAmount ? formatMoney(order.minimumDepositAmount) : 'N/A'}</strong><small>Đặt cọc tối thiểu</small></span>
+                  <span><strong>{order.minimumDepositAmount ? formatMoney(order.minimumDepositAmount) : 'N/A'}</strong><small>Đặt c?c t?i thi?u</small></span>
                 </div>
                 {items.length > 0 ? (
                   <ul className="order-item-list">
@@ -102,7 +102,7 @@ export default function OrderPage() {
                       </li>
                     ))}
                   </ul>
-                ) : <p className="muted-inline">Backend chưa trả về chi tiết mặt hàng cho đơn này.</p>}
+                ) : <p className="muted-inline">Backend chưa tr? v? chi ti?t m?t hàng cho đơn này.</p>}
               </article>
             )
           })}

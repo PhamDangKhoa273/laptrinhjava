@@ -9,9 +9,9 @@ export default function QRCodeView({ value }) {
   if (!qrValue) {
     return (
       <PageEmptyState
-        icon="🔎"
-        title="Chưa có dữ liệu QR"
-        message="Cung cấp trace code hoặc public trace URL để hiển thị mã QR truy xuất nguồn gốc."
+        icon="??"
+        title="Chưa có d? li?u QR"
+        message="Cung c?p trace code ho?c public trace URL để hi?n th? m? QR truy xu?t ngu?n g?c."
       />
     )
   }
@@ -21,8 +21,8 @@ export default function QRCodeView({ value }) {
       <div className="admin-table-head">
         <div>
           <p className="eyebrow">Traceability QR</p>
-          <h3>Mã QR truy xuất</h3>
-          <p>Quét mã để mở đường dẫn truy xuất nguồn gốc nông sản BICAP.</p>
+          <h3>M? QR truy xu?t</h3>
+          <p>Quét m? để m? đường d?n truy xu?t ngu?n g?c nông s?n BICAP.</p>
         </div>
         <Button variant="secondary" onClick={() => window.print()}>In QR</Button>
       </div>
@@ -30,7 +30,7 @@ export default function QRCodeView({ value }) {
         <QRCode value={qrValue} size={220} includeMargin />
       </div>
       <div className="qr-trace-value">
-        <span>Giá trị mã hóa</span>
+        <span>Giá tr? m? hóa</span>
         <strong>{qrValue}</strong>
       </div>
     </article>

@@ -7,29 +7,29 @@ import { StatusCard } from '../components/StatusCard.jsx'
 const assetDefinitions = [
   {
     key: 'gifLoading',
-    title: 'Ảnh động tải dữ liệu',
-    description: 'Ảnh động hiển thị trong lúc hệ thống tải dữ liệu hoặc xử lý tác vụ.',
+    title: '?nh động t?i d? li?u',
+    description: '?nh động hi?n th? trong lúc h? th?ng t?i d? li?u ho?c x? l? tác v?.',
     fallback: '/uth-logo.png',
     previewClassName: 'asset-preview-light',
   },
   {
     key: 'gifLoader',
-    title: 'Ảnh động bộ nạp',
-    description: 'Biểu tượng loader phụ dùng cho popup, modal hoặc các nút gửi biểu mẫu.',
+    title: '?nh động b? n?p',
+    description: 'Bi?u tượng loader ph? dùng cho popup, modal ho?c các nút g?i bi?u m?u.',
     fallback: '/uth-logo.jpg',
     previewClassName: 'asset-preview-dark',
   },
   {
     key: 'gifGiftbox',
-    title: 'Ảnh động hộp quà',
-    description: 'Asset quà tặng / khuyến mãi hiển thị trên những khu vực marketing.',
+    title: '?nh động h?p quà',
+    description: 'Asset quà t?ng / khuy?n m?i hi?n th? trên nh?ng khu v?c marketing.',
     fallback: '/uth-logo.png',
     previewClassName: 'asset-preview-light',
   },
   {
     key: 'backgroundCard',
-    title: 'Ảnh nền thẻ nội dung',
-    description: 'Ảnh nền cho các thẻ giới thiệu, khối thông báo hoặc ưu đãi nổi bật.',
+    title: '?nh n?n th? n?i dung',
+    description: '?nh n?n cho các th? gi?i thi?u, kh?i thông báo ho?c ưu đãi n?i b?t.',
     fallback: '/auth-bg.jpg',
     previewClassName: 'asset-preview-dark',
   },
@@ -54,14 +54,14 @@ function AssetRow({ item, file, preview, onChange, onReset }) {
         <h3>{item.title}</h3>
         <p>{item.description}</p>
         <div className="appearance-file-state">
-          <strong>{file?.name || 'Đang dùng ảnh mặc định'}</strong>
-          <span>{file ? 'Sẵn sàng lưu thay đổi' : 'Chưa chọn tệp mới'}</span>
+          <strong>{file?.name || 'Đang dùng ?nh m?c định'}</strong>
+          <span>{file ? 'S?n sàng lưu thay đổi' : 'Chưa ch?n t?p m?i'}</span>
         </div>
       </div>
 
       <div className="appearance-asset-actions">
         <label className="button button-secondary appearance-upload-button" htmlFor={`${item.key}-upload`}>
-          Chọn tệp
+          Ch?n t?p
         </label>
         <input
           id={`${item.key}-upload`}
@@ -71,7 +71,7 @@ function AssetRow({ item, file, preview, onChange, onReset }) {
           hidden
         />
         <button className="button button-ghost" type="button" onClick={() => onReset(item.key)}>
-          Đặt lại
+          Đặt l?i
         </button>
       </div>
     </article>
@@ -81,7 +81,7 @@ function AssetRow({ item, file, preview, onChange, onReset }) {
 export function WebsiteAppearancePage() {
   const [files, setFiles] = useState({})
   const [success, setSuccess] = useState('')
-  const [announcementHtml, setAnnouncementHtml] = useState('<p class="announcement-line">BICAP</p><p class="announcement-highlight dark">CHÚC BẠN</p><p class="announcement-highlight bright">MỘT NGÀY VUI VẺ 😊</p>')
+  const [announcementHtml, setAnnouncementHtml] = useState('<p class="announcement-line">BICAP</p><p class="announcement-highlight dark">CHÚC B?N</p><p class="announcement-highlight bright">M?T NGÀY VUI V? ??</p>')
   const [publishedContent, setPublishedContent] = useState([])
 
   useEffect(() => {
@@ -98,7 +98,7 @@ export function WebsiteAppearancePage() {
     loadInitialData()
   }, [])
 
-  const liveAnnouncement = publishedContent[0]?.title || 'Thông báo hệ thống'
+  const liveAnnouncement = publishedContent[0]?.title || 'Thông báo h? th?ng'
   const selectedFileCount = Object.values(files).filter(Boolean).length
 
   const previews = useMemo(
@@ -120,9 +120,9 @@ export function WebsiteAppearancePage() {
   async function handleSaveAll() {
     try {
       await updateActiveAnnouncement({ contentHtml: sanitizeAnnouncementHtml(announcementHtml) })
-      setSuccess('Đã lưu cấu hình asset và thông báo hệ thống.')
+      setSuccess('Đã lưu c?u h?nh asset và thông báo h? th?ng.')
     } catch {
-      setSuccess('Đã lưu cấu hình asset. Không cập nhật được thông báo hệ thống.')
+      setSuccess('Đã lưu c?u h?nh asset. Không c?p nh?t được thông báo h? th?ng.')
     }
   }
 
@@ -130,15 +130,15 @@ export function WebsiteAppearancePage() {
     <section className="page-section admin-page appearance-admin-page">
       <div className="section-heading appearance-hero">
         <div>
-          <h2>Quản lý giao diện website</h2>
+          <h2>Qu?n l? giao di?n website</h2>
         </div>
       </div>
 
       <div className="status-grid appearance-status-grid">
-        <StatusCard label="Asset quản lý" value={assetDefinitions.length} tone="primary" />
-        <StatusCard label="File đã chọn" value={selectedFileCount} tone={selectedFileCount ? 'success' : 'warning'} />
+        <StatusCard label="Asset qu?n l?" value={assetDefinitions.length} tone="primary" />
+        <StatusCard label="File đã ch?n" value={selectedFileCount} tone={selectedFileCount ? 'success' : 'warning'} />
         <StatusCard label="Published content" value={publishedContent.length} tone="success" />
-        <StatusCard label="Preview nguồn" value="Live" tone="primary" />
+        <StatusCard label="Preview ngu?n" value="Live" tone="primary" />
       </div>
 
       {success ? <div className="alert alert-success">{success}</div> : null}
@@ -148,8 +148,8 @@ export function WebsiteAppearancePage() {
           <div className="admin-table-head">
             <div>
               <span className="feature-badge">Announcement</span>
-              <h3>Thông báo toàn hệ thống</h3>
-              <p>Chỉnh nội dung HTML đã sanitize dùng cho khu vực thông báo/landing public.</p>
+              <h3>Thông báo toàn h? th?ng</h3>
+              <p>Ch?nh n?i dung HTML đã sanitize dùng cho khu v?c thông báo/landing public.</p>
             </div>
           </div>
 
@@ -157,11 +157,11 @@ export function WebsiteAppearancePage() {
             className="form-input appearance-textarea"
             value={announcementHtml}
             onChange={(event) => setAnnouncementHtml(event.target.value)}
-            placeholder="<p>Nhập nội dung thông báo...</p>"
+            placeholder="<p>Nh?p n?i dung thông báo...</p>"
           />
 
           <div className="appearance-source-note">
-            <strong>Nguồn public hiện tại</strong>
+            <strong>Ngu?n public hi?n t?i</strong>
             <span>{liveAnnouncement}</span>
           </div>
         </article>
@@ -170,8 +170,8 @@ export function WebsiteAppearancePage() {
           <div className="admin-table-head">
             <div>
               <span className="feature-badge">Preview</span>
-              <h3>Xem trước hiển thị</h3>
-              <p>Admin kiểm tra nhanh nội dung trước khi lưu thay đổi.</p>
+              <h3>Xem trước hi?n th?</h3>
+              <p>Admin ki?m tra nhanh n?i dung trước khi lưu thay đổi.</p>
             </div>
           </div>
 
@@ -188,11 +188,11 @@ export function WebsiteAppearancePage() {
         <div className="admin-table-head">
           <div>
             <span className="feature-badge">Media assets</span>
-            <h3>Thư viện tài nguyên hiển thị</h3>
-            <p>Quản lý loader, hộp quà và hình nền cho các khu vực marketing/public.</p>
+            <h3>Thư vi?n tài nguyên hi?n th?</h3>
+            <p>Qu?n l? loader, h?p quà và h?nh n?n cho các khu v?c marketing/public.</p>
           </div>
           <div className="appearance-panel-actions">
-            <Button variant="secondary" onClick={() => setFiles({})}>Đặt lại tất cả</Button>
+            <Button variant="secondary" onClick={() => setFiles({})}>Đặt l?i t?t c?</Button>
             <Button onClick={handleSaveAll}>Lưu thay đổi</Button>
           </div>
         </div>

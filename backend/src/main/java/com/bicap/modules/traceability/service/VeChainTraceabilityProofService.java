@@ -3,9 +3,11 @@ package com.bicap.modules.traceability.service;
 import com.bicap.modules.batch.entity.BlockchainTransaction;
 import com.bicap.modules.batch.service.BlockchainService;
 import com.bicap.modules.vechain.service.VeChainProofService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnProperty(name = "vechain.thor.enabled", havingValue = "true", matchIfMissing = true)
 public class VeChainTraceabilityProofService implements TraceabilityProofService {
     private final BlockchainService blockchainService;
     private final VeChainProofService veChainProofService;

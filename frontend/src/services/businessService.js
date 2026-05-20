@@ -30,8 +30,12 @@ export async function getAllFarms() {
   return unwrap(await api.get('/farms'))
 }
 
-export async function updateFarmApprovalStatus(id, approvalStatus) {
-  return unwrap(await api.post(`/farms/${id}/review`, { approvalStatus }))
+export async function updateFarmApprovalStatus(id, approvalStatus, reviewComment) {
+  const payload = { approvalStatus }
+  if (reviewComment !== undefined && reviewComment !== null) {
+    payload.reviewComment = reviewComment
+  }
+  return unwrap(await api.post(`/farms/${id}/review`, payload))
 }
 
 export async function getMyRetailer() {
@@ -84,6 +88,10 @@ export async function createDriver(payload) {
   return unwrap(await api.post('/drivers', payload))
 }
 
+export async function createDriverWithUser(payload) {
+  return unwrap(await api.post('/drivers/with-user', payload))
+}
+
 export async function updateDriver(id, payload) {
   return unwrap(await api.put(`/drivers/${id}`, payload))
 }
@@ -116,9 +124,10 @@ export async function deleteVehicle(id) {
   return unwrap(await api.delete(`/vehicles/${id}`))
 }
 
-export async function getUsers() {
+export async function getUsers(role) {
   try {
-    const payload = unwrap(await api.get('/users'))
+    const params = role ? `?role=${role}` : ''
+    const payload = unwrap(await api.get('/users' + params))
     if (Array.isArray(payload)) return payload
     if (Array.isArray(payload?.items)) return payload.items
     if (Array.isArray(payload?.content)) return payload.content

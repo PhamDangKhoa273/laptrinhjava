@@ -55,7 +55,7 @@ describe('AppRoutes acceptance', () => {
 
   it('exposes the guest marketplace route', async () => {
     renderRoutes(['/marketplace'])
-    expect(await screen.findByText(/Marketplace unavailable/i)).toBeInTheDocument()
+    expect(await screen.findByText(/Marketplace t?m th?i không kh? d?ng/i)).toBeInTheDocument()
   })
 
   it('redirects protected admin route when unauthenticated', () => {
@@ -69,15 +69,15 @@ describe('AppRoutes acceptance', () => {
   })
 
   it.each([
-    ['ADMIN', '/dashboard/admin/control-center', /Welcome back, Admin/i],
-    ['FARM', '/dashboard/farm', /Farm Workspace/i],
-    ['RETAILER', '/dashboard/retailer', /Retailer Overview/i],
-    ['SHIPPING_MANAGER', '/dashboard/shipping-manager', /Tổng quan Vận chuyển/i],
-    ['DRIVER', '/dashboard/driver', /Driver Workspace/i],
-    ['GUEST', '/dashboard/guest', /Secure Sustainable Produce/i],
-  ])('allows %s users to access their dashboard route', async (role, path, expectedText) => {
+    ['ADMIN', '/dashboard/admin/control-center', /Qu?n tr? n?n t?ng/i, 1],
+    ['FARM', '/dashboard/farm', /Không gian Nông tr?i/i, 2],
+    ['RETAILER', '/dashboard/retailer', /Retailer Overview/i, 2],
+    ['SHIPPING_MANAGER', '/dashboard/shipping-manager', /T?ng quan V?n chuy?n/i, 2],
+    ['DRIVER', '/dashboard/driver', /Driver Workspace/i, 1],
+    ['GUEST', '/dashboard/guest', /Truy xu?t ngu?n g?c nông s?n/i, 1],
+  ])('allows %s users to access their dashboard route', async (role, path, expectedText, level) => {
     renderRoutes([path], roleUsers[role])
-    expect(await screen.findByText(expectedText)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level, name: expectedText })).toBeInTheDocument()
   })
 
   it('prevents farm users from rendering admin routes', async () => {

@@ -8,12 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
-    Optional<Shipment> findByOrderId(Long orderId);
-
-    List<Shipment> findByDriverId(Long driverId);
-
-    List<Shipment> findByShippingManagerId(Long shippingManagerId);
-
+public interface LogisticsShipmentRepository extends JpaRepository<Shipment, Long> {
+    Optional<Shipment> findByOrderOrderId(Long orderId);
+    List<Shipment> findByDriverDriverId(Long driverId);
+    List<Shipment> findByShippingManagerUserId(Long shippingManagerUserId);
     List<Shipment> findByStatus(String status);
 }

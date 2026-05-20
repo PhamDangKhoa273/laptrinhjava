@@ -51,4 +51,19 @@ public class SubscriptionPaymentController {
     public ApiResponse<SubscriptionPaymentResponse> adminOverride(@PathVariable Long id, @RequestParam(required = false) String note) {
         return ApiResponse.success(subscriptionPaymentService.adminOverrideActivate(id, SecurityUtils.getCurrentUserId(), note));
     }
+
+    /**
+     * Demo-mode shortcut: Farm user confirms their own pending payment without HMAC.
+     * Only available when VECHAIN_THOR_ENABLED=false (demo/local environment).
+     * In production this endpoint must be disabled or removed.
+     */
+    @PostMapping("/{id}/demo-confirm")
+    @PreAuthorize("hasAnyRole('FARM','ADMIN')")
+    public ApiResponse<SubscriptionPaymentResponse> demoConfirm(@PathVariable Long id) {
+        if (!"false".equalsIgnoreCase(System.getenv("VECHAIN_THOR_ENABLED"))
+                && !"false".equalsIgnoreCase(System.getProperty("vechain.thor.enabled"))) {
+            throw new com.bicap.core.exception.BusinessException("Demo confirm chỉ khả dụng khi VECHAIN_THOR_ENABLED=false");
+        }
+        return ApiResponse.success(subscriptionPaymentService.adminOverrideActivate(id, SecurityUtils.getCurrentUserId(), "Demo confirm by farm user"));
+    }
 }

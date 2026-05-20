@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from '../components/Button.jsx'
 import { TextAreaField } from '../components/TextAreaField.jsx'
-import { createReport, farmReviewOrder, getFarmShipments, getMyListingRegistrations, getMyNotifications, getMyReports, getOrdersV2, markNotificationRead } from '../services/workflowService.js'
+import { createReport, farmReviewOrder, getFarmShipmentReports, getFarmShipments, getMyListingRegistrations, getMyNotifications, getMyReports, getOrdersV2, markNotificationRead } from '../services/workflowService.js'
 import { getErrorMessage } from '../utils/helpers.js'
 
 function formatDateTime(value) {
@@ -9,12 +9,13 @@ function formatDateTime(value) {
   return new Date(value).toLocaleString('vi-VN')
 }
 
-export function FarmWorkflowPage() {
+export function FarmWorkflowPage({ module = 'all' }) {
   const [notifications, setNotifications] = useState([])
   const [reports, setReports] = useState([])
   const [registrations, setRegistrations] = useState([])
   const [orders, setOrders] = useState([])
   const [shipments, setShipments] = useState([])
+  const [shipmentReports, setShipmentReports] = useState([])
   const [farmDecisionNotes, setFarmDecisionNotes] = useState({})
   const [reviewingOrderId, setReviewingOrderId] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -24,21 +25,23 @@ export function FarmWorkflowPage() {
   async function loadData() {
     try {
       setLoading(true)
-      const [notificationData, reportData, registrationData, orderData, shipmentData] = await Promise.all([
+      const [notificationData, reportData, registrationData, orderData, shipmentData, shipmentReportData] = await Promise.all([
         getMyNotifications(),
         getMyReports(),
         getMyListingRegistrations(),
         getOrdersV2(),
         getFarmShipments(),
+        getFarmShipmentReports().catch(() => []),
       ])
       setNotifications(Array.isArray(notificationData) ? notificationData : [])
       setReports(Array.isArray(reportData) ? reportData : [])
       setRegistrations(Array.isArray(registrationData) ? registrationData : [])
       setOrders(Array.isArray(orderData) ? orderData : [])
       setShipments(Array.isArray(shipmentData) ? shipmentData : [])
+      setShipmentReports(Array.isArray(shipmentReportData) ? shipmentReportData : [])
       setError('')
     } catch (err) {
-      setError(getErrorMessage(err, 'Không tải được workflow của farm.'))
+      setError(getErrorMessage(err, 'Không t?i được workflow c?a farm.'))
     } finally {
       setLoading(false)
     }
@@ -51,10 +54,10 @@ export function FarmWorkflowPage() {
   async function handleMarkRead(notificationId) {
     try {
       await markNotificationRead(notificationId)
-      setSuccess('Đã đánh dấu notification là đã đọc.')
+      setSuccess('Đã đánh d?u notification là đã đọc.')
       await loadData()
     } catch (err) {
-      setError(getErrorMessage(err, 'Không đánh dấu notification được.'))
+      setError(getErrorMessage(err, 'Không đánh d?u notification được.'))
     }
   }
 
@@ -71,13 +74,13 @@ export function FarmWorkflowPage() {
       await farmReviewOrder(orderId, {
         status,
         reason: note || (status === 'CONFIRMED'
-          ? 'Farm đã xác nhận buy request và sẵn sàng chờ retailer đặt cọc.'
-          : 'Farm từ chối buy request vì chưa phù hợp điều kiện cung ứng hiện tại.'),
+          ? 'Farm đã xác nh?n buy request và s?n sàng ch? retailer đặt c?c.'
+          : 'Farm t? ch?i buy request v? chưa phù h?p điều ki?n cung ?ng hi?n t?i.'),
       })
-      setSuccess(status === 'CONFIRMED' ? 'Đã xác nhận buy request.' : 'Đã từ chối buy request.')
+      setSuccess(status === 'CONFIRMED' ? 'Đã xác nh?n buy request.' : 'Đã t? ch?i buy request.')
       await loadData()
     } catch (err) {
-      setError(getErrorMessage(err, 'Không xử lý được buy request.'))
+      setError(getErrorMessage(err, 'Không x? l? được buy request.'))
     } finally {
       setReviewingOrderId(null)
     }
@@ -88,39 +91,50 @@ export function FarmWorkflowPage() {
       await createReport({
         recipientRole: 'ADMIN',
         reportType: 'FARM_OPERATION',
-        subject: 'Farm cần hỗ trợ vận hành',
-        content: 'Farm muốn phản hồi tình trạng duyệt listing hoặc vấn đề nghiệp vụ phát sinh.',
+        subject: 'Farm c?n h? tr? v?n hành',
+        content: 'Farm mu?n ph?n h?i t?nh tr?ng duy?t listing ho?c v?n đề nghi?p v? phát sinh.',
         relatedEntityType: 'FARM_WORKFLOW',
       })
-      setSuccess('Đã gửi report lên admin.')
+      setSuccess('Đã g?i report lên admin.')
       await loadData()
     } catch (err) {
-      setError(getErrorMessage(err, 'Không gửi được report.'))
+      setError(getErrorMessage(err, 'Không g?i được report.'))
     }
   }
+
+  const moduleTitles = {
+    orders: { eyebrow: 'Kinh doanh / Đơn hàng', title: 'Đơn hàng t? retailer', subtitle: 'Xác nh?n ho?c t? ch?i buy request, theo d?i ti?n độ duy?t listing.' },
+    shipments: { eyebrow: 'Kinh doanh / V?n chuy?n', title: 'V?n chuy?n liên quan farm', subtitle: 'Theo d?i shipment, timeline ti?n độ và driver report.' },
+    'shipment-reports': { eyebrow: 'Kinh doanh / Báo cáo v?n chuy?n', title: 'Báo cáo v?n chuy?n', subtitle: 'T?ng h?p báo cáo s? c? do tài x? g?i cho m?i shipment liên quan farm.' },
+    all: { eyebrow: 'Farm workflow', title: 'Notification, report và ti?n độ duy?t listing', subtitle: 'Giúp phía farm nh?n th?y r? listing nào đang ch? duy?t, b? t? ch?i hay đã được public.' },
+  }
+  const head = moduleTitles[module] || moduleTitles.all
+  const showOrders = module === 'all' || module === 'orders'
+  const showShipments = module === 'all' || module === 'shipments'
+  const showShipmentReports = module === 'all' || module === 'shipment-reports'
 
   return (
     <section className="page-section">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Farm workflow</p>
-          <h2>Notification, report và tiến độ duyệt listing</h2>
-          <p>Giúp phía farm nhìn thấy rõ listing nào đang chờ duyệt, bị từ chối hay đã được public.</p>
+          <p className="eyebrow">{head.eyebrow}</p>
+          <h2>{head.title}</h2>
+          <p>{head.subtitle}</p>
         </div>
         <div className="section-actions">
-          <Button variant="secondary" onClick={loadData} disabled={loading}>Làm mới</Button>
-          <Button onClick={handleCreateReport}>Gửi report cho admin</Button>
+          <Button variant="secondary" onClick={loadData} disabled={loading}>Làm m?i</Button>
+          <Button onClick={handleCreateReport}>G?i report cho admin</Button>
         </div>
       </div>
 
-      {loading ? <div className="glass-card">Đang tải dữ liệu workflow...</div> : null}
+      {loading ? <div className="glass-card">Đang t?i d? li?u workflow...</div> : null}
       {error ? <div className="alert alert-error">{error}</div> : null}
       {success ? <div className="alert alert-success">{success}</div> : null}
 
-      <div className="content-grid">
-        <article className="glass-card">
-          <h3>Buy requests từ retailer</h3>
-          {pendingOrders.length === 0 ? <p>Chưa có buy request nào cần farm xử lý.</p> : null}
+      <div className="content-grid" hidden={!showOrders}>
+        <article className="glass-card" id="orders">
+          <h3>Buy requests t? retailer</h3>
+          {pendingOrders.length === 0 ? <p>Chưa có buy request nào c?n farm x? l?.</p> : null}
           <div className="form-grid">
             {pendingOrders.map((item) => (
               <div key={item.orderId} className="business-card">
@@ -132,38 +146,38 @@ export function FarmWorkflowPage() {
                   <p>Allowed: {item.allowedActions?.join(', ') || 'Không có'}</p>
                 </div>
                 <TextAreaField
-                  label="Ghi chú quyết định"
+                  label="Ghi chú quy?t định"
                   name={`farmDecision-${item.orderId}`}
                   value={farmDecisionNotes[item.orderId] || ''}
                   onChange={(event) => handleDecisionNoteChange(item.orderId, event.target.value)}
-                  placeholder="Ví dụ: Farm xác nhận đủ sản lượng, chờ retailer đặt cọc."
+                  placeholder="Ví d?: Farm xác nh?n đủ s?n lượng, ch? retailer đặt c?c."
                 />
                 <div className="inline-actions">
-                  <Button onClick={() => handleFarmReview(item.orderId, 'CONFIRMED')} disabled={reviewingOrderId === item.orderId}>Xác nhận</Button>
-                  <Button variant="secondary" onClick={() => handleFarmReview(item.orderId, 'REJECTED')} disabled={reviewingOrderId === item.orderId}>Từ chối</Button>
+                  <Button onClick={() => handleFarmReview(item.orderId, 'CONFIRMED')} disabled={reviewingOrderId === item.orderId}>Xác nh?n</Button>
+                  <Button variant="secondary" onClick={() => handleFarmReview(item.orderId, 'REJECTED')} disabled={reviewingOrderId === item.orderId}>T? ch?i</Button>
                 </div>
               </div>
             ))}
           </div>
         </article>
         <article className="glass-card">
-          <h3>Yêu cầu duyệt listing của tôi</h3>
-          {registrations.length === 0 ? <p>Chưa có yêu cầu duyệt listing.</p> : null}
+          <h3>Yêu c?u duy?t listing c?a tôi</h3>
+          {registrations.length === 0 ? <p>Chưa có yêu c?u duy?t listing.</p> : null}
           <div className="form-grid">
             {registrations.map((item) => (
               <div key={item.registrationId} className="business-card">
                 <div>
                   <strong>{item.listingTitle}</strong>
-                  <p>Trạng thái duyệt: {item.status}</p>
+                  <p>Tr?ng thái duy?t: {item.status}</p>
                   <p>Ghi chú: {item.note || 'Không có'}</p>
-                  <p>Reviewer: {item.reviewedByName || 'Chưa xử lý'}</p>
+                  <p>Reviewer: {item.reviewedByName || 'Chưa x? l?'}</p>
                 </div>
               </div>
             ))}
           </div>
         </article>
 
-        <article className="glass-card">
+        <article className="glass-card" id="notifications">
           <h3>Thông báo</h3>
           {notifications.length === 0 ? <p>Chưa có thông báo.</p> : null}
           <div className="form-grid">
@@ -172,11 +186,11 @@ export function FarmWorkflowPage() {
                 <div>
                   <strong>{item.title}</strong>
                   <p>{item.message}</p>
-                  <p>Loại: {item.notificationType}</p>
+                  <p>Lo?i: {item.notificationType}</p>
                 </div>
                 <div className="inline-actions">
                   <span className={`status-pill status-${item.read ? 'active' : 'pending'}`}>{item.read ? 'Đã đọc' : 'Chưa đọc'}</span>
-                  {!item.read ? <Button variant="secondary" onClick={() => handleMarkRead(item.notificationId)}>Đánh dấu đã đọc</Button> : null}
+                  {!item.read ? <Button variant="secondary" onClick={() => handleMarkRead(item.notificationId)}>Đánh d?u đã đọc</Button> : null}
                 </div>
               </div>
             ))}
@@ -184,9 +198,9 @@ export function FarmWorkflowPage() {
         </article>
       </div>
 
-      <article className="glass-card top-gap">
-        <h3>Shipment visibility của farm</h3>
-        {shipments.length === 0 ? <p>Chưa có shipment nào liên quan tới farm này.</p> : null}
+      <article className="glass-card top-gap" id="shipments" hidden={!showShipments}>
+        <h3>Shipment visibility c?a farm</h3>
+        {shipments.length === 0 ? <p>Chưa có shipment nào liên quan t?i farm này.</p> : null}
         <div className="form-grid">
           {shipments.map((shipment) => (
             <div key={shipment.shipmentId} className="business-card">
@@ -208,7 +222,7 @@ export function FarmWorkflowPage() {
                     <p>Location: {log.location || 'N/A'}</p>
                     <p>{formatDateTime(log.recordedAt)}</p>
                   </div>
-                )) : <p>Chưa có timeline vận chuyển.</p>}
+                )) : <p>Chưa có timeline v?n chuy?n.</p>}
               </div>
 
               <div className="top-gap">
@@ -220,14 +234,34 @@ export function FarmWorkflowPage() {
                     <p>Severity: {report.severity || 'N/A'} • Status: {report.status || 'OPEN'}</p>
                     <p>{formatDateTime(report.createdAt)}</p>
                   </div>
-                )) : <p>Chưa có báo cáo sự cố.</p>}
+                )) : <p>Chưa có báo cáo s? c?.</p>}
               </div>
             </div>
           ))}
         </div>
       </article>
 
-      <article className="glass-card top-gap">
+      <article className="glass-card top-gap" id="shipment-reports" hidden={!showShipmentReports}>
+        <h3>Báo cáo v?n chuy?n (R-FRM-170)</h3>
+        <p>T?ng h?p báo cáo s? c? do tài x? g?i cho m?i shipment liên quan t?i farm c?a b?n.</p>
+        {shipmentReports.length === 0 ? <p>Chưa có báo cáo v?n chuy?n nào liên quan t?i farm.</p> : null}
+        <div className="form-grid">
+          {shipmentReports.map((report) => (
+            <div key={report.reportId} className="business-card">
+              <div>
+                <strong>Báo cáo #{report.reportId}</strong>
+                <p>Shipment #{report.shipmentId} • Driver #{report.driverId || 'N/A'}</p>
+                <p>Lo?i: {report.issueType || 'N/A'} • Severity: {report.severity || 'N/A'}</p>
+                <p>Tr?ng thái: {report.status || 'OPEN'}</p>
+                <p>{report.description}</p>
+                <p>{formatDateTime(report.createdAt)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </article>
+
+      <article className="glass-card top-gap" hidden={module !== 'all'}>
         <h3>Report liên quan</h3>
         {reports.length === 0 ? <p>Chưa có report.</p> : null}
         <div className="form-grid">
@@ -236,7 +270,7 @@ export function FarmWorkflowPage() {
               <div>
                 <strong>{item.subject}</strong>
                 <p>{item.content}</p>
-                <p>Trạng thái: {item.status}</p>
+                <p>Tr?ng thái: {item.status}</p>
               </div>
             </div>
           ))}

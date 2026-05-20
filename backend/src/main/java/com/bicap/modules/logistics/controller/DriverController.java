@@ -2,6 +2,7 @@ package com.bicap.modules.logistics.controller;
 
 import com.bicap.core.dto.ApiResponse;
 import com.bicap.modules.logistics.dto.CreateDriverRequest;
+import com.bicap.modules.logistics.dto.CreateDriverWithUserRequest;
 import com.bicap.modules.logistics.dto.DriverResponse;
 import com.bicap.modules.logistics.dto.UpdateDriverRequest;
 import com.bicap.core.security.SecurityUtils;
@@ -27,6 +28,15 @@ public class DriverController {
         return ApiResponse.success(
                 "Tạo driver thành công",
                 driverService.create(request, SecurityUtils.getCurrentUserId())
+        );
+    }
+
+    @PostMapping("/with-user")
+    @PreAuthorize("hasRole('SHIPPING_MANAGER')")
+    public ApiResponse<DriverResponse> createWithUser(@Valid @RequestBody CreateDriverWithUserRequest request) {
+        return ApiResponse.success(
+                "Tạo user + driver thành công",
+                driverService.createWithUser(request, SecurityUtils.getCurrentUserId())
         );
     }
 

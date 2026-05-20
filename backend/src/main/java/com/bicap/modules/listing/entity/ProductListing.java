@@ -3,6 +3,7 @@ package com.bicap.modules.listing.entity;
 import com.bicap.core.enums.ApprovalStatus;
 import com.bicap.core.enums.ListingStatus;
 import com.bicap.modules.batch.entity.ProductBatch;
+import com.bicap.modules.farm.entity.Farm;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -24,6 +25,13 @@ public class ProductListing {
     @JoinColumn(name = "batch_id", nullable = false)
     private ProductBatch batch;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "farm_id", nullable = false)
+    private Farm farm;
+
+    @Column(name = "listing_code", nullable = false, length = 50)
+    private String listingCode;
+
     @Column(nullable = false, length = 255)
     private String title;
 
@@ -35,6 +43,9 @@ public class ProductListing {
 
     @Column(name = "quantity_available", nullable = false, precision = 15, scale = 2)
     private BigDecimal quantityAvailable;
+
+    @Column(name = "available_quantity", nullable = false, precision = 12, scale = 2)
+    private BigDecimal legacyAvailableQuantity;
 
     @Column(name = "quantity_reserved", nullable = false, precision = 15, scale = 2)
     private BigDecimal quantityReserved = BigDecimal.ZERO;
@@ -58,7 +69,7 @@ public class ProductListing {
     private LocalDateTime updatedAt;
 
     @PrePersist
-    public void onCreate() { LocalDateTime now = LocalDateTime.now(); if (this.createdAt == null) this.createdAt = now; this.updatedAt = now; if (this.status == null || this.status.isBlank()) this.status = ListingStatus.DRAFT.name(); if (this.approvalStatus == null || this.approvalStatus.isBlank()) this.approvalStatus = ApprovalStatus.DRAFT.name(); if (this.unit == null || this.unit.isBlank()) this.unit = "kg"; }
+    public void onCreate() { LocalDateTime now = LocalDateTime.now(); if (this.createdAt == null) this.createdAt = now; this.updatedAt = now; if (this.status == null || this.status.isBlank()) this.status = ListingStatus.DRAFT.name(); if (this.approvalStatus == null || this.approvalStatus.isBlank()) this.approvalStatus = ApprovalStatus.DRAFT.name(); if (this.unit == null || this.unit.isBlank()) this.unit = "kg"; if (this.legacyAvailableQuantity == null) this.legacyAvailableQuantity = this.quantityAvailable; if (this.listingCode == null || this.listingCode.isBlank()) this.listingCode = "LIST-" + System.nanoTime(); }
     @PreUpdate
     public void onUpdate() { this.updatedAt = LocalDateTime.now(); }
 
@@ -68,6 +79,10 @@ public class ProductListing {
     public void setVersion(Long version) { this.version = version; }
     public ProductBatch getBatch() { return batch; }
     public void setBatch(ProductBatch batch) { this.batch = batch; }
+    public Farm getFarm() { return farm; }
+    public void setFarm(Farm farm) { this.farm = farm; }
+    public String getListingCode() { return listingCode; }
+    public void setListingCode(String listingCode) { this.listingCode = listingCode; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }
@@ -75,7 +90,9 @@ public class ProductListing {
     public BigDecimal getPrice() { return price; }
     public void setPrice(BigDecimal price) { this.price = price; }
     public BigDecimal getQuantityAvailable() { return quantityAvailable; }
-    public void setQuantityAvailable(BigDecimal quantityAvailable) { this.quantityAvailable = quantityAvailable; }
+    public void setQuantityAvailable(BigDecimal quantityAvailable) { this.quantityAvailable = quantityAvailable; this.legacyAvailableQuantity = quantityAvailable; }
+    public BigDecimal getLegacyAvailableQuantity() { return legacyAvailableQuantity; }
+    public void setLegacyAvailableQuantity(BigDecimal legacyAvailableQuantity) { this.legacyAvailableQuantity = legacyAvailableQuantity; }
     public BigDecimal getQuantityReserved() { return quantityReserved; }
     public void setQuantityReserved(BigDecimal quantityReserved) { this.quantityReserved = quantityReserved; }
     public String getUnit() { return unit; }

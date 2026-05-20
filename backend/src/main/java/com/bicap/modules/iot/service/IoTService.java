@@ -19,13 +19,18 @@ import com.bicap.modules.iot.repository.ThresholdRuleRepository;
 import com.bicap.modules.season.entity.FarmingSeason;
 import com.bicap.modules.season.repository.FarmingSeasonRepository;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -75,6 +80,67 @@ public class IoTService {
         return mapAlert(saveRetrySafe(alert));
     }
     private IoTAlert saveRetrySafe(IoTAlert alert) { try { return iotAlertRepository.save(alert); } catch (OptimisticLockingFailureException ex) { return iotAlertRepository.findById(alert.getAlertId()).orElseThrow(); } }
+
+    /**
+     * Scheduled daily digest of IoT readings per design D4 + ADR-005 + BR-IOT-010.
+     * Runs at 07:00 server timezone every day. Aggregates last 24 hours of readings per farm
+     * and dispatches one digest notification to each farm owner regardless of whether breaches occurred.
+     */
+    @Scheduled(cron = "${app.iot.daily-digest-cron:0 0 7 * * *}", zone = "${app.iot.daily-digest-zone:Asia/Ho_Chi_Minh}")
+    @Transactional
+    public void sendDailyDigest() {
+        LocalDateTime windowEnd = LocalDateTime.of(LocalDate.now(), LocalTime.of(7, 0));
+        LocalDateTime windowStart = windowEnd.minusDays(1);
+        List<SensorReading> readings = sensorReadingRepository.findAllByMeasuredAtBetween(windowStart, windowEnd);
+        if (readings.isEmpty()) {
+            log.debug("IoT daily digest: no readings between {} and {}", windowStart, windowEnd);
+            return;
+        }
+        Map<Long, List<SensorReading>> byFarm = readings.stream()
+                .filter(r -> r.getFarm() != null && r.getFarm().getOwnerUser() != null)
+                .collect(Collectors.groupingBy(r -> r.getFarm().getFarmId()));
+        for (Map.Entry<Long, List<SensorReading>> entry : byFarm.entrySet()) {
+            List<SensorReading> farmReadings = entry.getValue();
+            if (farmReadings.isEmpty()) continue;
+            Farm farm = farmReadings.get(0).getFarm();
+            String summary = buildDigestSummary(farmReadings);
+            try {
+                notificationDispatcher.send(
+                        farm.getOwnerUser().getUserId(),
+                        null,
+                        "Tổng hợp IoT 24h cho " + farm.getFarmName(),
+                        summary,
+                        "IOT_DAILY_DIGEST",
+                        "FARM",
+                        farm.getFarmId());
+                if (auditLogService != null) {
+                    auditLogService.log(null, "NOTIFY_IOT_DAILY_DIGEST", "FARM", farm.getFarmId(), "readings=" + farmReadings.size());
+                }
+            } catch (Exception ex) {
+                log.warn("Không thể gửi IoT daily digest cho farmId={}: {}", farm.getFarmId(), ex.getMessage());
+            }
+        }
+    }
+
+    private String buildDigestSummary(List<SensorReading> readings) {
+        Map<String, List<SensorReading>> byMetric = readings.stream()
+                .filter(r -> r.getMetric() != null)
+                .collect(Collectors.groupingBy(SensorReading::getMetric));
+        StringBuilder sb = new StringBuilder();
+        sb.append("Bản tổng hợp 24h (").append(readings.size()).append(" lượt đo)\n");
+        for (Map.Entry<String, List<SensorReading>> entry : byMetric.entrySet()) {
+            List<SensorReading> metricReadings = entry.getValue();
+            BigDecimal min = metricReadings.stream().map(SensorReading::getValue).filter(v -> v != null).min(BigDecimal::compareTo).orElse(null);
+            BigDecimal max = metricReadings.stream().map(SensorReading::getValue).filter(v -> v != null).max(BigDecimal::compareTo).orElse(null);
+            sb.append("- ").append(entry.getKey())
+                    .append(": ").append(metricReadings.size()).append(" lượt")
+                    .append(min != null ? ", min=" + min : "")
+                    .append(max != null ? ", max=" + max : "")
+                    .append("\n");
+        }
+        return sb.toString().trim();
+    }
+
     private void enforceIngestOwnership(Farm farm) {
         var currentUser = SecurityUtils.getCurrentUser();
         boolean isAdmin = currentUser.getAuthorities().stream().anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
