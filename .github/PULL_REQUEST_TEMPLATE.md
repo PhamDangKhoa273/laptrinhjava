@@ -9,10 +9,10 @@ List every ID in docs/ that this PR exercises or changes.
 At least one ID is required if the PR modifies code under backend/ or frontend/.
 -->
 
-- R-*: 
-- BR-*: 
-- STM-*: 
-- API-*: 
+- R-*:
+- BR-*:
+- STM-*:
+- API-*:
 
 ## Gap entries
 
@@ -22,7 +22,7 @@ open a GAP-* in docs/09-governance/gap-register.md and list it here.
 -->
 
 - [ ] None
-- [ ] GAP-* opened: 
+- [ ] GAP-* opened:
 
 ## OpenAPI delta
 

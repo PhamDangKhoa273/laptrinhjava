@@ -106,4 +106,3 @@ Any code path leading the entity outside this set is a `docs:lint` violation.
 - Enum: `backend/src/main/java/com/bicap/core/enums/ShipmentStatus.java`
 - Validation: `ShipmentService.validateTransition()`
 - Order sync: `ShipmentService.syncOrderStatus()` — when shipment goes to `REJECTED`/`DISPUTED`/`ESCALATED`, parent order moves to `DISPUTED` (see STM-ORD-T09)
-

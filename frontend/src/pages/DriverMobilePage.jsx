@@ -682,4 +682,3 @@ function ReportView({ form, setForm, onSubmit, actionLoading }) {
     </div>
   )
 }
-

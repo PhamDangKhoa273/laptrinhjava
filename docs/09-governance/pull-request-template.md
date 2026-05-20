@@ -24,10 +24,10 @@ Liệt kê mọi ID trong docs/ mà PR này chạm tới hoặc thực hiện.
 Bắt buộc ít nhất một ID nếu PR sửa code dưới backend/ hoặc frontend/.
 -->
 
-- R-*: 
-- BR-*: 
-- STM-*: 
-- API-*: 
+- R-*:
+- BR-*:
+- STM-*:
+- API-*:
 
 ## Gap entries
 
@@ -37,7 +37,7 @@ mở GAP-* trong docs/09-governance/gap-register.md và liệt kê ở đây.
 -->
 
 - [ ] None
-- [ ] GAP-* opened: 
+- [ ] GAP-* opened:
 
 ## OpenAPI delta
 

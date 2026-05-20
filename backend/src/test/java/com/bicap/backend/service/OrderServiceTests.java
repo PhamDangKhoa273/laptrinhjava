@@ -388,4 +388,3 @@ class OrderServiceTests {
         security.when(com.bicap.core.security.SecurityUtils::getCurrentUserOrNull).thenReturn(principal);
     }
 }
-
