@@ -23,6 +23,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -130,6 +131,29 @@ class ListingAndDiscoveryControllerTests {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].listingId").value(2))
                 .andExpect(jsonPath("$.data[0].approvalStatus").value("PENDING"));
+    }
+
+    @Test
+    void reviewListing_shouldAllowAdminReviewByListingId() throws Exception {
+        var response = new com.bicap.modules.listing.dto.ListingRegistrationResponse();
+        response.setRegistrationId(5L);
+        response.setListingId(2L);
+        response.setStatus("APPROVED");
+
+        when(listingService.reviewListing(eq(2L), org.mockito.ArgumentMatchers.any())).thenReturn(response);
+
+        listingMockMvc.perform(patch("/api/v1/listings/2/review")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "status": "APPROVED",
+                                  "note": "OK"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.listingId").value(2))
+                .andExpect(jsonPath("$.data.status").value("APPROVED"));
     }
 
     @Test

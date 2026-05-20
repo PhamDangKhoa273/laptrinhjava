@@ -38,6 +38,7 @@ Listing module owns marketplace listings, connecting farm-owned products/batches
 - `PUT /api/v1/listings/{id}` - update current farm owner's listing.
 - `POST /api/v1/listings/{id}/submit` - submit listing for admin review.
 - `PATCH /api/v1/listings/registrations/{registrationId}/review` - admin review for listing registration.
+- `PATCH /api/v1/listings/{id}/review` - admin review for a pending listing directly from product governance.
 
 ## Current Behavior
 
@@ -48,6 +49,7 @@ Listing module owns marketplace listings, connecting farm-owned products/batches
 - Farm listing UI hides ineligible batches from the create selector and calls out expired/sold-out/no-stock batches before submit, matching backend listing eligibility.
 - Farm listing UI shows the selected batch's catalog category as read-only metadata; category is owned by the product catalog, not manually typed on the listing.
 - Admin product governance uses the admin listing endpoint to monitor all Farm-created marketplace listings, not only the seed catalog rows.
+- Admin can approve or reject pending listings directly from the product governance table; approved listings become `ACTIVE + APPROVED`, rejected listings become `INACTIVE + REJECTED`.
 
 ## Tests
 

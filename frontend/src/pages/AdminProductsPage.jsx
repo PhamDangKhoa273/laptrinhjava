@@ -8,6 +8,7 @@ import {
   getAdminListings,
   getCategories,
   getProducts,
+  reviewAdminListing,
   updateCategory,
   updateProduct,
 } from '../services/adminService.js'
@@ -73,6 +74,7 @@ export function AdminProductsPage() {
   const [showCategoryForm, setShowCategoryForm] = useState(false)
   const [editingCategory, setEditingCategory] = useState(null)
   const [categoryForm, setCategoryForm] = useState(emptyCategoryForm)
+  const [reviewingListingId, setReviewingListingId] = useState(null)
 
   async function loadData() {
     try {
@@ -197,6 +199,30 @@ export function AdminProductsPage() {
     }
   }
 
+  async function handleReviewListing(item, status) {
+    const listingId = item.listingId || item.id
+    if (!listingId) return
+    const isApproved = status === 'APPROVED'
+    if (!isApproved && !window.confirm('Từ chối listing này?')) return
+    try {
+      setError('')
+      setStatusMessage('')
+      setReviewingListingId(listingId)
+      await reviewAdminListing(listingId, {
+        status,
+        note: isApproved
+          ? 'Listing đã được admin duyệt từ màn hình giám sát sản phẩm.'
+          : 'Listing bị từ chối từ màn hình giám sát sản phẩm.',
+      })
+      setStatusMessage(isApproved ? 'Đã duyệt listing lên chợ.' : 'Đã từ chối listing.')
+      await loadData()
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || 'Không xử lý được listing.')
+    } finally {
+      setReviewingListingId(null)
+    }
+  }
+
   return (
     <section className="page-section admin-page admin-products-page">
       <div className="section-heading">
@@ -237,19 +263,32 @@ export function AdminProductsPage() {
 
           <div className="admin-table-wrap">
             <table className="admin-table">
-              <thead><tr><th>Listing</th><th>Sản phẩm</th><th>Farm</th><th>Số lượng</th><th>Giá</th><th>Trạng thái</th></tr></thead>
+              <thead><tr><th>Listing</th><th>Sản phẩm</th><th>Farm</th><th>Số lượng</th><th>Giá</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
               <tbody>
-                {listings.map((item) => (
-                  <tr key={item.listingId || item.id}>
-                    <td><strong>{item.title || `Listing #${item.listingId || item.id}`}</strong><br /><small>{item.batchCode || 'Chưa có batch'} · {item.traceCode || 'Chưa có QR'}</small></td>
-                    <td><strong>{item.productName || '-'}</strong><br /><small>{item.productCategory || item.productCode || '-'}</small></td>
-                    <td><strong>{item.farmName || '-'}</strong><br /><small>{item.province || item.farmCode || '-'}</small></td>
-                    <td>{item.quantityAvailable ?? '-'} {item.unit || ''}</td>
-                    <td>{money(item.price)}</td>
-                    <td><span className={statusClass(item.approvalStatus || item.status)}>{item.approvalStatus || '-'}</span><br /><small>{item.status || '-'}</small></td>
-                  </tr>
-                ))}
-                {listings.length === 0 ? <tr><td colSpan="6">Chưa có listing nào từ Farm.</td></tr> : null}
+                {listings.map((item) => {
+                  const listingId = item.listingId || item.id
+                  const pending = String(item.approvalStatus || '').toUpperCase() === 'PENDING'
+                  const busy = reviewingListingId === listingId
+                  return (
+                    <tr key={listingId}>
+                      <td><strong>{item.title || `Listing #${listingId}`}</strong><br /><small>{item.batchCode || 'Chưa có batch'} · {item.traceCode || 'Chưa có QR'}</small></td>
+                      <td><strong>{item.productName || '-'}</strong><br /><small>{item.productCategory || item.productCode || '-'}</small></td>
+                      <td><strong>{item.farmName || '-'}</strong><br /><small>{item.province || item.farmCode || '-'}</small></td>
+                      <td>{item.quantityAvailable ?? '-'} {item.unit || ''}</td>
+                      <td>{money(item.price)}</td>
+                      <td><span className={statusClass(item.approvalStatus || item.status)}>{item.approvalStatus || '-'}</span><br /><small>{item.status || '-'}</small></td>
+                      <td>
+                        {pending ? (
+                          <div className="inline-actions">
+                            <Button variant="secondary" onClick={() => handleReviewListing(item, 'APPROVED')} disabled={busy}>{busy ? 'Đang xử lý...' : 'Duyệt'}</Button>
+                            <Button variant="secondary" onClick={() => handleReviewListing(item, 'REJECTED')} disabled={busy}>Từ chối</Button>
+                          </div>
+                        ) : <span className="muted-inline">Đã xử lý</span>}
+                      </td>
+                    </tr>
+                  )
+                })}
+                {listings.length === 0 ? <tr><td colSpan="7">Chưa có listing nào từ Farm.</td></tr> : null}
               </tbody>
             </table>
           </div>
