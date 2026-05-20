@@ -393,9 +393,14 @@ public class ProductListingService {
 
     @Transactional
     public ListingRegistrationResponse reviewListing(Long listingId, ReviewListingRegistrationRequest request) {
-        ListingRegistrationRequest registrationRequest = listingRegistrationRequestRepository.findByListingListingId(listingId)
-                .orElseThrow(() -> new BusinessException("Khong tim thay yeu cau duyet cho listing ID: " + listingId));
-        return reviewRegistrationRequest(registrationRequest, request);
+        Optional<ListingRegistrationRequest> registrationRequest = listingRegistrationRequestRepository.findByListingListingId(listingId);
+        if (registrationRequest.isPresent()) {
+            return reviewRegistrationRequest(registrationRequest.get(), request);
+        }
+
+        ProductListing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new BusinessException("Khong tim thay listing ID: " + listingId));
+        return reviewListingWithoutRegistration(listing, request);
     }
 
     private ListingRegistrationResponse reviewRegistrationRequest(ListingRegistrationRequest registrationRequest, ReviewListingRegistrationRequest request) {
@@ -433,6 +438,31 @@ public class ProductListingService {
 
         return toRegistrationResponse(listingRegistrationRequestRepository.save(registrationRequest));
     }
+
+    private ListingRegistrationResponse reviewListingWithoutRegistration(ProductListing listing, ReviewListingRegistrationRequest request) {
+        if (!ApprovalStatus.PENDING.name().equals(listing.getApprovalStatus())) {
+            throw new BusinessException("Listing nay khong o trang thai cho duyet");
+        }
+
+        String status = request.getStatus().trim().toUpperCase();
+        if (!ApprovalStatus.APPROVED.name().equals(status) && !ApprovalStatus.REJECTED.name().equals(status)) {
+            throw new BusinessException("Trang thai duyet chi co the la APPROVED hoac REJECTED");
+        }
+
+        listing.setApprovalStatus(ApprovalStatus.valueOf(status));
+        listing.setStatus(ApprovalStatus.APPROVED.name().equals(status) ? ListingStatus.ACTIVE : ListingStatus.INACTIVE);
+        ProductListing saved = listingRepository.save(listing);
+
+        ListingRegistrationResponse response = new ListingRegistrationResponse();
+        response.setListingId(saved.getListingId());
+        response.setListingTitle(saved.getTitle());
+        response.setListingStatus(saved.getStatus());
+        response.setStatus(saved.getApprovalStatus());
+        response.setNote(trimToNull(request.getNote()));
+        response.setUpdatedAt(saved.getUpdatedAt());
+        return response;
+    }
+
     public List<ListingRegistrationResponse> getMyRegistrationRequests() {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         return listingRegistrationRequestRepository.findByRequestedByUserUserIdOrderByCreatedAtDesc(currentUserId)
