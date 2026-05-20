@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.Set;
 
 public class CustomUserPrincipal implements UserDetails {
-    private static final Set<String> VALID_STATUSES = Set.of("ACTIVE", "INACTIVE", "BLOCKED");
+    private static final Set<String> VALID_STATUSES = Set.of("ACTIVE", "INACTIVE", "BLOCKED", "DELETED");
 
     private Long userId;
     private String email;

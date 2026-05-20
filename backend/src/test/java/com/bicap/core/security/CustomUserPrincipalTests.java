@@ -23,4 +23,11 @@ class CustomUserPrincipalTests {
         assertThat(principal.isEnabled()).isFalse();
         assertThat(principal.isAccountNonLocked()).isFalse();
     }
+
+    @Test
+    void deletedUser_shouldBeDisabled() {
+        CustomUserPrincipal principal = new CustomUserPrincipal(1L, "user@example.com", "secret", "User", "DELETED", List.of());
+
+        assertThat(principal.isEnabled()).isFalse();
+    }
 }

@@ -55,3 +55,4 @@ Auth module sở hữu các luồng xác thực: register, login, password reset
 
 - 2026-05-21: Login/JWT auth treats only `ACTIVE` users as enabled; `BLOCKED` users are locked. Existing access tokens stop authenticating after DB status changes because JWT auth reloads current user status.
 - 2026-05-21: Refresh token rotation rejects non-active users and revokes the attempted refresh session.
+- 2026-05-21: Soft-deleted (`DELETED`) users are disabled for login and JWT authentication.
