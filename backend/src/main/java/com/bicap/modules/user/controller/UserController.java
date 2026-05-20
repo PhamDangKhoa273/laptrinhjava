@@ -56,11 +56,11 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<?> getAllUsers() {
+    @PreAuthorize("hasAnyRole('ADMIN','SHIPPING_MANAGER')")
+    public ApiResponse<?> getAllUsers(@RequestParam(required = false) String role) {
         return ApiResponse.success(
                 "Láº¥y danh sÃ¡ch user thÃ nh cÃ´ng",
-                userService.getAllUsers()
+                role != null ? userService.getUsersByRole(role) : userService.getAllUsers()
         );
     }
 

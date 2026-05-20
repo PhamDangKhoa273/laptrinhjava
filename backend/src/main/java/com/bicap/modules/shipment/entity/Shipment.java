@@ -19,7 +19,7 @@ public class Shipment {
     @Version
     private Long version;
 
-    @Column(name = "order_id", nullable = false, unique = true)
+    @Column(name = "order_id", nullable = false)
     private Long orderId;
 
     @Column(name = "idempotency_key", length = 120)

@@ -19,6 +19,8 @@ import com.bicap.modules.user.repository.UserRoleRepository;
 import com.bicap.modules.user.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,7 +42,8 @@ import java.util.UUID;
 @Service
 public class AuthService {
 
-    private static final Set<RoleName> SELF_REGISTER_ROLES = Set.of(RoleName.GUEST, RoleName.FARM, RoleName.RETAILER, RoleName.SHIPPING_MANAGER);
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+    private static final Set<RoleName> SELF_REGISTER_ROLES = Set.of(RoleName.FARM, RoleName.RETAILER, RoleName.SHIPPING_MANAGER);
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
@@ -80,9 +83,9 @@ public class AuthService {
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
-        RoleName requestedRole = request.getRole() != null ? request.getRole() : RoleName.GUEST;
+        RoleName requestedRole = request.getRole() != null ? request.getRole() : RoleName.FARM;
         if (!SELF_REGISTER_ROLES.contains(requestedRole)) {
-            throw new BusinessException("Chỉ được tự đăng ký tài khoản Guest, Farm hoặc Retailer");
+            throw new BusinessException("Chỉ được tự đăng ký tài khoản Farm, Retailer hoặc Shipping Manager");
         }
 
         UserResponse savedUser = userService.createUser(
@@ -247,14 +250,22 @@ public class AuthService {
         throttlePasswordReset(normalizedEmail, clientIp);
 
         userRepository.findByEmailIgnoreCase(normalizedEmail).ifPresent(user -> {
-            passwordResetTokenRepository.deleteByUser(user);
             String token = UUID.randomUUID().toString();
             String tokenHash = hashResetToken(token);
-            PasswordResetToken resetToken = new PasswordResetToken(tokenHash, user, LocalDateTime.now().plusMinutes(15));
+            PasswordResetToken resetToken = passwordResetTokenRepository.findByUser(user)
+                    .orElseGet(() -> new PasswordResetToken(tokenHash, user, LocalDateTime.now().plusMinutes(15)));
+            resetToken.setTokenHash(tokenHash);
+            resetToken.setExpiryDate(LocalDateTime.now().plusMinutes(15));
+            resetToken.setRevokedAt(null);
+            resetToken.setUsedAt(null);
             passwordResetTokenRepository.save(resetToken);
 
             String resetLink = frontendUrl + "/reset-password?token=" + token;
-            emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
+            try {
+                emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
+            } catch (RuntimeException ex) {
+                log.warn("Password reset email failed for {}. Local reset link: {}", user.getEmail(), resetLink, ex);
+            }
             securityAuditService.logAuthSuccess(user.getEmail(), "FORGOT_PASSWORD");
         });
 

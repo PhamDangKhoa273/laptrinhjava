@@ -1,6 +1,6 @@
 import createDOMPurify from 'dompurify'
 
-const DEFAULT_ANNOUNCEMENT_HTML = '<p>BICAP</p><p>CHÚC BẠN</p><p>MỘT NGÀY VUI VẺ 😊</p>'
+const DEFAULT_ANNOUNCEMENT_HTML = '<p>BICAP</p><p>Chúc bạn một ngày hiệu quả.</p>'
 const PURIFY_CONFIG = {
   ALLOWED_TAGS: ['p', 'br', 'ul', 'ol', 'li', 'strong', 'em', 'b', 'i', 'u', 'a', 'blockquote', 'h1', 'h2', 'h3', 'h4'],
   ALLOWED_ATTR: ['href', 'title', 'rel'],

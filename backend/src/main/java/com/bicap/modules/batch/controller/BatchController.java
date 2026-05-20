@@ -41,28 +41,33 @@ public class BatchController {
 
     @PostMapping("/api/v1/batches/{id}/qr")
     @PreAuthorize("hasAnyRole('ADMIN','FARM')")
-    public ApiResponse<QrCodeResponse> generateQr(@PathVariable Long id) {
-        return ApiResponse.success("Tạo mã QR thành công", productBatchService.generateQrCode(id));
+    public ApiResponse<QrCodeResponse> generateQr(@PathVariable Long id,
+                                                  @RequestHeader(value = "Origin", required = false) String origin) {
+        return ApiResponse.success("Tạo mã QR thành công", productBatchService.generateQrCode(id, origin));
     }
 
     @GetMapping("/api/v1/batches/{id}/qr")
-    public ApiResponse<QrCodeResponse> getQr(@PathVariable Long id) {
-        return ApiResponse.success(productBatchService.getQrCode(id));
+    public ApiResponse<QrCodeResponse> getQr(@PathVariable Long id,
+                                             @RequestHeader(value = "Origin", required = false) String origin) {
+        return ApiResponse.success(productBatchService.getQrCode(id, origin));
     }
 
     @GetMapping("/api/v1/trace/batches/{id}")
-    public ApiResponse<TraceBatchResponse> traceBatch(@PathVariable Long id) {
-        return ApiResponse.success(productBatchService.traceBatch(id));
+    public ApiResponse<TraceBatchResponse> traceBatch(@PathVariable Long id,
+                                                      @RequestHeader(value = "Origin", required = false) String origin) {
+        return ApiResponse.success(productBatchService.traceBatch(id, origin));
     }
 
     @GetMapping("/api/v1/public/trace/batches/{id}")
-    public ApiResponse<TraceBatchResponse> publicTraceBatch(@PathVariable Long id) {
-        return ApiResponse.success(productBatchService.traceBatch(id));
+    public ApiResponse<TraceBatchResponse> publicTraceBatch(@PathVariable Long id,
+                                                            @RequestHeader(value = "Origin", required = false) String origin) {
+        return ApiResponse.success(productBatchService.traceBatch(id, origin));
     }
 
     @GetMapping("/api/v1/public/trace")
-    public ApiResponse<TraceBatchResponse> publicTraceByCode(@RequestParam String traceCode) {
-        return ApiResponse.success(productBatchService.traceBatchByTraceCode(traceCode));
+    public ApiResponse<TraceBatchResponse> publicTraceByCode(@RequestParam String traceCode,
+                                                             @RequestHeader(value = "Origin", required = false) String origin) {
+        return ApiResponse.success(productBatchService.traceBatchByTraceCode(traceCode, origin));
     }
 
     @GetMapping("/api/v1/batches/{id}/verify")

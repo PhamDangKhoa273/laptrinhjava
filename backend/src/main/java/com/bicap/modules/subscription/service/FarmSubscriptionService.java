@@ -45,7 +45,15 @@ public class FarmSubscriptionService {
         ServicePackage servicePackage = servicePackageRepository.findById(request.getPackageId())
                 .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y gÃ³i dá»‹ch vá»¥"));
 
-        LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : LocalDate.now();
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = farmSubscriptionRepository
+                .findByFarmOwnerUserUserId(currentUserId)
+                .stream()
+                .filter(subscription -> isEffectiveSubscription(subscription, today))
+                .map(FarmSubscription::getEndDate)
+                .max(LocalDate::compareTo)
+                .map(endDate -> endDate.plusDays(1))
+                .orElseGet(() -> request.getStartDate() != null ? request.getStartDate() : today);
         LocalDate endDate = startDate.plusDays(servicePackage.getDurationDays());
 
         FarmSubscription subscription = new FarmSubscription();
@@ -105,6 +113,19 @@ public class FarmSubscriptionService {
     public FarmSubscription getEntityById(Long subscriptionId) {
         return farmSubscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new BusinessException("KhÃ´ng tÃ¬m tháº¥y farm subscription"));
+    }
+
+    private boolean isEffectiveSubscription(FarmSubscription subscription, LocalDate today) {
+        if (subscription == null || subscription.getEndDate() == null) {
+            return false;
+        }
+        String status = subscription.getSubscriptionStatus();
+        if (status == null) {
+            return false;
+        }
+        String normalized = status.trim().toUpperCase();
+        return List.of("ACTIVE", "EXPIRING_SOON", "GRACE_PERIOD").contains(normalized)
+                && !subscription.getEndDate().isBefore(today);
     }
 
     private FarmSubscriptionResponse toResponse(FarmSubscription subscription) {

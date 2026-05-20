@@ -198,6 +198,31 @@ public class SeasonService {
         return mapToResponse(farmingSeasonRepository.save(season));
     }
 
+    /**
+     * R-FRM-090 — Cập nhật trạng thái + ngày thu hoạch thực tế cho mùa vụ.
+     * Khác với updateSeason() (đòi PLANNED), endpoint này hoạt động ở mọi
+     * status mutable (PLANNED → IN_PROGRESS → HARVESTED → COMPLETED).
+     * Header (mã, sản phẩm, ngày bắt đầu, phương pháp) vẫn khóa sau khi rời PLANNED.
+     */
+    @Transactional
+    public SeasonResponse updateSeasonStatus(Long id, String newStatus, LocalDate actualHarvestDate, Long currentUserId) {
+        FarmingSeason season = farmingSeasonRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Mùa vụ không tồn tại"));
+        checkPermission(season.getFarm(), currentUserId);
+        ensureSeasonMutable(season);
+
+        String nextStatus = normalizeStatus(newStatus);
+        validateSeasonStatusTransition(season.getSeasonStatus(), nextStatus, season);
+
+        LocalDate nextActualHarvestDate = actualHarvestDate != null ? actualHarvestDate : season.getActualHarvestDate();
+        validateSeasonDates(season.getStartDate(), season.getExpectedHarvestDate(), nextActualHarvestDate, nextStatus);
+        validateProcessDatesWithinSeason(id, season.getStartDate(), nextActualHarvestDate, nextStatus);
+
+        season.setSeasonStatus(nextStatus);
+        season.setActualHarvestDate(nextActualHarvestDate);
+        return mapToResponse(farmingSeasonRepository.save(season));
+    }
+
     public void ensureProcessMutationAllowed(FarmingSeason season) {
         ensureSeasonMutable(season);
         String status = normalizeStatus(season.getSeasonStatus());
@@ -364,6 +389,9 @@ public class SeasonService {
                 .farmingMethod(season.getFarmingMethod())
                 .createdAt(season.getCreatedAt())
                 .updatedAt(season.getUpdatedAt())
+                .blockchainStatus(season.getBlockchainStatus())
+                .txHash(season.getTxHash())
+                .contractAddress(season.getContractAddress())
                 .build();
     }
 

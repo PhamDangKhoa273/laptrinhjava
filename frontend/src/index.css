@@ -205,10 +205,11 @@
   display: grid;
   gap: 3px;
   margin-top: 0;
-  overflow: hidden;
+  overflow-y: auto;
   max-height: none;
   padding-right: 0;
 }
+.sidebar-section-label { padding: 16px 16px 4px; font: 700 10px Inter, sans-serif; text-transform: uppercase; letter-spacing: .12em; color: var(--proto-outline); pointer-events: none; }
 
 .sidebar-nav::-webkit-scrollbar {
   width: 6px;
@@ -438,7 +439,7 @@
 }
 
 .admin-user-item.is-selected::after {
-  content: 'ĐANG CHỌN';
+  content: 'ĐANG CH?N';
   position: absolute;
   top: 8px;
   right: 8px;
@@ -1969,7 +1970,7 @@ button:hover {
 }
 
 .admin-package-list-item.is-selected::after {
-  content: 'ĐANG CHỌN';
+  content: 'ĐANG CH?N';
   position: absolute;
   top: 8px;
   right: 8px;
@@ -2024,7 +2025,7 @@ button:hover {
 }
 
 .admin-retailer-list-item.is-selected::after {
-  content: 'ĐANG CHỌN';
+  content: 'ĐANG CH?N';
   position: absolute;
   top: 8px;
   right: 8px;
@@ -2071,7 +2072,7 @@ button:hover {
 }
 
 .admin-logistics-item.is-selected::after {
-  content: 'ĐANG CHỌN';
+  content: 'ĐANG CH?N';
   position: absolute;
   top: 8px;
   right: 8px;
@@ -2187,7 +2188,7 @@ button:hover {
 }
 
 .admin-blockchain-item.is-selected::after {
-  content: 'ĐANG CHỌN';
+  content: 'ĐANG CH?N';
   position: absolute;
   top: 8px;
   right: 8px;
@@ -3418,6 +3419,130 @@ button:hover {
   grid-template-columns: 1fr;
 }
 
+.bicap-contracts-page {
+  max-width: 1120px;
+  margin: 0;
+  padding-bottom: 40px;
+  color: #17201a;
+}
+
+.bicap-contracts-page .retailer-contracts-head,
+.bicap-contracts-page .retailer-contracts-form-card,
+.bicap-contracts-page .retailer-contracts-empty,
+.bicap-contracts-page .retailer-contract-card {
+  border: 1px solid #e5ebe4;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(16, 38, 20, .04);
+}
+
+.bicap-contracts-page .retailer-contracts-head {
+  align-items: flex-end;
+  padding: 20px 22px;
+}
+
+.bicap-contracts-page .retailer-contracts-head h2 {
+  font: 800 36px/1.1 Manrope, Inter, sans-serif;
+  letter-spacing: 0;
+}
+
+.bicap-contracts-page .retailer-contracts-head p {
+  color: #667064;
+  font-size: 15px;
+}
+
+.bicap-contracts-page .retailer-contracts-form-card {
+  padding: 22px;
+}
+
+.bicap-contracts-page .bicap-contract-form {
+  display: grid;
+  gap: 16px;
+}
+
+.bicap-contracts-page .retailer-contracts-form-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, .55fr);
+}
+
+.bicap-contracts-page label {
+  color: #667064;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.bicap-contracts-page input,
+.bicap-contracts-page select,
+.bicap-contracts-page textarea {
+  min-height: 48px;
+  border: 1px solid #dce6da;
+  border-radius: 12px;
+  background: #fbfdfb;
+  color: #17201a;
+  font: 700 15px/1.3 Inter, system-ui, sans-serif;
+  padding: 12px 14px;
+}
+
+.bicap-contracts-page textarea {
+  min-height: 104px;
+  resize: vertical;
+}
+
+.bicap-contracts-page .retailer-contracts-button {
+  width: max-content;
+  border-radius: 12px;
+  background: #ef4444;
+  box-shadow: 0 10px 24px rgba(239, 68, 68, .14);
+}
+
+.bicap-contracts-page .retailer-contracts-button.ghost {
+  background: #fff;
+  color: #0d631b;
+  box-shadow: none;
+}
+
+.bicap-contracts-page .retailer-contracts-empty {
+  place-items: start;
+  min-height: 150px;
+  padding: 22px;
+  text-align: left;
+  border-style: solid;
+}
+
+.bicap-contracts-page .retailer-contracts-empty h3 {
+  font-size: 22px;
+}
+
+.retailer-market-clean .product-card footer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.retailer-market-clean .product-card footer button {
+  min-height: 48px !important;
+  border-radius: 12px !important;
+  border: 1px solid #0d631b !important;
+  background: #0d631b !important;
+  color: #fff !important;
+  font-weight: 900;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.retailer-market-clean .product-card footer button:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .bicap-contracts-page .retailer-contracts-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .role-module-guest:not(.role-module-overview) .mp-hero,
 .role-module-guest.role-module-overview .guest-module-card:not(.guest-module-overview),
 .role-module-guest.role-module-search .guest-module-card:not(.guest-module-search),
@@ -4399,6 +4524,144 @@ button:hover {
 
 .dashboard-icon-button:hover {
   background: #fafafa;
+}
+
+.notification-bell-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  width: 360px;
+  max-height: 480px;
+  background: #fff;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.12);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.notification-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+  color: #71717a;
+}
+
+.notification-dropdown-header strong {
+  color: #18181b;
+  font-size: 14px;
+}
+
+.notification-dropdown-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.notification-dropdown-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: #a1a1aa;
+  font-size: 13px;
+}
+
+.notification-dropdown-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f4f4f5;
+  transition: background .15s;
+}
+
+.notification-dropdown-item:last-child {
+  border-bottom: 0;
+}
+
+.notification-dropdown-item:hover {
+  background: #fafafa;
+}
+
+.notification-dropdown-item.unread {
+  background: #f0f9ff;
+}
+
+.notification-dropdown-item.unread:hover {
+  background: #e6f4fe;
+}
+
+.notification-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-item-main strong {
+  display: block;
+  font-size: 13px;
+  color: #18181b;
+  margin-bottom: 2px;
+}
+
+.notification-item-main p {
+  font-size: 12px;
+  color: #71717a;
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notification-item-main small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #a1a1aa;
+}
+
+.notification-mark-read {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #22c55e;
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+.notification-mark-read:hover {
+  background: #f0fdf4;
 }
 
 .dashboard-user-mini {
@@ -5684,5 +5947,553 @@ button:hover {
   .newsletter form { flex-direction: column; }
   .guest-mobile-nav { position: fixed; z-index: 70; left: 0; right: 0; bottom: 0; height: 64px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e7eb; background: #fff; }
   .guest-mobile-nav a { display: flex; flex-direction: column; align-items: center; gap: 2px; color: #6b7280; text-decoration: none; font-size: 10px; }
-  .guest-mobile-nav a.active { color: #15803d; font-weight: 800; }
+.guest-mobile-nav a.active { color: #15803d; font-weight: 800; }
+}
+
+.dashboard-shell.role-retailer .sidebar {
+  width: 300px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdf9 100%);
+  border-right: 1px solid #dde8da;
+  box-shadow: 8px 0 28px rgba(28, 58, 28, 0.04);
+}
+
+.dashboard-shell.role-retailer .sidebar-top {
+  padding: 18px 16px;
+}
+
+.dashboard-shell.role-retailer .sidebar-brand {
+  min-height: 66px;
+  padding: 12px 14px;
+  border: 1px solid #e5eee2;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.dashboard-shell.role-retailer .sidebar-brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0d631b, #4e9f68);
+  box-shadow: 0 10px 22px rgba(13, 99, 27, 0.18);
+}
+
+.dashboard-shell.role-retailer .sidebar-brand-title {
+  color: #073d12;
+  font-size: 18px;
+}
+
+.dashboard-shell.role-retailer .sidebar-brand-subtitle {
+  color: #667063;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.dashboard-shell.role-retailer .sidebar-section-label {
+  margin: 20px 10px 8px;
+  color: #7a846f;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.dashboard-shell.role-retailer .sidebar-nav {
+  gap: 3px;
+}
+
+.dashboard-shell.role-retailer .sidebar-link {
+  min-height: 48px;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 10px;
+  margin: 0 0 2px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: #345038;
+  outline: none;
+}
+
+.dashboard-shell.role-retailer .sidebar-link:hover {
+  border-color: #d8e8d3;
+  border-radius: 14px;
+  background: #f4faf2;
+  color: #0d631b;
+}
+
+.dashboard-shell.role-retailer .sidebar-link.active {
+  border: 1px solid #a8d2a5;
+  border-radius: 14px;
+  background: #eaf7ea;
+  color: #0d631b;
+  box-shadow: inset 3px 0 0 #0d631b;
+}
+
+.dashboard-shell.role-retailer .sidebar-link-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: #f0f6ef;
+  color: #2f7d3d;
+}
+
+.dashboard-shell.role-retailer .sidebar-link:hover .sidebar-link-icon,
+.dashboard-shell.role-retailer .sidebar-link.active .sidebar-link-icon {
+  background: #0d631b;
+  color: #ffffff;
+}
+
+.dashboard-shell.role-retailer .sidebar-link-icon .material-symbols-outlined {
+  font-size: 22px;
+}
+
+.dashboard-shell.role-retailer .sidebar-link-text {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.dashboard-shell.role-retailer .sidebar-action-panel {
+  padding: 14px 8px 0;
+  border-top: 1px solid #e5eee2;
+}
+
+.dashboard-shell.role-retailer .sidebar-new-transaction {
+  min-height: 48px;
+  border-radius: 14px;
+  background: #0d631b;
+  box-shadow: 0 12px 24px rgba(13, 99, 27, 0.18);
+}
+
+.dashboard-shell.role-farm .sidebar {
+  width: 300px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdf9 100%);
+  border-right: 1px solid #dde8da;
+  box-shadow: 8px 0 28px rgba(28, 58, 28, 0.04);
+}
+
+.dashboard-shell.role-farm .sidebar-top {
+  padding: 18px 16px;
+}
+
+.dashboard-shell.role-farm .sidebar-brand {
+  min-height: 66px;
+  padding: 12px 14px;
+  border: 1px solid #e5eee2;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.dashboard-shell.role-farm .sidebar-brand-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0d631b, #6f9f2f);
+  box-shadow: 0 10px 22px rgba(13, 99, 27, 0.18);
+}
+
+.dashboard-shell.role-farm .sidebar-brand-title {
+  color: #073d12;
+  font-size: 18px;
+}
+
+.dashboard-shell.role-farm .sidebar-brand-subtitle {
+  color: #667063;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.dashboard-shell.role-farm .sidebar-section-label {
+  margin: 20px 10px 8px;
+  color: #7a846f;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.dashboard-shell.role-farm .sidebar-nav {
+  gap: 3px;
+}
+
+.dashboard-shell.role-farm .sidebar-link {
+  min-height: 48px;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 10px;
+  margin: 0 0 2px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: #345038;
+  outline: none;
+}
+
+.dashboard-shell.role-farm .sidebar-link:hover {
+  border-color: #d8e8d3;
+  border-radius: 14px;
+  background: #f4faf2;
+  color: #0d631b;
+}
+
+.dashboard-shell.role-farm .sidebar-link.active {
+  border: 1px solid #a8d2a5;
+  border-radius: 14px;
+  background: #eaf7ea;
+  color: #0d631b;
+  box-shadow: inset 3px 0 0 #0d631b;
+}
+
+.dashboard-shell.role-farm .sidebar-link-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: #f0f6ef;
+  color: #2f7d3d;
+}
+
+.dashboard-shell.role-farm .sidebar-link:hover .sidebar-link-icon,
+.dashboard-shell.role-farm .sidebar-link.active .sidebar-link-icon {
+  background: #0d631b;
+  color: #ffffff;
+}
+
+.dashboard-shell.role-farm .sidebar-link-icon .material-symbols-outlined {
+  font-size: 22px;
+}
+
+.dashboard-shell.role-farm .sidebar-link-text {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.dashboard-shell.role-farm .sidebar-action-panel {
+  padding: 14px 8px 0;
+  border-top: 1px solid #e5eee2;
+}
+
+.dashboard-shell.role-farm .sidebar-new-transaction {
+  min-height: 48px;
+  border-radius: 14px;
+  background: #0d631b;
+  box-shadow: 0 12px 24px rgba(13, 99, 27, 0.18);
+}
+
+.farm-yield-empty {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  border: 1px dashed #c9d9c5;
+  border-radius: 16px;
+  background: #fbfdfb;
+  color: #1f2f20;
+}
+
+.farm-yield-empty > .material-symbols-outlined {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: #eaf7ea;
+  color: #0d631b;
+}
+
+.farm-yield-empty h4 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.farm-yield-empty p {
+  margin: 0;
+  max-width: 460px;
+  color: #667063;
+  line-height: 1.5;
+}
+
+.dashboard-shell.role-farm,
+.dashboard-shell.role-retailer {
+  grid-template-columns: 256px minmax(0, 1fr);
+}
+
+.dashboard-shell.role-farm .sidebar,
+.dashboard-shell.role-retailer .sidebar {
+  width: auto;
+  box-sizing: border-box;
+}
+
+.dashboard-shell.role-farm .sidebar-top,
+.dashboard-shell.role-retailer .sidebar-top {
+  padding: 16px 12px;
+}
+
+.dashboard-shell.role-farm .sidebar-brand,
+.dashboard-shell.role-retailer .sidebar-brand {
+  min-height: 58px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.dashboard-shell.role-farm .sidebar-brand-mark,
+.dashboard-shell.role-retailer .sidebar-brand-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+
+.dashboard-shell.role-farm .sidebar-section-label,
+.dashboard-shell.role-retailer .sidebar-section-label {
+  margin: 18px 8px 7px;
+}
+
+.dashboard-shell.role-farm .sidebar-link,
+.dashboard-shell.role-retailer .sidebar-link {
+  min-height: 44px;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+.dashboard-shell.role-farm .sidebar-link:hover,
+.dashboard-shell.role-retailer .sidebar-link:hover,
+.dashboard-shell.role-farm .sidebar-link.active,
+.dashboard-shell.role-retailer .sidebar-link.active {
+  border-radius: 12px;
+}
+
+.dashboard-shell.role-farm .sidebar-link-icon,
+.dashboard-shell.role-retailer .sidebar-link-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+.dashboard-shell.role-farm .sidebar-link-icon .material-symbols-outlined,
+.dashboard-shell.role-retailer .sidebar-link-icon .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.dashboard-shell.role-farm .sidebar-link-text,
+.dashboard-shell.role-retailer .sidebar-link-text {
+  font-size: 13px;
+}
+
+.dashboard-shell.role-farm .sidebar-action-panel,
+.dashboard-shell.role-retailer .sidebar-action-panel {
+  padding: 12px 4px 0;
+}
+
+.farm-yield-chart .chart-bar-row {
+  grid-template-columns: 110px minmax(0, 1fr) 90px;
+}
+
+.dashboard-shell.role-farm,
+.dashboard-shell.role-retailer {
+  grid-template-columns: 240px minmax(0, 1fr) !important;
+}
+
+.dashboard-shell.role-farm .sidebar,
+.dashboard-shell.role-retailer .sidebar {
+  width: 240px !important;
+  min-width: 240px !important;
+  padding: 12px !important;
+  overflow: hidden !important;
+}
+
+.dashboard-shell.role-farm .sidebar-top,
+.dashboard-shell.role-retailer .sidebar-top {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  min-height: 100% !important;
+  padding: 0 !important;
+}
+
+.dashboard-shell.role-farm .sidebar-brand,
+.dashboard-shell.role-retailer .sidebar-brand {
+  min-height: 46px !important;
+  padding: 0 2px !important;
+  gap: 10px !important;
+}
+
+.dashboard-shell.role-farm .sidebar-brand-mark,
+.dashboard-shell.role-retailer .sidebar-brand-mark {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+.dashboard-shell.role-farm .sidebar-brand-title,
+.dashboard-shell.role-retailer .sidebar-brand-title {
+  font-size: 17px !important;
+}
+
+.dashboard-shell.role-farm .sidebar-brand-subtitle,
+.dashboard-shell.role-retailer .sidebar-brand-subtitle {
+  display: none !important;
+}
+
+.dashboard-shell.role-farm .sidebar-nav,
+.dashboard-shell.role-retailer .sidebar-nav {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding: 4px 0 10px !important;
+}
+
+.dashboard-shell.role-farm .sidebar-section-label,
+.dashboard-shell.role-retailer .sidebar-section-label {
+  margin: 16px 6px 6px !important;
+  font-size: 10px !important;
+}
+
+.dashboard-shell.role-farm .sidebar-link,
+.dashboard-shell.role-retailer .sidebar-link {
+  min-height: 40px !important;
+  grid-template-columns: 30px minmax(0, 1fr) !important;
+  padding: 6px 8px !important;
+  margin: 0 0 2px !important;
+  border-radius: 10px !important;
+}
+
+.dashboard-shell.role-farm .sidebar-link:hover,
+.dashboard-shell.role-retailer .sidebar-link:hover,
+.dashboard-shell.role-farm .sidebar-link.active,
+.dashboard-shell.role-retailer .sidebar-link.active {
+  border-radius: 10px !important;
+}
+
+.dashboard-shell.role-farm .sidebar-link-icon,
+.dashboard-shell.role-retailer .sidebar-link-icon {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 9px !important;
+}
+
+.dashboard-shell.role-farm .sidebar-link-text,
+.dashboard-shell.role-retailer .sidebar-link-text {
+  font-size: 12.5px !important;
+  white-space: normal !important;
+  line-height: 1.25 !important;
+}
+
+.dashboard-shell.role-farm .sidebar-action-panel,
+.dashboard-shell.role-retailer .sidebar-action-panel {
+  flex: 0 0 auto !important;
+  padding: 10px 0 0 !important;
+  background: #fbfdf9 !important;
+}
+
+.dashboard-shell.role-farm .sidebar-new-transaction,
+.dashboard-shell.role-retailer .sidebar-new-transaction {
+  min-height: 42px !important;
+  border-radius: 12px !important;
+}
+
+.dashboard-shell.role-farm .ship-overview-grid {
+  align-items: start !important;
+}
+
+.dashboard-shell.role-farm .ship-overview-grid > .ship-card:first-child {
+  min-height: 0 !important;
+}
+
+.dashboard-shell.role-farm .farm-yield-chart {
+  padding: 6px 0 0 !important;
+  gap: 8px !important;
+}
+
+.dashboard-shell.role-farm .dashboard-main main,
+.dashboard-shell.role-retailer .dashboard-main main {
+  padding: 28px 28px 36px !important;
+}
+
+.dashboard-shell.role-farm .shipping-prototype-shell,
+.dashboard-shell.role-retailer .retailer-prototype-shell {
+  max-width: 1540px;
+  margin: 0 auto;
+}
+
+.dashboard-shell.role-farm .sidebar-brand {
+  margin-bottom: 22px !important;
+}
+
+.dashboard-shell.role-farm .sidebar-section-label {
+  margin-top: 14px !important;
+}
+
+.dashboard-shell.role-farm .sidebar-nav {
+  display: grid !important;
+  align-content: start !important;
+  gap: 2px !important;
+}
+
+.farm-page-head-clean {
+  margin-bottom: 20px !important;
+  align-items: center !important;
+}
+
+.farm-page-head-clean h2 {
+  font-size: clamp(34px, 3.2vw, 48px) !important;
+}
+
+.farm-page-head-clean span {
+  margin-top: 6px !important;
+}
+
+.farm-metrics-clean {
+  gap: 14px !important;
+  margin-bottom: 18px !important;
+}
+
+.farm-metrics-clean .ship-metric {
+  min-height: 112px !important;
+  padding: 16px !important;
+  border-radius: 14px !important;
+}
+
+.farm-metrics-clean .ship-metric p {
+  margin: 14px 0 6px !important;
+}
+
+.farm-overview-grid-clean {
+  grid-template-columns: minmax(0, 1.7fr) minmax(360px, .82fr) !important;
+  gap: 18px !important;
+  align-items: start !important;
+}
+
+.farm-yield-card {
+  padding: 18px 20px !important;
+}
+
+.farm-yield-card .ship-card-head {
+  margin-bottom: 18px !important;
+}
+
+.farm-yield-card .dash-btn {
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+}
+
+.farm-yield-chart .chart-bar-row {
+  grid-template-columns: 110px minmax(0, 1fr) 92px !important;
+  gap: 14px !important;
+}
+
+.farm-yield-chart .chart-bar-track {
+  height: 18px !important;
+}
+
+.farm-quick-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.farm-quick-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
 }

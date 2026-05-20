@@ -29,9 +29,9 @@ public class AuthorizationService {
 
     public void requirePermission(PermissionName permissionName) {
         User user = userService.getUserEntityById(SecurityUtils.getCurrentUserId());
-        if (userService.hasRole(user, RoleName.ADMIN) && hasPermission(user, PermissionName.ALL_ACCESS)) return;
+        if (userService.hasRole(user, RoleName.ADMIN)) return;
         if (!hasPermission(user, permissionName)) {
-            throw new BusinessException("B?n kh?ng c? quy?n th?c hi?n thao t?c n?y");
+            throw new BusinessException("Bạn không có quyền thực hiện thao tác này");
         }
     }
 
@@ -46,7 +46,7 @@ public class AuthorizationService {
     }
 
     public void grant(RoleName roleName, PermissionName permissionName) {
-        Role role = roleRepository.findByRoleName(roleName.name()).orElseThrow(() -> new BusinessException("Role kh?ng t?n t?i"));
+        Role role = roleRepository.findByRoleName(roleName.name()).orElseThrow(() -> new BusinessException("Role không tồn tại"));
         Permission permission = permissionRepository.findByPermissionName(permissionName.name()).orElseGet(() -> {
             Permission p = new Permission();
             p.setPermissionName(permissionName.name());

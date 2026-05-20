@@ -46,7 +46,7 @@ export function AdminRetailersPage() {
       setRetailers(data)
       if (!selectedRetailerId && data.length > 0) setSelectedRetailerId(getRetailerId(data[0]))
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || 'Không tải được danh sách retailer.')
+      setError(err?.response?.data?.message || err?.message || 'Không t?i được danh sách retailer.')
     } finally {
       setLoading(false)
     }
@@ -89,19 +89,19 @@ export function AdminRetailersPage() {
     <section className="page-section admin-page admin-retailers-page">
       <div className="section-heading">
         <div>
-          <h2>Quản lý nhà bán lẻ</h2>
+          <h2>Qu?n l? nhà bán l?</h2>
         </div>
         <div className="section-actions">
-          <Button variant="secondary" onClick={loadRetailers} disabled={loading}>{loading ? 'Đang tải...' : 'Làm mới'}</Button>
+          <Button variant="secondary" onClick={loadRetailers} disabled={loading}>{loading ? 'Đang t?i...' : 'Làm m?i'}</Button>
         </div>
       </div>
 
       <div className="status-grid admin-overview-grid">
-        <article className="status-card"><span>Tổng retailer</span><strong>{retailers.length}</strong></article>
-        <article className="status-card"><span>Đang hoạt động</span><strong>{metrics.active}</strong></article>
-        <article className="status-card"><span>Inactive / chờ xử lý</span><strong>{metrics.inactive}</strong></article>
-        <article className="status-card"><span>Thiếu giấy phép</span><strong>{metrics.missingLicense}</strong></article>
-        <article className="status-card"><span>Thiếu địa chỉ</span><strong>{metrics.missingAddress}</strong></article>
+        <article className="status-card"><span>T?ng retailer</span><strong>{retailers.length}</strong></article>
+        <article className="status-card"><span>Đang ho?t động</span><strong>{metrics.active}</strong></article>
+        <article className="status-card"><span>Inactive / ch? x? l?</span><strong>{metrics.inactive}</strong></article>
+        <article className="status-card"><span>Thi?u gi?y phép</span><strong>{metrics.missingLicense}</strong></article>
+        <article className="status-card"><span>Thi?u địa ch?</span><strong>{metrics.missingAddress}</strong></article>
       </div>
 
       {error ? <div className="alert alert-error">{error}</div> : null}
@@ -114,11 +114,11 @@ export function AdminRetailersPage() {
               className="form-input"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Tìm tên/mã/giấy phép/địa chỉ"
+              placeholder="T?m tên/mã/giấy phép/địa ch?"
             />
             <select className="form-input" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
               {availableStatuses.map((status) => (
-                <option key={status} value={status}>{status === 'ALL' ? 'Tất cả trạng thái' : status}</option>
+                <option key={status} value={status}>{status === 'ALL' ? 'T?t c? tr?ng thái' : status}</option>
               ))}
             </select>
           </div>
@@ -135,7 +135,7 @@ export function AdminRetailersPage() {
                   onClick={() => setSelectedRetailerId(id)}
                 >
                   <div className="admin-user-item-main">
-                    <strong className="admin-user-name">{retailer.retailerName || retailer.businessName || 'Nhà bán lẻ chưa đặt tên'}</strong>
+                    <strong className="admin-user-name">{retailer.retailerName || retailer.businessName || 'Nhà bán l? chưa đặt tên'}</strong>
                     <span className="admin-user-email">{retailer.retailerCode || `#${id}`}</span>
                   </div>
                   <div className="admin-user-item-meta">
@@ -147,7 +147,7 @@ export function AdminRetailersPage() {
                 </button>
               )
             })}
-            {!loading && filteredRetailers.length === 0 ? <p className="muted-inline">Không có retailer phù hợp.</p> : null}
+            {!loading && filteredRetailers.length === 0 ? <p className="muted-inline">Không có retailer phù h?p.</p> : null}
           </div>
         </aside>
 
@@ -156,9 +156,9 @@ export function AdminRetailersPage() {
             <>
               <div className="admin-retailer-detail-head">
                 <div>
-                  <span className="feature-badge">Hồ sơ retailer</span>
-                  <h3>{selectedRetailer.retailerName || selectedRetailer.businessName || 'Nhà bán lẻ chưa đặt tên'}</h3>
-                  <p>Mã nhà bán lẻ: {selectedRetailer.retailerCode || `#${getRetailerId(selectedRetailer)}`}</p>
+                  <span className="feature-badge">H? sơ retailer</span>
+                  <h3>{selectedRetailer.retailerName || selectedRetailer.businessName || 'Nhà bán l? chưa đặt tên'}</h3>
+                  <p>M? nhà bán l?: {selectedRetailer.retailerCode || `#${getRetailerId(selectedRetailer)}`}</p>
                 </div>
                 <span className={`status-pill status-${String(getRetailerStatus(selectedRetailer)).toLowerCase()}`}>
                   {getRetailerStatus(selectedRetailer)}
@@ -166,31 +166,31 @@ export function AdminRetailersPage() {
               </div>
 
               <div className="admin-retailer-info-grid">
-                <div><span>Giấy phép kinh doanh</span><strong>{selectedRetailer.businessLicenseNo || 'Chưa cập nhật'}</strong></div>
-                <div><span>Địa chỉ hoạt động</span><strong>{selectedRetailer.address || 'Chưa cập nhật'}</strong></div>
-                <div><span>Email</span><strong>{selectedRetailer.email || 'Chưa cập nhật'}</strong></div>
-                <div><span>Số điện thoại</span><strong>{selectedRetailer.phone || 'Chưa cập nhật'}</strong></div>
-                <div><span>Mã định danh</span><strong>#{getRetailerId(selectedRetailer)}</strong></div>
-                <div><span>Tài khoản liên kết</span><strong>{selectedRetailer.userId ? `#${selectedRetailer.userId}` : 'Chưa liên kết'}</strong></div>
+                <div><span>Gi?y phép kinh doanh</span><strong>{selectedRetailer.businessLicenseNo || 'Chưa c?p nh?t'}</strong></div>
+                <div><span>Địa ch? ho?t động</span><strong>{selectedRetailer.address || 'Chưa c?p nh?t'}</strong></div>
+                <div><span>Email</span><strong>{selectedRetailer.email || 'Chưa c?p nh?t'}</strong></div>
+                <div><span>S? điện tho?i</span><strong>{selectedRetailer.phone || 'Chưa c?p nh?t'}</strong></div>
+                <div><span>M? định danh</span><strong>#{getRetailerId(selectedRetailer)}</strong></div>
+                <div><span>Tài kho?n liên k?t</span><strong>{selectedRetailer.userId ? `#${selectedRetailer.userId}` : 'Chưa liên k?t'}</strong></div>
               </div>
 
               <div className="admin-retailer-checklist">
-                <h3>Kiểm tra hồ sơ</h3>
+                <h3>Ki?m tra h? sơ</h3>
                 <ul className="feature-list">
                   <li className={selectedRetailer.businessLicenseNo ? 'is-ok' : 'is-warning'}>
-                    {selectedRetailer.businessLicenseNo ? 'Đã có giấy phép kinh doanh.' : 'Chưa có giấy phép kinh doanh.'}
+                    {selectedRetailer.businessLicenseNo ? 'Đã có gi?y phép kinh doanh.' : 'Chưa có gi?y phép kinh doanh.'}
                   </li>
                   <li className={selectedRetailer.address ? 'is-ok' : 'is-warning'}>
-                    {selectedRetailer.address ? 'Đã có địa chỉ hoạt động.' : 'Chưa có địa chỉ hoạt động.'}
+                    {selectedRetailer.address ? 'Đã có địa ch? ho?t động.' : 'Chưa có địa ch? ho?t động.'}
                   </li>
                   <li className={String(getRetailerStatus(selectedRetailer)).toUpperCase() === 'ACTIVE' ? 'is-ok' : 'is-warning'}>
-                    {String(getRetailerStatus(selectedRetailer)).toUpperCase() === 'ACTIVE' ? 'Retailer đang hoạt động.' : 'Retailer chưa ở trạng thái ACTIVE.'}
+                    {String(getRetailerStatus(selectedRetailer)).toUpperCase() === 'ACTIVE' ? 'Retailer đang ho?t động.' : 'Retailer chưa ? tr?ng thái ACTIVE.'}
                   </li>
                 </ul>
               </div>
             </>
           ) : (
-            <p className="muted-inline">Chưa có retailer để hiển thị.</p>
+            <p className="muted-inline">Chưa có retailer để hi?n th?.</p>
           )}
         </main>
       </div>

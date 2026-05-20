@@ -9,6 +9,7 @@ import com.bicap.modules.common.notification.entity.Notification;
 import com.bicap.modules.common.notification.repository.NotificationRepository;
 import com.bicap.modules.contract.repository.FarmRetailerContractRepository;
 import com.bicap.modules.farm.repository.FarmRepository;
+import com.bicap.modules.listing.repository.ProductListingRepository;
 import com.bicap.modules.order.repository.OrderRepository;
 import com.bicap.modules.retailer.repository.RetailerRepository;
 import com.bicap.modules.user.entity.User;
@@ -33,21 +34,23 @@ public class NotificationService {
     private final RetailerRepository retailerRepository;
     private final OrderRepository orderRepository;
     private final FarmRetailerContractRepository contractRepository;
+    private final ProductListingRepository listingRepository;
 
     private final RedisRateLimitService rateLimitService;
 
-    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository, FarmRepository farmRepository, RetailerRepository retailerRepository, OrderRepository orderRepository, FarmRetailerContractRepository contractRepository, RedisRateLimitService rateLimitService) {
+    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository, FarmRepository farmRepository, RetailerRepository retailerRepository, OrderRepository orderRepository, FarmRetailerContractRepository contractRepository, ProductListingRepository listingRepository, RedisRateLimitService rateLimitService) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.farmRepository = farmRepository;
         this.retailerRepository = retailerRepository;
         this.orderRepository = orderRepository;
         this.contractRepository = contractRepository;
+        this.listingRepository = listingRepository;
         this.rateLimitService = rateLimitService;
     }
 
     @Transactional
-    public NotificationResponse create(CreateNotificationRequest request) {
+    public List<NotificationResponse> create(CreateNotificationRequest request) {
         User sender = userRepository.findById(SecurityUtils.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy người gửi"));
         rateLimitService.checkPerUser("notification:" + sender.getUserId());
@@ -62,33 +65,49 @@ public class NotificationService {
             throw new BusinessException("Phải chỉ định đúng một đích nhận: recipientUserId hoặc recipientRole");
         }
 
-        Notification notification = new Notification();
-        notification.setSenderUser(sender);
-
-        if (request.getTargetType() != null && request.getTargetId() != null) {
-            enforceThreadPermission(sender, normalizedRecipientRole, request.getTargetType(), request.getTargetId(), request.getRecipientUserId());
-        } else {
-            enforceBroadcastPermission(sender, normalizedRecipientRole, request.getRecipientUserId());
+        List<String> roles = new ArrayList<>();
+        if (normalizedRecipientRole != null) {
+            String[] parts = normalizedRecipientRole.split(",");
+            for (String part : parts) {
+                String trimmed = part.trim().toUpperCase();
+                if (!trimmed.isEmpty()) roles.add(trimmed);
+            }
         }
 
+        if (request.getTargetType() != null && request.getTargetId() != null) {
+            enforceThreadPermission(sender, roles, request.getTargetType(), request.getTargetId(), request.getRecipientUserId());
+        } else {
+            enforceBroadcastPermission(sender, roles, request.getRecipientUserId());
+        }
+
+        List<NotificationResponse> results = new ArrayList<>();
         if (request.getRecipientUserId() != null) {
             User recipient = userRepository.findById(request.getRecipientUserId())
                     .orElseThrow(() -> new BusinessException("Không tìm thấy người nhận"));
-            notification.setRecipientUser(recipient);
-            notification.setRecipientRole(null);
+            Notification notification = buildNotification(sender, recipient, null, request);
+            results.add(toResponse(notificationRepository.save(notification)));
         } else {
-            notification.setRecipientUser(null);
-            notification.setRecipientRole(normalizedRecipientRole.toUpperCase());
+            for (String role : roles) {
+                Notification notification = buildNotification(sender, null, role, request);
+                results.add(toResponse(notificationRepository.save(notification)));
+            }
         }
 
+        return results;
+    }
+
+    private Notification buildNotification(User sender, User recipient, String role, CreateNotificationRequest request) {
+        Notification notification = new Notification();
+        notification.setSenderUser(sender);
+        notification.setRecipientUser(recipient);
+        notification.setRecipientRole(role);
         notification.setTitle(request.getTitle().trim());
         notification.setMessage(request.getMessage().trim());
         notification.setNotificationType(request.getNotificationType().trim().toUpperCase());
         notification.setTargetType(request.getTargetType() != null ? request.getTargetType().trim().toUpperCase() : null);
         notification.setTargetId(request.getTargetId());
         notification.setRead(false);
-
-        return toResponse(notificationRepository.save(notification));
+        return notification;
     }
 
     private void enforceSendRateLimit(Long senderUserId) {
@@ -102,7 +121,7 @@ public class NotificationService {
         }
     }
 
-    private void enforceBroadcastPermission(User sender, String recipientRole, Long recipientUserId) {
+    private void enforceBroadcastPermission(User sender, List<String> roles, Long recipientUserId) {
         boolean isAdmin = hasRole(sender, RoleName.ADMIN.name());
         boolean isShipping = hasRole(sender, RoleName.SHIPPING_MANAGER.name());
 
@@ -113,21 +132,27 @@ public class NotificationService {
             return;
         }
 
-        if (recipientRole == null) {
+        if (roles == null || roles.isEmpty()) {
             throw new BusinessException("Đích nhận không hợp lệ");
         }
 
-        if (isAdmin && ("PUBLIC".equalsIgnoreCase(recipientRole) || "SYSTEM".equalsIgnoreCase(recipientRole) || "ADMIN".equalsIgnoreCase(recipientRole))) {
-            return;
+        for (String role : roles) {
+            boolean allowed = false;
+            if (isAdmin && ("PUBLIC".equalsIgnoreCase(role) || "SYSTEM".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role))) {
+                allowed = true;
+            }
+            if (isShipping && ("FARM".equalsIgnoreCase(role) || "RETAILER".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role))) {
+                allowed = true;
+            }
+            if (!allowed) {
+                throw new BusinessException("Không có quyền gửi notification đến vai trò " + role);
+            }
         }
-        if (isShipping && ("FARM".equalsIgnoreCase(recipientRole) || "RETAILER".equalsIgnoreCase(recipientRole))) {
-            return;
-        }
-        throw new BusinessException("Không có quyền gửi notification đến vai trò này");
     }
 
-    private void enforceThreadPermission(User sender, String recipientRole, String targetType, Long targetId, Long recipientUserId) {
+    private void enforceThreadPermission(User sender, List<String> roles, String targetType, Long targetId, Long recipientUserId) {
         String normalizedTargetType = targetType.trim().toUpperCase();
+        String recipientRole = (roles != null && roles.size() == 1) ? roles.get(0) : null;
         if ("ORDER".equals(normalizedTargetType)) {
             OrderContext ctx = resolveOrderContext(targetId);
             if (hasRole(sender, RoleName.ADMIN.name()) || hasRole(sender, RoleName.SHIPPING_MANAGER.name())) return;
@@ -142,6 +167,23 @@ public class NotificationService {
                 return;
             }
             throw new BusinessException("Không có quyền gửi trong thread order này");
+        }
+
+        if ("LISTING".equals(normalizedTargetType)) {
+            ListingContext ctx = resolveListingContext(targetId);
+            if (hasRole(sender, RoleName.ADMIN.name())) {
+                if (recipientUserId != null && !recipientUserId.equals(ctx.farmUserId)) {
+                    throw new BusinessException("Nguoi nhan khong hop le");
+                }
+                return;
+            }
+            if (hasRole(sender, RoleName.FARM.name()) && ctx.farmUserId != null && ctx.farmUserId.equals(sender.getUserId())) {
+                if (recipientRole != null && !"ADMIN".equalsIgnoreCase(recipientRole)) {
+                    throw new BusinessException("Farm chi duoc gui listing notification cho admin");
+                }
+                return;
+            }
+            throw new BusinessException("Khong co quyen gui trong thread listing nay");
         }
 
         if ("CONTRACT".equals(normalizedTargetType)) {
@@ -161,6 +203,13 @@ public class NotificationService {
         }
 
         throw new BusinessException("targetType không hợp lệ cho thread message");
+    }
+
+    private ListingContext resolveListingContext(Long listingId) {
+        var listing = listingRepository.findById(listingId).orElseThrow(() -> new BusinessException("Khong tim thay listing"));
+        var batch = listing.getBatch();
+        var farm = batch != null && batch.getSeason() != null ? batch.getSeason().getFarm() : null;
+        return new ListingContext(farm != null && farm.getOwnerUser() != null ? farm.getOwnerUser().getUserId() : null);
     }
 
     private boolean hasRole(User user, String role) {
@@ -189,6 +238,7 @@ public class NotificationService {
 
     private record OrderContext(Long retailerUserId, Long farmUserId) {}
     private record ContractContext(Long retailerUserId, Long farmUserId) {}
+    private record ListingContext(Long farmUserId) {}
 
     public List<NotificationResponse> getMyNotifications() {
         Long currentUserId = SecurityUtils.getCurrentUserId();

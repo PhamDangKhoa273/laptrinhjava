@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { RoleCoveragePanel } from '../components/RoleCoveragePanel.jsx'
-import { StatusCard } from '../components/StatusCard.jsx'
 import { getFarms, getPackages, getProducts, getRetailers, getUsers } from '../services/adminService.js'
 import { getErrorMessage } from '../utils/helpers.js'
 import '../admin-control.css'
@@ -19,69 +17,43 @@ function countByStatus(items, statusKey, expectedStatus) {
   return items.filter((item) => String(item?.[statusKey] || '').toUpperCase() === expectedStatus).length
 }
 
-const quickModules = [
+const adminWorkAreas = [
   {
-    title: 'Tài khoản & phân quyền',
-    description: 'Khóa/mở tài khoản, thay vai trò và phân quyền người dùng.',
+    title: 'Tài khoản quản trị',
+    description: 'Tạo, xem, chỉnh sửa, khóa hoặc xóa tài khoản admin. Phân quyền theo vai trò khi cần.',
     to: '/dashboard/admin/accounts',
-    badge: 'RBAC',
+    icon: 'admin_panel_settings',
+    meta: 'RBAC',
   },
   {
-    title: 'Duyệt Farm',
-    description: 'Duyệt, từ chối và kiểm tra hồ sơ/giấy phép farm trước khi tham gia chuỗi.',
+    title: 'Đăng ký trang trại',
+    description: 'Xem, phê duyệt hoặc từ chối hồ sơ trang trại mới trước khi cho tham gia nền tảng.',
     to: '/dashboard/admin/farms',
-    badge: 'Approval',
+    icon: 'approval_delegation',
+    meta: 'Approval',
   },
   {
-    title: 'Retailer',
-    description: 'Theo dõi nhà bán lẻ, hồ sơ kinh doanh và trạng thái hoạt động.',
-    to: '/dashboard/admin/retailers',
-    badge: 'Partner',
+    title: 'Hồ sơ trang trại',
+    description: 'Quản lý chứng nhận, thông tin liên hệ, vị trí và trạng thái hoạt động của trang trại.',
+    to: '/dashboard/admin/farms',
+    icon: 'storefront',
+    meta: 'Farm data',
   },
   {
-    title: 'Sản phẩm & lô SX',
-    description: 'Quản lý sản phẩm, chuyên mục và điểm vào cho batch/process trace.',
+    title: 'Sản phẩm nền tảng',
+    description: 'Giám sát sản phẩm đăng ký, danh mục, mô tả và độ chính xác của dữ liệu hiển thị.',
     to: '/dashboard/admin/products',
-    badge: 'Catalog',
+    icon: 'inventory_2',
+    meta: 'Catalog',
   },
   {
-    title: 'Gói dịch vụ',
-    description: 'Quản lý package, subscription và payment workflow cho Farm.',
-    to: '/dashboard/admin/packages',
-    badge: 'Package',
-  },
-  {
-    title: 'Logistics',
-    description: 'Giám sát shipment, tài xế, phương tiện và sự cố giao nhận.',
-    to: '/dashboard/admin/logistics',
-    badge: 'Shipment',
-  },
-  {
-    title: 'Blockchain Trace',
-    description: 'Theo dõi contract, transaction, QR verification và trace integrity.',
+    title: 'Blockchain trace',
+    description: 'Quản lý hợp đồng thông minh, giao dịch và dữ liệu truy xuất nguồn gốc trên VeChainThor.',
     to: '/dashboard/admin/blockchain',
-    badge: 'Chain',
-  },
-  {
-    title: 'Nội dung website',
-    description: 'Quản lý thông báo, bài viết, giáo dục và giao diện public site.',
-    to: '/dashboard/admin/content',
-    badge: 'CMS',
+    icon: 'account_tree',
+    meta: 'Trace',
   },
 ]
-
-const adminCoverageItems = [
-  { title: 'Tài khoản hệ thống', description: 'Admin, Farm, Retailer, Shipping Manager, Driver user accounts và role/status.', href: '/dashboard/admin/accounts' },
-  { title: 'Duyệt Farm', description: 'Kiểm tra giấy phép, chứng nhận, trạng thái approval và năng lực tham gia chuỗi.', href: '/dashboard/admin/farms' },
-  { title: 'Quản lý Retailer', description: 'Business license, trạng thái hoạt động, order/shipment/report liên quan retailer.', href: '/dashboard/admin/retailers' },
-  { title: 'Gói dịch vụ', description: 'Package, subscription, payment, quyền đăng sản phẩm và hạn mức sử dụng.', href: '/dashboard/admin/packages' },
-  { title: 'Sản phẩm / Batch / QR', description: 'Danh mục, sản phẩm, mùa vụ, batch, QR và dữ liệu truy xuất nguồn gốc.', href: '/dashboard/admin/products' },
-  { title: 'Logistics', description: 'Shipment, driver, vehicle, status timeline, dispute và delivery proof.', href: '/dashboard/admin/logistics' },
-  { title: 'Blockchain', description: 'Smart contract, transaction hash, proof verification và dữ liệu trace không sửa đổi.', href: '/dashboard/admin/blockchain' },
-  { title: 'Nội dung & thông báo', description: 'Public announcement, content library, website appearance và education feed.', href: '/dashboard/admin/content' },
-  { title: 'Analytics / Báo cáo', description: 'KPI vận hành, pending queue, report từ Farm/Retailer/Driver và audit trail.', href: '/dashboard/admin/analytics' },
-]
-
 
 export function AdminControlCenterPage() {
   const [users, setUsers] = useState([])
@@ -98,22 +70,51 @@ export function AdminControlCenterPage() {
 
   const metrics = useMemo(() => {
     const activeUsers = countByStatus(users, 'status', 'ACTIVE')
-    const inactiveUsers = countByStatus(users, 'status', 'INACTIVE')
     const pendingFarms = farms.filter((farm) => String(farm.approvalStatus || '').toUpperCase() !== 'APPROVED').length
     const approvedFarms = countByStatus(farms, 'approvalStatus', 'APPROVED')
 
     return {
       totalUsers: users.length,
       activeUsers,
-      inactiveUsers,
-      totalFarms: farms.length,
       pendingFarms,
       approvedFarms,
+      totalFarms: farms.length,
       totalRetailers: retailers.length,
       totalPackages: packages.length,
       totalProducts: products.length,
     }
   }, [users, farms, retailers, packages, products])
+
+  const queueItems = [
+    { label: 'Farm chờ duyệt', value: metrics.pendingFarms, to: '/dashboard/admin/farms' },
+    { label: 'Tài khoản đang hoạt động', value: metrics.activeUsers, to: '/dashboard/admin/accounts' },
+    { label: 'Sản phẩm cần giám sát', value: metrics.totalProducts, to: '/dashboard/admin/products' },
+    { label: 'Đối tác bán lẻ', value: metrics.totalRetailers, to: '/dashboard/admin/retailers' },
+  ]
+
+  const systemSignals = [
+    {
+      label: 'Hồ sơ cần xử lý',
+      value: metrics.pendingFarms,
+      detail: metrics.pendingFarms > 0 ? 'Cần duyệt trước khi farm tham gia nền tảng' : 'Không có hồ sơ tồn',
+      tone: metrics.pendingFarms > 0 ? 'warning' : 'ok',
+      to: '/dashboard/admin/farms',
+    },
+    {
+      label: 'Catalog đang giám sát',
+      value: metrics.totalProducts,
+      detail: 'Sản phẩm, danh mục, mô tả và dữ liệu hiển thị',
+      tone: 'info',
+      to: '/dashboard/admin/products',
+    },
+    {
+      label: 'Blockchain trace',
+      value: 'READY',
+      detail: 'VeChainThor governance đã bật trong Docker local',
+      tone: 'chain',
+      to: '/dashboard/admin/blockchain',
+    },
+  ]
 
   async function loadOverview() {
     try {
@@ -140,141 +141,94 @@ export function AdminControlCenterPage() {
   }
 
   return (
-    <section className="page-section admin-page admin-control-page dashboard-command-page admin-live-command-page">
-      <div className="command-hero admin-live-hero">
+    <section className="page-section admin-page admin-control-page admin-simple-page">
+      <header className="admin-simple-header">
         <div>
-          <div className="command-role-pill">
-            <span aria-hidden="true" />
-            BICAP ADMIN COMMAND CENTER
-          </div>
-          <h1>Welcome back, Admin!</h1>
-          <p>Live operating cockpit for users, farms, retailers, catalog, logistics and traceability governance.</p>
+          <span className="admin-simple-kicker">Admin Web</span>
+          <h1>Quản trị nền tảng</h1>
+          <p>Trang này chỉ gom các nghiệp vụ quản trị chính: tài khoản, trang trại, sản phẩm và blockchain trace.</p>
         </div>
-        <button className="command-primary-action admin-live-refresh" type="button" onClick={loadOverview} disabled={loading}>
-          <span>{loading ? 'Đang đồng bộ...' : 'Refresh live data'}</span>
-          <span className="material-symbols-outlined" aria-hidden="true">sync</span>
+        <button className="button button-secondary" type="button" onClick={loadOverview} disabled={loading}>
+          {loading ? 'Đang tải...' : 'Làm mới'}
         </button>
-      </div>
+      </header>
 
       {error ? <div className="alert alert-error">{error}</div> : null}
 
-      <div className="command-stats-grid admin-live-stats" aria-label="Admin live statistics">
-        <article className="command-stat-card tone-blue">
-          <div className="command-stat-topline">
-            <span className="command-stat-icon material-symbols-outlined" aria-hidden="true">group</span>
-            <span className="command-stat-badge">Accounts</span>
-          </div>
-          <p>Total Users</p>
+      <div className="admin-signal-band" aria-label="Tín hiệu vận hành">
+        {systemSignals.map((item) => (
+          <Link key={item.label} className={`admin-signal-card signal-${item.tone}`} to={item.to}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <small>{item.detail}</small>
+          </Link>
+        ))}
+      </div>
+
+      <div className="admin-simple-stats" aria-label="Tổng quan quản trị">
+        <article>
+          <span>Người dùng</span>
           <strong>{metrics.totalUsers}</strong>
+          <small>{metrics.activeUsers} đang hoạt động</small>
         </article>
-        <article className="command-stat-card tone-green">
-          <div className="command-stat-topline">
-            <span className="command-stat-icon material-symbols-outlined" aria-hidden="true">verified_user</span>
-            <span className="command-stat-badge">Active</span>
-          </div>
-          <p>Operational Accounts</p>
-          <strong>{metrics.activeUsers}</strong>
+        <article>
+          <span>Trang trại</span>
+          <strong>{metrics.totalFarms}</strong>
+          <small>{metrics.pendingFarms} hồ sơ cần duyệt</small>
         </article>
-        <article className="command-stat-card tone-amber">
-          <div className="command-stat-topline">
-            <span className="command-stat-icon material-symbols-outlined" aria-hidden="true">pending_actions</span>
-            <span className="command-stat-badge">Queue</span>
-          </div>
-          <p>Farm Review Queue</p>
-          <strong>{metrics.pendingFarms}</strong>
-        </article>
-        <article className="command-stat-card tone-red">
-          <div className="command-stat-topline">
-            <span className="command-stat-icon material-symbols-outlined" aria-hidden="true">inventory_2</span>
-            <span className="command-stat-badge">Catalog</span>
-          </div>
-          <p>Products Governed</p>
+        <article>
+          <span>Sản phẩm</span>
           <strong>{metrics.totalProducts}</strong>
+          <small>Đang được giám sát</small>
+        </article>
+        <article>
+          <span>Đối tác</span>
+          <strong>{metrics.totalRetailers}</strong>
+          <small>{metrics.totalPackages} gói dịch vụ</small>
         </article>
       </div>
 
-      <div className="command-content-grid admin-live-grid">
-        <aside className="command-side-stack" aria-label="Admin quick modules">
-          <article className="command-panel admin-live-panel">
-            <div className="command-panel-kicker">Mission shortcuts</div>
-            <div className="command-shortcuts">
-              {quickModules.slice(0, 5).map((module) => (
-                <Link key={module.to} className="command-shortcut" to={module.to}>
-                  <span className="material-symbols-outlined" aria-hidden="true">dashboard_customize</span>
-                  <strong>{module.title}</strong>
-                  <i className="material-symbols-outlined" aria-hidden="true">chevron_right</i>
-                </Link>
-              ))}
-            </div>
-          </article>
-
-          <article className="command-health-card admin-live-health">
-            <div className="health-content">
-              <div className="health-badge">
-                <span className="material-symbols-outlined" aria-hidden="true">admin_panel_settings</span>
-                RBAC + Governance Online
-              </div>
-              <h2>BICAP Network Health</h2>
-              <p>{metrics.totalFarms + metrics.totalRetailers} verified partners, {metrics.totalPackages} service packages and protected admin modules are active.</p>
-              <div className="health-meter" aria-label="Admin system health">
-                <span />
-              </div>
-            </div>
-            <span className="health-watermark material-symbols-outlined" aria-hidden="true">hub</span>
-          </article>
-        </aside>
-
-        <article className="command-activity-card admin-live-activity">
-          <div className="command-activity-head">
-            <h2>Admin Operations Feed</h2>
-            <Link to="/dashboard/admin/analytics">Open analytics</Link>
-          </div>
-
-          <div className="command-timeline">
-            <div className="command-event">
-              <div className="command-event-rail" aria-hidden="true"><span className="tone-green" /><i /></div>
-              <div className="command-event-body">
-                <div className="command-event-title"><h3>Account governance synced</h3><time>Live</time></div>
-                <p>{metrics.activeUsers} active users and {metrics.inactiveUsers} inactive/locked accounts detected across the platform.</p>
-                <div className="command-event-chips"><span>Users: {metrics.totalUsers}</span><span>RBAC Ready</span></div>
-              </div>
-            </div>
-            <div className="command-event">
-              <div className="command-event-rail" aria-hidden="true"><span className="tone-blue" /><i /></div>
-              <div className="command-event-body">
-                <div className="command-event-title"><h3>Farm approval queue</h3><time>Now</time></div>
-                <p>{metrics.pendingFarms} farm hồ sơ cần kiểm tra; {metrics.approvedFarms} farm đã đủ điều kiện tham gia chuỗi.</p>
-                <div className="command-event-chips"><span>Approved: {metrics.approvedFarms}</span><span>Pending: {metrics.pendingFarms}</span></div>
-              </div>
-            </div>
-            <div className="command-event">
-              <div className="command-event-rail" aria-hidden="true"><span /><i /></div>
-              <div className="command-event-body">
-                <div className="command-event-title"><h3>Catalog & partner surface</h3><time>Stable</time></div>
-                <p>{metrics.totalProducts} products, {metrics.totalRetailers} retailers and {metrics.totalPackages} service packages are visible to admin governance.</p>
-                <div className="command-event-chips"><span>Products: {metrics.totalProducts}</span><span>Retailers: {metrics.totalRetailers}</span></div>
-              </div>
+      <div className="admin-simple-layout">
+        <main className="admin-simple-card admin-simple-work">
+          <div className="admin-simple-card-head">
+            <div>
+              <h2>Nghiệp vụ quản trị</h2>
+              <p>Đi theo đúng phạm vi của quản trị viên trong đề bài.</p>
             </div>
           </div>
 
-          <div className="admin-live-module-grid">
-            {quickModules.slice(5).map((module) => (
-              <Link key={module.to} className="feature-card glass-card admin-control-action" to={module.to}>
-                <span className="feature-badge">{module.badge}</span>
-                <h3>{module.title}</h3>
-                <p>{module.description}</p>
+          <div className="admin-simple-work-grid">
+            {adminWorkAreas.map((area) => (
+              <Link key={`${area.title}-${area.to}`} className="admin-simple-work-item" to={area.to}>
+                <span className="material-symbols-outlined" aria-hidden="true">{area.icon}</span>
+                <div>
+                  <strong>{area.title}</strong>
+                  <p>{area.description}</p>
+                </div>
+                <small>{area.meta}</small>
               </Link>
             ))}
           </div>
-        </article>
-      </div>
+        </main>
 
-      <RoleCoveragePanel
-        eyebrow="Admin Web coverage"
-        title="Đủ chức năng Admin theo đề BICAP"
-        description="Admin có control center riêng cho user, farm, retailer, package, logistics, product/batch/QR, blockchain, content và analytics."
-        items={adminCoverageItems}
-      />
+        <aside className="admin-simple-card admin-simple-queue">
+          <div className="admin-simple-card-head">
+            <div>
+              <h2>Cần chú ý</h2>
+              <p>Số liệu ngắn, bấm để xử lý.</p>
+            </div>
+          </div>
+
+          <div className="admin-simple-queue-list">
+            {queueItems.map((item) => (
+              <Link key={item.label} to={item.to}>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </Link>
+            ))}
+          </div>
+        </aside>
+      </div>
     </section>
   )
 }

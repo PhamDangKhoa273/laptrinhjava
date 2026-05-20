@@ -34,7 +34,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -72,17 +74,20 @@ public class ProductListingService {
         ProductBatch batch = batchRepository.findById(request.getBatchId())
                 .orElseThrow(() -> new BusinessException("Không tìm thấy batch với ID: " + request.getBatchId()));
 
-        Long batchOwnerId = batch.getSeason().getFarm().getOwnerUser().getUserId();
+        Farm farm = resolveFarm(batch);
+        Long batchOwnerId = resolveOwnerId(farm);
         if (!batchOwnerId.equals(currentUserId)) {
             throw new BusinessException("Bạn chỉ được tạo listing từ batch thuộc farm của mình");
         }
         validateBatchEligibility(batch);
-        ensureActivePackageEntitlement(batch.getSeason().getFarm().getOwnerUser().getUserId());
+        ensureActivePackageEntitlement(batchOwnerId);
 
         ensureListingQuantityWithinBatch(batch, request.getQuantityAvailable(), null);
 
         ProductListing listing = new ProductListing();
         listing.setBatch(batch);
+        listing.setFarm(farm);
+        listing.setListingCode(generateListingCode(batch));
         listing.setTitle(request.getTitle().trim());
         listing.setDescription(trimToNull(request.getDescription()));
         listing.setPrice(request.getPrice());
@@ -125,7 +130,7 @@ public class ProductListingService {
 
         if (ListingStatus.ACTIVE != listing.getStatusEnum() || ApprovalStatus.APPROVED != listing.getApprovalStatusEnum()) {
             Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
-            Long ownerId = listing.getBatch().getSeason().getFarm().getOwnerUser().getUserId();
+            Long ownerId = resolveOwnerId(resolveFarm(listing.getBatch()));
             if (currentUserId == null || !ownerId.equals(currentUserId)) {
                 throw new BusinessException("Listing chưa sẵn sàng hiển thị công khai.");
             }
@@ -140,7 +145,7 @@ public class ProductListingService {
         ProductListing listing = listingRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy listing với ID: " + id));
 
-        Long ownerId = listing.getBatch().getSeason().getFarm().getOwnerUser().getUserId();
+        Long ownerId = resolveOwnerId(resolveFarm(listing.getBatch()));
         if (!ownerId.equals(currentUserId)) {
             throw new BusinessException("Bạn không có quyền cập nhật listing này");
         }
@@ -180,7 +185,7 @@ public class ProductListingService {
     }
 
 
-    public Page<ListingResponse> searchPublicListings(String keyword, String province, String certification, Boolean availableOnly, Boolean verifiedOnly, LocalDate harvestFrom, LocalDate harvestTo, int page, int size, String sort) {
+    public Page<ListingResponse> searchPublicListings(String keyword, String province, String certification, String productCategory, Boolean availableOnly, Boolean verifiedOnly, LocalDate harvestFrom, LocalDate harvestTo, int page, int size, String sort) {
         Pageable pageable = PageRequest.of(page, size, resolvePublicSort(sort));
         List<ListingResponse> filtered = listingRepository.findByStatusAndApprovalStatus(ListingStatus.ACTIVE.name(), ApprovalStatus.APPROVED.name(), resolvePublicSort(sort))
                 .stream()
@@ -188,6 +193,7 @@ public class ProductListingService {
                 .filter(listing -> matchesKeyword(listing, keyword))
                 .filter(listing -> matchesProvince(listing, province))
                 .filter(listing -> matchesCertification(listing, certification))
+                .filter(listing -> matchesProductCategory(listing, productCategory))
                 .filter(listing -> availableOnly == null || !availableOnly || Boolean.TRUE.equals(listing.getAvailableForRetailer()))
                 .filter(listing -> verifiedOnly == null || !verifiedOnly || isVerifiedCertification(listing.getCertificationStatus()))
                 .filter(listing -> matchesHarvestRange(listing, harvestFrom, harvestTo))
@@ -214,6 +220,14 @@ public class ProductListingService {
         return normalizeRegion(listing.getCertificationStatus()).contains(normalizeRegion(certification));
     }
 
+    private boolean matchesProductCategory(ListingResponse listing, String productCategory) {
+        if (productCategory == null || productCategory.isBlank()) return true;
+        String normalized = productCategory.trim().toLowerCase();
+        return contains(listing.getProductCategory(), normalized)
+                || contains(listing.getProductName(), normalized)
+                || contains(listing.getTitle(), normalized);
+    }
+
     private boolean isVerifiedCertification(String certificationStatus) {
         return certificationStatus != null && Set.of("VIETGAP", "GLOBALGAP", "ORGANIC").contains(certificationStatus.trim().toUpperCase());
     }
@@ -228,7 +242,7 @@ public class ProductListingService {
     }
 
     private boolean contains(String value, String needle) {
-        return value != null && value.toLowerCase().contains(needle);
+        return value != null && needle != null && value.toLowerCase().contains(needle.toLowerCase());
     }
 
     private String normalizeRegion(String value) {
@@ -274,7 +288,10 @@ public class ProductListingService {
 
     public ListingResponse toResponse(ProductListing listing) {
         ProductBatch batch = listing.getBatch();
-        Product product = batch.getProduct();
+        if (batch == null) {
+            throw new BusinessException("Listing chÆ°a gáº¯n vá»›i batch há»£p lá»‡.");
+        }
+        Product product = batch.getProduct() != null ? batch.getProduct() : batch.getSeason() != null ? batch.getSeason().getProduct() : null;
         Farm farm = batch.getSeason() != null ? batch.getSeason().getFarm() : null;
         Optional<QrCode> qrCode = batch.getBatchId() == null ? Optional.empty() : qrCodeRepository.findByBatch_BatchId(batch.getBatchId());
         String traceCode = qrCode.map(QrCode::getQrValue).filter(this::hasText).orElse(null);
@@ -332,7 +349,7 @@ public class ProductListingService {
         ProductListing listing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy listing với ID: " + listingId));
 
-        Long ownerId = listing.getBatch().getSeason().getFarm().getOwnerUser().getUserId();
+        Long ownerId = resolveOwnerId(resolveFarm(listing.getBatch()));
         if (!ownerId.equals(currentUserId)) {
             throw new BusinessException("Bạn không có quyền gửi đăng ký cho listing này");
         }
@@ -441,10 +458,7 @@ public class ProductListingService {
     }
 
     private void validateBatchEligibility(ProductBatch batch) {
-        Farm farm = batch.getSeason() != null ? batch.getSeason().getFarm() : null;
-        if (farm == null) {
-            throw new BusinessException("Batch chưa gắn với farm hợp lệ.");
-        }
+        Farm farm = resolveFarm(batch);
         if (!ApprovalStatus.APPROVED.name().equalsIgnoreCase(farm.getApprovalStatus())) {
             throw new BusinessException("Farm chưa được phê duyệt, không thể đưa listing lên sàn.");
         }
@@ -469,18 +483,51 @@ public class ProductListingService {
         if (farmSubscriptionRepository == null) {
             return;
         }
-        boolean hasActive = farmSubscriptionRepository.findByFarmOwnerUserUserIdAndSubscriptionStatusIgnoreCase(ownerUserId, "ACTIVE").stream()
+        boolean hasEffective = List.of("ACTIVE", "EXPIRING_SOON", "GRACE_PERIOD").stream()
+                .flatMap(status -> farmSubscriptionRepository.findByFarmOwnerUserUserIdAndSubscriptionStatusIgnoreCase(ownerUserId, status).stream())
                 .anyMatch(subscription -> subscription.getStartDate() != null
                         && subscription.getEndDate() != null
                         && !subscription.getStartDate().isAfter(LocalDate.now())
                         && !subscription.getEndDate().isBefore(LocalDate.now()));
-        if (!hasActive) {
-            throw new BusinessException("Farm chưa có gói ACTIVE để tạo listing");
+        if (!hasEffective) {
+            throw new BusinessException("Farm chưa có gói hiệu lực để tạo listing");
         }
     }
 
     private boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
+    }
+
+    private Farm resolveFarm(ProductBatch batch) {
+        if (batch == null || batch.getSeason() == null || batch.getSeason().getFarm() == null) {
+            throw new BusinessException("Batch chưa gắn với farm hợp lệ.");
+        }
+        return batch.getSeason().getFarm();
+    }
+
+    private Long resolveOwnerId(Farm farm) {
+        if (farm == null || farm.getOwnerUser() == null || farm.getOwnerUser().getUserId() == null) {
+            throw new BusinessException("Farm chưa có owner hợp lệ.");
+        }
+        return farm.getOwnerUser().getUserId();
+    }
+
+    private String generateListingCode(ProductBatch batch) {
+        Long batchId = batch != null ? batch.getBatchId() : null;
+        return "LIST-" + (batchId != null ? batchId : "NEW") + "-" + System.currentTimeMillis();
+    }
+
+    public Map<String, List<String>> getFilterOptions() {
+        String status = ListingStatus.ACTIVE.name();
+        String approval = ApprovalStatus.APPROVED.name();
+        List<String> provinces = listingRepository.findDistinctProvincesByStatusAndApprovalStatus(status, approval);
+        List<String> certifications = listingRepository.findDistinctCertificationsByStatusAndApprovalStatus(status, approval);
+        List<String> categories = listingRepository.findDistinctCategoriesByStatusAndApprovalStatus(status, approval);
+        Map<String, List<String>> result = new HashMap<>();
+        result.put("categories", categories);
+        result.put("provinces", provinces);
+        result.put("certifications", certifications);
+        return result;
     }
 
     private String trimToNull(String value) {

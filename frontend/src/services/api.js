@@ -1,7 +1,12 @@
 import axios from 'axios'
 import { clearAuthStorage, getAccessToken, setAuthStorage } from '../utils/storage'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'
+function getDefaultBaseURL() {
+  if (typeof window === 'undefined') return '/api/v1'
+  return '/api/v1'
+}
+
+const baseURL = import.meta.env.VITE_API_BASE_URL || getDefaultBaseURL()
 
 export const api = axios.create({
   baseURL,

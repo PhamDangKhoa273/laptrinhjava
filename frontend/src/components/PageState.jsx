@@ -5,7 +5,7 @@ export function PageLoadingState({ title = 'Đang tải dữ liệu', message = 
     <article className="page-state page-state-loading" aria-live="polite">
       <div className="page-state__orb" />
       <div>
-        <p className="eyebrow">Đang xử lý</p>
+        <p className="eyebrow">Đang x? l?</p>
         <h3>{title}</h3>
         <p>{message}</p>
       </div>
@@ -13,14 +13,14 @@ export function PageLoadingState({ title = 'Đang tải dữ liệu', message = 
   )
 }
 
-export function PageErrorState({ title = 'Không thể tải dữ liệu', message, actionLabel, onAction }) {
+export function PageErrorState({ title = 'Không th? t?i d? li?u', message, actionLabel, onAction }) {
   return (
     <article className="page-state page-state-error" role="alert">
-      <div className="page-state__icon">⚠️</div>
+      <div className="page-state__icon">??</div>
       <div>
-        <p className="eyebrow">Cần kiểm tra</p>
+        <p className="eyebrow">C?n ki?m tra</p>
         <h3>{title}</h3>
-        <p>{message || 'Vui lòng thử lại hoặc kiểm tra kết nối tới backend.'}</p>
+        <p>{message || 'Vui l?ng th? l?i ho?c ki?m tra k?t n?i t?i backend.'}</p>
         {actionLabel && onAction ? (
           <div className="page-state__actions">
             <Button variant="secondary" onClick={onAction}>{actionLabel}</Button>
@@ -31,12 +31,12 @@ export function PageErrorState({ title = 'Không thể tải dữ liệu', messa
   )
 }
 
-export function PageEmptyState({ icon = '🌱', title = 'Chưa có dữ liệu', message, actionLabel, onAction, children }) {
+export function PageEmptyState({ icon = '??', title = 'Chưa có d? li?u', message, actionLabel, onAction, children }) {
   return (
     <article className="page-state page-state-empty">
       <div className="page-state__icon">{icon}</div>
       <div>
-        <p className="eyebrow">Trạng thái trống</p>
+        <p className="eyebrow">Tr?ng thái tr?ng</p>
         <h3>{title}</h3>
         {message ? <p>{message}</p> : null}
         {children}

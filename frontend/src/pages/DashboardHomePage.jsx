@@ -5,15 +5,15 @@ import { getPrimaryRole } from '../utils/helpers'
 
 const statCards = [
   { icon: 'shopping_cart', label: 'Total Orders', value: '124', badge: '+12%', tone: 'blue' },
-  { icon: 'inventory_2', label: 'đang hoạt động Lô hàng', value: '18', badge: 'Stable', tone: 'green' },
+  { icon: 'inventory_2', label: 'đang ho?t động Lô hàng', value: '18', badge: 'Stable', tone: 'green' },
   { icon: 'local_shipping', label: 'Shipments in Transit', value: '5', badge: '3 Late', tone: 'amber' },
-  { icon: 'error', label: 'đang hoạt động Alerts', value: '2', badge: 'Urgent', tone: 'red' },
+  { icon: 'error', label: 'đang ho?t động Alerts', value: '2', badge: 'Urgent', tone: 'red' },
 ]
 
 const shortcuts = [
   { to: '/farm/packages', icon: 'add_circle', title: 'Create New Batch' },
-  { to: '/marketplace', icon: 'storefront', title: 'Xem chợ nông sản' },
-  { to: '/public/trace', icon: 'search_check', title: 'Truy xuất Product' },
+  { to: '/marketplace', icon: 'storefront', title: 'Xem ch? nông s?n' },
+  { to: '/public/trace', icon: 'search_check', title: 'Truy xu?t Product' },
   { to: '/profile', icon: 'groups', title: 'Manage Staff' },
 ]
 
@@ -98,7 +98,7 @@ export function DashboardHomePage() {
             <div className="health-content">
               <div className="health-badge">
                 <span className="material-symbols-outlined" aria-hidden="true">verified</span>
-                Đã xác thực blockchain
+                Đã xác th?c blockchain
               </div>
               <h2>BICAP Network Health</h2>
               <p>Nodes operating at 99.9% efficiency. All smart contracts confirmed.</p>
@@ -112,7 +112,7 @@ export function DashboardHomePage() {
 
         <article className="command-activity-card dashboard-reference-events">
           <div className="command-activity-head">
-            <h2>Recent Truy xuất nguồn gốc Events</h2>
+            <h2>Recent Truy xu?t ngu?n g?c Events</h2>
             <Link to="/public/trace">View All Activities</Link>
           </div>
 
@@ -141,7 +141,7 @@ export function DashboardHomePage() {
 
           <Link className="command-map-card dashboard-reference-map" to="/public/trace" aria-label="Open live supply chain map">
             <span className="material-symbols-outlined" aria-hidden="true">map</span>
-            <strong>Open Trực tiếp Supply Chain Map</strong>
+            <strong>Open Tr?c ti?p Supply Chain Map</strong>
           </Link>
         </article>
       </div>

@@ -23,7 +23,7 @@ public class NotificationController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<NotificationResponse> create(@Valid @RequestBody CreateNotificationRequest request) {
+    public ApiResponse<List<NotificationResponse>> create(@Valid @RequestBody CreateNotificationRequest request) {
         return ApiResponse.success("Gửi thông báo thành công", notificationService.create(request));
     }
 

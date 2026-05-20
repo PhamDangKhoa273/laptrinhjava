@@ -1,0 +1,2002 @@
+/* Admin cleanup layer. Keep this import last. */
+.dashboard-shell.role-admin {
+  --admin-bg: #f6f7f8;
+  --admin-surface: #ffffff;
+  --admin-surface-muted: #f8fafc;
+  --admin-border: #e4e7ec;
+  --admin-border-strong: #d0d5dd;
+  --admin-text: #101828;
+  --admin-muted: #667085;
+  --admin-primary: #116329;
+  --admin-primary-soft: #ecfdf3;
+  --admin-danger: #b42318;
+  --admin-warning: #b54708;
+  --admin-radius: 8px;
+  --admin-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+  grid-template-columns: 260px minmax(0, 1fr) !important;
+  background: var(--admin-bg) !important;
+  color: var(--admin-text) !important;
+}
+
+.dashboard-shell.role-admin .dashboard-main,
+.dashboard-shell.role-admin main {
+  background: var(--admin-bg) !important;
+}
+
+.dashboard-shell.role-admin main {
+  padding: 24px !important;
+}
+
+.dashboard-shell.role-admin .page-section,
+.dashboard-shell.role-admin .admin-page {
+  gap: 18px !important;
+}
+
+.dashboard-shell.role-admin .sidebar {
+  width: 260px !important;
+  background: var(--admin-surface) !important;
+  border-right: 1px solid var(--admin-border) !important;
+  box-shadow: none !important;
+}
+
+.dashboard-shell.role-admin .sidebar-top {
+  padding: 18px 0 14px !important;
+}
+
+.dashboard-shell.role-admin .sidebar-brand {
+  height: 54px !important;
+  padding: 0 18px !important;
+  margin-bottom: 10px !important;
+}
+
+.dashboard-shell.role-admin .sidebar-brand-mark {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  background: var(--admin-primary) !important;
+}
+
+.dashboard-shell.role-admin .sidebar-brand-title {
+  font-size: 16px !important;
+  letter-spacing: 0 !important;
+}
+
+.dashboard-shell.role-admin .sidebar-brand-subtitle,
+.dashboard-shell.role-admin .sidebar-link-desc {
+  color: var(--admin-muted) !important;
+}
+
+.dashboard-shell.role-admin .sidebar-link {
+  min-height: 42px !important;
+  padding: 0 18px !important;
+  border-right-width: 3px !important;
+  color: #344054 !important;
+  gap: 12px !important;
+}
+
+.dashboard-shell.role-admin .sidebar-link:hover,
+.dashboard-shell.role-admin .sidebar-link.active {
+  background: var(--admin-primary-soft) !important;
+  color: var(--admin-primary) !important;
+}
+
+.dashboard-shell.role-admin .sidebar-link.active {
+  border-right-color: var(--admin-primary) !important;
+}
+
+.dashboard-shell.role-admin .dashboard-topbar {
+  height: 62px !important;
+  padding: 0 24px !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  box-shadow: none !important;
+}
+
+.dashboard-shell.role-admin .dashboard-topbar-search {
+  height: 40px !important;
+  border-radius: var(--admin-radius) !important;
+  background: var(--admin-surface-muted) !important;
+  border: 1px solid var(--admin-border) !important;
+}
+
+.dashboard-shell.role-admin .sidebar-action-panel,
+.dashboard-shell.role-admin .sidebar-link-desc {
+  display: none !important;
+}
+
+.dashboard-shell.role-admin .section-heading,
+.dashboard-shell.role-admin .command-hero {
+  display: flex !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.dashboard-shell.role-admin .section-heading h1,
+.dashboard-shell.role-admin .section-heading h2,
+.dashboard-shell.role-admin .command-hero h1 {
+  margin: 0 0 4px !important;
+  color: var(--admin-text) !important;
+  font-size: clamp(24px, 2.2vw, 34px) !important;
+  line-height: 1.15 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+
+.dashboard-shell.role-admin .section-heading h2::before,
+.dashboard-shell.role-admin .command-hero h1::before,
+.dashboard-shell.role-admin .section-heading::after,
+.dashboard-shell.role-admin .command-hero::after {
+  display: none !important;
+}
+
+.dashboard-shell.role-admin .section-heading p,
+.dashboard-shell.role-admin .command-hero p,
+.dashboard-shell.role-admin .muted-inline {
+  color: var(--admin-muted) !important;
+}
+
+.dashboard-shell.role-admin .command-role-pill,
+.dashboard-shell.role-admin .feature-badge,
+.dashboard-shell.role-admin .admin-workspace-kicker {
+  min-height: 24px !important;
+  padding: 0 8px !important;
+  border-radius: 999px !important;
+  background: var(--admin-primary-soft) !important;
+  color: var(--admin-primary) !important;
+  border: 1px solid #d1fadf !important;
+  font-size: 11px !important;
+  letter-spacing: 0.04em !important;
+}
+
+.dashboard-shell.role-admin .glass-card,
+.dashboard-shell.role-admin .feature-card,
+.dashboard-shell.role-admin .business-card,
+.dashboard-shell.role-admin .status-card,
+.dashboard-shell.role-admin .command-stat-card,
+.dashboard-shell.role-admin .command-panel,
+.dashboard-shell.role-admin .command-activity-card,
+.dashboard-shell.role-admin .admin-users-list,
+.dashboard-shell.role-admin .admin-users-detail,
+.dashboard-shell.role-admin .admin-farms-list,
+.dashboard-shell.role-admin .admin-farms-detail,
+.dashboard-shell.role-admin .admin-retailer-list-card,
+.dashboard-shell.role-admin .admin-retailer-detail-card,
+.dashboard-shell.role-admin .admin-package-list-card,
+.dashboard-shell.role-admin .admin-package-detail-card,
+.dashboard-shell.role-admin .admin-logistics-list-card,
+.dashboard-shell.role-admin .admin-logistics-detail-card,
+.dashboard-shell.role-admin .ops-panel,
+.dashboard-shell.role-admin .ops-card,
+.dashboard-shell.role-admin .admin-table-wrap,
+.dashboard-shell.role-admin .appearance-panel,
+.dashboard-shell.role-admin .appearance-assets-panel,
+.dashboard-shell.role-admin .admin-workspace-card,
+.dashboard-shell.role-admin .role-command-center {
+  background: var(--admin-surface) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: var(--admin-radius) !important;
+  box-shadow: var(--admin-shadow) !important;
+  color: var(--admin-text) !important;
+  backdrop-filter: none !important;
+}
+
+.dashboard-shell.role-admin .glass-card,
+.dashboard-shell.role-admin .admin-users-list,
+.dashboard-shell.role-admin .admin-users-detail,
+.dashboard-shell.role-admin .admin-farms-list,
+.dashboard-shell.role-admin .admin-farms-detail,
+.dashboard-shell.role-admin .ops-panel,
+.dashboard-shell.role-admin .appearance-panel,
+.dashboard-shell.role-admin .appearance-assets-panel {
+  padding: 18px !important;
+}
+
+.dashboard-shell.role-admin .status-grid,
+.dashboard-shell.role-admin .command-stats-grid,
+.dashboard-shell.role-admin .admin-live-stats,
+.dashboard-shell.role-admin .stats-grid,
+.dashboard-shell.role-admin .admin-overview-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.dashboard-shell.role-admin .status-card,
+.dashboard-shell.role-admin .command-stat-card {
+  min-height: 106px !important;
+  padding: 16px !important;
+  gap: 8px !important;
+}
+
+.dashboard-shell.role-admin .status-card::before,
+.dashboard-shell.role-admin .status-card::after,
+.dashboard-shell.role-admin .command-stat-card::before,
+.dashboard-shell.role-admin .command-stat-card::after {
+  display: none !important;
+}
+
+.dashboard-shell.role-admin .status-card strong,
+.dashboard-shell.role-admin .command-stat-card strong {
+  color: var(--admin-text) !important;
+  font-size: 28px !important;
+}
+
+.dashboard-shell.role-admin .command-stat-icon {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  background: var(--admin-surface-muted) !important;
+  color: var(--admin-primary) !important;
+}
+
+.dashboard-shell.role-admin .admin-users-shell,
+.dashboard-shell.role-admin .admin-farms-shell,
+.dashboard-shell.role-admin .admin-retailer-workspace,
+.dashboard-shell.role-admin .admin-package-workspace,
+.dashboard-shell.role-admin .admin-logistics-workspace,
+.dashboard-shell.role-admin .admin-workspace-split {
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr) !important;
+  gap: 16px !important;
+}
+
+.dashboard-shell.role-admin .content-grid,
+.dashboard-shell.role-admin .admin-control-grid,
+.dashboard-shell.role-admin .admin-logistics-grid,
+.dashboard-shell.role-admin .admin-content-grid,
+.dashboard-shell.role-admin .appearance-composer-grid {
+  gap: 16px !important;
+}
+
+.dashboard-shell.role-admin .command-content-grid,
+.dashboard-shell.role-admin .admin-live-grid {
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr) !important;
+  gap: 16px !important;
+}
+
+.dashboard-shell.role-admin .admin-user-item,
+.dashboard-shell.role-admin .admin-farm-item,
+.dashboard-shell.role-admin .admin-retailer-list-item,
+.dashboard-shell.role-admin .admin-package-list-item,
+.dashboard-shell.role-admin .admin-logistics-item,
+.dashboard-shell.role-admin .command-shortcut,
+.dashboard-shell.role-admin .admin-workspace-row,
+.dashboard-shell.role-admin .appearance-asset-card {
+  border-radius: var(--admin-radius) !important;
+  border: 1px solid var(--admin-border) !important;
+  background: var(--admin-surface) !important;
+  box-shadow: none !important;
+  padding: 12px !important;
+  transform: none !important;
+}
+
+.dashboard-shell.role-admin .admin-user-item:hover,
+.dashboard-shell.role-admin .admin-farm-item:hover,
+.dashboard-shell.role-admin .admin-retailer-list-item:hover,
+.dashboard-shell.role-admin .admin-package-list-item:hover,
+.dashboard-shell.role-admin .admin-logistics-item:hover,
+.dashboard-shell.role-admin .command-shortcut:hover,
+.dashboard-shell.role-admin .admin-workspace-row:hover,
+.dashboard-shell.role-admin .appearance-asset-card:hover {
+  border-color: var(--admin-border-strong) !important;
+  background: var(--admin-surface-muted) !important;
+}
+
+.dashboard-shell.role-admin .admin-user-item.is-selected,
+.dashboard-shell.role-admin .admin-farm-item.is-selected,
+.dashboard-shell.role-admin .admin-retailer-list-item.is-selected,
+.dashboard-shell.role-admin .admin-package-list-item.is-selected,
+.dashboard-shell.role-admin .admin-logistics-item.is-selected,
+.dashboard-shell.role-admin .admin-workspace-row.is-selected {
+  border-color: var(--admin-primary) !important;
+  background: var(--admin-primary-soft) !important;
+  box-shadow: inset 3px 0 0 var(--admin-primary) !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-item.is-selected::after {
+  display: none !important;
+}
+
+.dashboard-shell.role-admin .admin-table {
+  width: 100%;
+  border-collapse: collapse !important;
+  background: var(--admin-surface) !important;
+}
+
+.dashboard-shell.role-admin .admin-table th,
+.dashboard-shell.role-admin .admin-table td {
+  padding: 10px 12px !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  font-size: 13px !important;
+  vertical-align: middle !important;
+}
+
+.dashboard-shell.role-admin .admin-table th {
+  background: var(--admin-surface-muted) !important;
+  color: #475467 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.dashboard-shell.role-admin .admin-table tbody tr:hover td,
+.dashboard-shell.role-admin .admin-table tr.is-selected td {
+  background: #fbfcfd !important;
+}
+
+.dashboard-shell.role-admin .form-input,
+.dashboard-shell.role-admin input,
+.dashboard-shell.role-admin select,
+.dashboard-shell.role-admin textarea {
+  min-height: 40px !important;
+  border-radius: var(--admin-radius) !important;
+  background: #ffffff !important;
+  border: 1px solid var(--admin-border-strong) !important;
+  color: var(--admin-text) !important;
+  box-shadow: none !important;
+}
+
+.dashboard-shell.role-admin .button,
+.dashboard-shell.role-admin button:not(.sidebar-collapse-floating):not(.dashboard-icon-button):not(.dashboard-logout-button) {
+  min-height: 38px !important;
+  border-radius: var(--admin-radius) !important;
+  box-shadow: none !important;
+}
+
+.dashboard-shell.role-admin .button-secondary,
+.dashboard-shell.role-admin button.button-secondary {
+  background: #ffffff !important;
+  color: #344054 !important;
+  border-color: var(--admin-border-strong) !important;
+}
+
+.dashboard-shell.role-admin .button-danger,
+.dashboard-shell.role-admin button.button-danger {
+  background: var(--admin-danger) !important;
+  border-color: var(--admin-danger) !important;
+  color: #ffffff !important;
+}
+
+.dashboard-shell.role-admin .status-pill,
+.dashboard-shell.role-admin .role-chip {
+  border-radius: 999px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.dashboard-shell.role-admin .command-health-card,
+.dashboard-shell.role-admin .admin-live-health,
+.dashboard-shell.role-admin .ops-preview-card,
+.dashboard-shell.role-admin .profile-blockchain-card {
+  border-radius: var(--admin-radius) !important;
+  box-shadow: var(--admin-shadow) !important;
+  background: #1d2939 !important;
+}
+
+.dashboard-shell.role-admin .appearance-live-preview,
+.dashboard-shell.role-admin .appearance-preview-window,
+.dashboard-shell.role-admin .appearance-source-note,
+.dashboard-shell.role-admin .appearance-asset-card .asset-preview,
+.dashboard-shell.role-admin .ops-facts-grid span,
+.dashboard-shell.role-admin .admin-farm-info-card,
+.dashboard-shell.role-admin .admin-retailer-info-grid > div,
+.dashboard-shell.role-admin .admin-package-info-grid > div,
+.dashboard-shell.role-admin .admin-logistics-info-grid > div {
+  border-radius: var(--admin-radius) !important;
+  background: var(--admin-surface-muted) !important;
+  border: 1px solid var(--admin-border) !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-shell.role-admin {
+    grid-template-columns: 78px minmax(0, 1fr) !important;
+  }
+
+  .dashboard-shell.role-admin .sidebar {
+    width: 78px !important;
+  }
+
+  .dashboard-shell.role-admin .admin-users-shell,
+  .dashboard-shell.role-admin .admin-farms-shell,
+  .dashboard-shell.role-admin .admin-retailer-workspace,
+  .dashboard-shell.role-admin .admin-package-workspace,
+  .dashboard-shell.role-admin .admin-logistics-workspace,
+  .dashboard-shell.role-admin .command-content-grid,
+  .dashboard-shell.role-admin .admin-live-grid,
+  .dashboard-shell.role-admin .appearance-composer-grid,
+  .dashboard-shell.role-admin .content-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-shell.role-admin {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-shell.role-admin main {
+    padding: 16px !important;
+  }
+
+  .dashboard-shell.role-admin .dashboard-topbar {
+    padding: 0 16px !important;
+  }
+}
+
+.dashboard-shell.role-admin .admin-simple-page {
+  max-width: 1180px;
+}
+
+.dashboard-shell.role-admin .admin-control-page {
+  max-width: 1280px;
+}
+
+.dashboard-shell.role-admin .admin-simple-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dashboard-shell.role-admin .admin-simple-kicker {
+  display: inline-flex;
+  margin-bottom: 8px;
+  color: var(--admin-primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dashboard-shell.role-admin .admin-simple-header h1 {
+  margin: 0 0 6px;
+  color: var(--admin-text);
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.dashboard-shell.role-admin .admin-simple-header p,
+.dashboard-shell.role-admin .admin-simple-card-head p,
+.dashboard-shell.role-admin .admin-simple-work-item p,
+.dashboard-shell.role-admin .admin-simple-stats small {
+  margin: 0;
+  color: var(--admin-muted);
+}
+
+.dashboard-shell.role-admin .admin-simple-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dashboard-shell.role-admin .admin-signal-band {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1fr;
+  gap: 12px;
+}
+
+.dashboard-shell.role-admin .admin-signal-card {
+  display: grid;
+  gap: 8px;
+  min-height: 126px;
+  padding: 18px;
+  color: #0f172a;
+  text-decoration: none;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: #ffffff;
+  box-shadow: var(--admin-shadow);
+}
+
+.dashboard-shell.role-admin .admin-signal-card span {
+  color: #475467;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.dashboard-shell.role-admin .admin-signal-card strong {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.dashboard-shell.role-admin .admin-signal-card small {
+  max-width: 36ch;
+  color: var(--admin-muted);
+  line-height: 1.45;
+}
+
+.dashboard-shell.role-admin .admin-signal-card.signal-ok {
+  background: linear-gradient(135deg, #f0fdf4, #ffffff);
+  border-color: #bbf7d0;
+}
+
+.dashboard-shell.role-admin .admin-signal-card.signal-warning {
+  background: linear-gradient(135deg, #fff7ed, #ffffff);
+  border-color: #fed7aa;
+}
+
+.dashboard-shell.role-admin .admin-signal-card.signal-info {
+  background: linear-gradient(135deg, #f8fafc, #ffffff);
+  border-color: #dbe3ef;
+}
+
+.dashboard-shell.role-admin .admin-signal-card.signal-chain {
+  background: linear-gradient(135deg, #ecfdf3, #eff6ff);
+  border-color: #a7f3d0;
+}
+
+.dashboard-shell.role-admin .admin-simple-stats article,
+.dashboard-shell.role-admin .admin-simple-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow);
+}
+
+.dashboard-shell.role-admin .admin-simple-stats article {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+}
+
+.dashboard-shell.role-admin .admin-simple-stats span,
+.dashboard-shell.role-admin .admin-simple-work-item small,
+.dashboard-shell.role-admin .admin-simple-queue-list span {
+  color: #475467;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dashboard-shell.role-admin .admin-simple-stats strong {
+  color: var(--admin-text);
+  font-size: 28px;
+  line-height: 1;
+}
+
+.dashboard-shell.role-admin .admin-simple-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+.dashboard-shell.role-admin .admin-simple-card {
+  padding: 18px;
+}
+
+.dashboard-shell.role-admin .admin-simple-card-head {
+  margin-bottom: 14px;
+}
+
+.dashboard-shell.role-admin .admin-simple-card-head h2 {
+  margin: 0 0 4px;
+  color: var(--admin-text);
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.dashboard-shell.role-admin .admin-simple-work-grid,
+.dashboard-shell.role-admin .admin-simple-queue-list {
+  display: grid;
+  gap: 10px;
+}
+
+.dashboard-shell.role-admin .admin-simple-work-item,
+.dashboard-shell.role-admin .admin-simple-queue-list a {
+  display: grid;
+  align-items: center;
+  min-width: 0;
+  color: var(--admin-text);
+  text-decoration: none;
+  background: var(--admin-surface-muted);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+}
+
+.dashboard-shell.role-admin .admin-simple-work-item {
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 14px;
+}
+
+.dashboard-shell.role-admin .admin-simple-work-item > .material-symbols-outlined {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--admin-radius);
+  background: #ffffff;
+  color: var(--admin-primary);
+  border: 1px solid var(--admin-border);
+}
+
+.dashboard-shell.role-admin .admin-simple-work-item strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--admin-text);
+  font-size: 15px;
+}
+
+.dashboard-shell.role-admin .admin-simple-work-item p {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.dashboard-shell.role-admin .admin-simple-work-item small {
+  justify-self: end;
+}
+
+.dashboard-shell.role-admin .admin-simple-work-item:hover,
+.dashboard-shell.role-admin .admin-simple-queue-list a:hover {
+  border-color: var(--admin-border-strong);
+  background: #ffffff;
+}
+
+.dashboard-shell.role-admin .admin-simple-queue-list a {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 12px;
+}
+
+.dashboard-shell.role-admin .admin-simple-queue-list strong {
+  color: var(--admin-text);
+  font-size: 20px;
+}
+
+.dashboard-shell.role-admin .admin-control-page,
+.dashboard-shell.role-admin .admin-users-page,
+.dashboard-shell.role-admin .admin-farms-page {
+  max-width: 1500px !important;
+}
+
+.dashboard-shell.role-admin .admin-control-page .admin-simple-header,
+.dashboard-shell.role-admin .admin-users-page .section-heading,
+.dashboard-shell.role-admin .admin-farms-page .section-heading {
+  padding: 4px 0 10px !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.dashboard-shell.role-admin .admin-signal-band {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.dashboard-shell.role-admin .admin-signal-card {
+  min-height: 112px !important;
+  padding: 16px !important;
+  background: #ffffff !important;
+}
+
+.dashboard-shell.role-admin .admin-signal-card strong {
+  font-size: 30px !important;
+}
+
+.dashboard-shell.role-admin .admin-simple-layout {
+  grid-template-columns: minmax(0, 1fr) 400px !important;
+}
+
+.dashboard-shell.role-admin .admin-users-shell,
+.dashboard-shell.role-admin .admin-farms-shell {
+  grid-template-columns: 400px minmax(0, 1fr) !important;
+}
+
+.dashboard-shell.role-admin .admin-users-list,
+.dashboard-shell.role-admin .admin-users-detail,
+.dashboard-shell.role-admin .admin-farms-list,
+.dashboard-shell.role-admin .admin-farms-detail,
+.dashboard-shell.role-admin .admin-simple-card {
+  padding: 20px !important;
+}
+
+.dashboard-shell.role-admin .admin-users-items,
+.dashboard-shell.role-admin .admin-farms-items {
+  gap: 10px !important;
+  padding-right: 2px !important;
+}
+
+.dashboard-shell.role-admin .admin-users-table-wrap {
+  overflow-x: auto !important;
+}
+
+.dashboard-shell.role-admin .admin-table th,
+.dashboard-shell.role-admin .admin-table td {
+  padding: 14px 14px !important;
+}
+
+.dashboard-shell.role-admin .admin-table td {
+  color: #344054 !important;
+}
+
+.dashboard-shell.role-admin .role-chip,
+.dashboard-shell.role-admin .status-pill {
+  white-space: normal !important;
+  line-height: 1.25 !important;
+}
+
+.dashboard-shell.role-admin .inline-actions {
+  flex-direction: column !important;
+  align-items: stretch !important;
+}
+
+.dashboard-shell.role-admin .inline-actions .button {
+  width: 100% !important;
+}
+
+.dashboard-shell.role-admin .admin-farms-page .stats-grid.admin-farms-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.dashboard-shell.role-admin .admin-farms-detail {
+  min-height: 360px !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-info-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-license-card,
+.dashboard-shell.role-admin .admin-farm-review-panel {
+  border-radius: var(--admin-radius) !important;
+  border: 1px solid var(--admin-border) !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page,
+.dashboard-shell.role-admin .admin-blockchain-page {
+  max-width: 1500px !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .section-heading,
+.dashboard-shell.role-admin .admin-blockchain-page .section-heading {
+  padding: 4px 0 10px !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .status-grid,
+.dashboard-shell.role-admin .admin-blockchain-page .status-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+}
+
+.dashboard-shell.role-admin .admin-product-tabs {
+  display: inline-flex !important;
+  width: max-content !important;
+  gap: 8px !important;
+  padding: 6px !important;
+  background: #ffffff !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: var(--admin-radius) !important;
+  box-shadow: var(--admin-shadow) !important;
+}
+
+.dashboard-shell.role-admin .admin-product-tabs button {
+  min-height: 36px !important;
+  padding: 0 14px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #344054 !important;
+}
+
+.dashboard-shell.role-admin .admin-product-tabs button.is-active {
+  background: var(--admin-primary) !important;
+  color: #ffffff !important;
+}
+
+.dashboard-shell.role-admin .admin-workspace-panel,
+.dashboard-shell.role-admin .admin-blockchain-list-card,
+.dashboard-shell.role-admin .admin-blockchain-detail-card {
+  padding: 20px !important;
+  border-radius: var(--admin-radius) !important;
+}
+
+.dashboard-shell.role-admin .admin-table-head {
+  padding-bottom: 14px !important;
+  margin-bottom: 0 !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.dashboard-shell.role-admin .admin-table-wrap {
+  margin-top: 0 !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: var(--admin-radius) !important;
+  overflow: auto !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-workspace {
+  display: grid !important;
+  grid-template-columns: 460px minmax(0, 1fr) !important;
+  gap: 16px !important;
+  align-items: start !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-info-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-detail-card .admin-blockchain-info-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-info-grid > div,
+.dashboard-shell.role-admin .admin-blockchain-checklist,
+.dashboard-shell.role-admin .admin-form-panel {
+  border-radius: var(--admin-radius) !important;
+  border: 1px solid var(--admin-border) !important;
+  background: var(--admin-surface-muted) !important;
+  box-shadow: none !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-info-grid > div {
+  padding: 14px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-checklist,
+.dashboard-shell.role-admin .admin-form-panel {
+  padding: 16px !important;
+  margin-top: 14px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-detail-head {
+  padding-bottom: 14px !important;
+  margin-bottom: 16px !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.dashboard-shell.role-admin .feature-list {
+  gap: 8px !important;
+}
+
+.dashboard-shell.role-admin .feature-list li {
+  border-radius: var(--admin-radius) !important;
+  background: #ffffff !important;
+  border: 1px solid var(--admin-border) !important;
+}
+
+@media (max-width: 980px) {
+  .dashboard-shell.role-admin .admin-simple-layout,
+  .dashboard-shell.role-admin .admin-users-shell,
+  .dashboard-shell.role-admin .admin-farms-shell,
+  .dashboard-shell.role-admin .admin-farm-info-grid,
+  .dashboard-shell.role-admin .admin-blockchain-workspace,
+  .dashboard-shell.role-admin .admin-blockchain-info-grid,
+  .dashboard-shell.role-admin .admin-blockchain-detail-card .admin-blockchain-info-grid,
+  .dashboard-shell.role-admin .admin-farms-page .stats-grid.admin-farms-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-shell.role-admin .admin-signal-band,
+  .dashboard-shell.role-admin .admin-simple-stats,
+  .dashboard-shell.role-admin .admin-simple-layout {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard-shell.role-admin .admin-simple-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Final admin visual cleanup overrides. Keep this at file end. */
+body .dashboard-shell.role-admin .glass-card::before,
+body .dashboard-shell.role-admin .admin-users-list::before,
+body .dashboard-shell.role-admin .admin-users-detail::before,
+body .dashboard-shell.role-admin .admin-farms-list::before,
+body .dashboard-shell.role-admin .admin-farms-detail::before,
+body .dashboard-shell.role-admin .status-card::before {
+  display: none !important;
+  content: none !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-shell,
+body .dashboard-shell.role-admin .admin-farms-shell {
+  grid-template-columns: 360px minmax(0, 1fr) !important;
+  gap: 18px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-list,
+body .dashboard-shell.role-admin .admin-users-detail,
+body .dashboard-shell.role-admin .admin-farms-list,
+body .dashboard-shell.role-admin .admin-farms-detail {
+  border-radius: 10px !important;
+  border: 1px solid #d8dee8 !important;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05) !important;
+  overflow: visible !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-list,
+body .dashboard-shell.role-admin .admin-farms-list {
+  padding: 18px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-detail,
+body .dashboard-shell.role-admin .admin-farms-detail {
+  padding: 22px !important;
+}
+
+body .dashboard-shell.role-admin .admin-user-item,
+body .dashboard-shell.role-admin .admin-farm-item {
+  min-height: 86px !important;
+  padding: 12px 14px !important;
+  border: 1px solid #dfe5ee !important;
+  border-left: 3px solid transparent !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #172033 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+body .dashboard-shell.role-admin .admin-user-item:hover,
+body .dashboard-shell.role-admin .admin-farm-item:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+body .dashboard-shell.role-admin .admin-user-item.is-selected,
+body .dashboard-shell.role-admin .admin-farm-item.is-selected {
+  background: #f0fdf4 !important;
+  border-color: #bbf7d0 !important;
+  border-left-color: #116329 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+body .dashboard-shell.role-admin .admin-user-item.is-selected::before,
+body .dashboard-shell.role-admin .admin-user-item.is-selected::after,
+body .dashboard-shell.role-admin .admin-farm-item.is-selected::before,
+body .dashboard-shell.role-admin .admin-farm-item.is-selected::after {
+  display: none !important;
+  content: none !important;
+}
+
+body .dashboard-shell.role-admin .admin-user-name,
+body .dashboard-shell.role-admin .admin-farm-item strong {
+  color: #111827 !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+}
+
+body .dashboard-shell.role-admin .admin-user-email,
+body .dashboard-shell.role-admin .admin-farm-item > span,
+body .dashboard-shell.role-admin .admin-user-id {
+  color: #475569 !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-table-wrap {
+  border: 1px solid #dfe5ee !important;
+  border-radius: 10px !important;
+  overflow: auto !important;
+  background: #ffffff !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .admin-table {
+  table-layout: auto !important;
+  min-width: 900px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .admin-table th,
+body .dashboard-shell.role-admin .admin-users-page .admin-table td {
+  padding: 12px 16px !important;
+  height: 64px !important;
+  text-align: left !important;
+  vertical-align: middle !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .admin-table th:nth-child(1),
+body .dashboard-shell.role-admin .admin-users-page .admin-table td:nth-child(1) {
+  width: 72px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .admin-table th:nth-child(4),
+body .dashboard-shell.role-admin .admin-users-page .admin-table td:nth-child(4) {
+  width: 190px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .admin-table th:nth-child(5),
+body .dashboard-shell.role-admin .admin-users-page .admin-table td:nth-child(5) {
+  width: 120px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .admin-table th:nth-child(6),
+body .dashboard-shell.role-admin .admin-users-page .admin-table td:nth-child(6) {
+  width: 170px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .inline-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .inline-actions .button {
+  width: auto !important;
+  min-width: 70px !important;
+  min-height: 36px !important;
+  padding: 0 12px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .role-chip-wrap {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .role-chip,
+body .dashboard-shell.role-admin .admin-users-page .status-pill,
+body .dashboard-shell.role-admin .admin-farms-page .status-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: max-content !important;
+  max-width: 180px !important;
+  white-space: normal !important;
+  border: 1px solid #bbf7d0 !important;
+  background: #ecfdf3 !important;
+  color: #116329 !important;
+}
+
+body .dashboard-shell.role-admin .admin-farms-page .admin-farm-info-card,
+body .dashboard-shell.role-admin .admin-farm-license-card,
+body .dashboard-shell.role-admin .admin-farm-review-panel {
+  background: #ffffff !important;
+  border-color: #dfe5ee !important;
+}
+
+body .dashboard-shell.role-admin .admin-farm-review-actions .button {
+  min-width: 110px !important;
+}
+
+@media (max-width: 1100px) {
+  body .dashboard-shell.role-admin .admin-users-shell,
+  body .dashboard-shell.role-admin .admin-farms-shell {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Accounts: single working table, no duplicate side list. */
+body .dashboard-shell.role-admin .admin-users-flat-card {
+  padding: 20px !important;
+  border-radius: 10px !important;
+  border: 1px solid #d8dee8 !important;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05) !important;
+  background: #ffffff !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-flat-toolbar {
+  display: flex !important;
+  align-items: end !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  padding-bottom: 16px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-flat-toolbar h3 {
+  margin: 0 0 4px !important;
+  font-size: 20px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-flat-filters {
+  display: grid !important;
+  grid-template-columns: minmax(260px, 360px) 190px !important;
+  gap: 10px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-flat-table {
+  min-width: 1120px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-flat-table th,
+body .dashboard-shell.role-admin .admin-users-flat-table td {
+  height: auto !important;
+  min-height: 58px !important;
+  padding: 12px 14px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-flat-table td strong {
+  display: block !important;
+  margin-bottom: 3px !important;
+  color: #111827 !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-flat-table td small {
+  display: block !important;
+  color: #667085 !important;
+}
+
+body .dashboard-shell.role-admin .admin-role-inline {
+  display: grid !important;
+  grid-template-columns: minmax(180px, 1fr) auto !important;
+  gap: 8px !important;
+  align-items: end !important;
+}
+
+body .dashboard-shell.role-admin .admin-role-inline .form-field,
+body .dashboard-shell.role-admin .admin-role-inline label {
+  margin: 0 !important;
+}
+
+body .dashboard-shell.role-admin .admin-role-inline .form-label {
+  display: none !important;
+}
+
+body .dashboard-shell.role-admin .admin-role-inline .button {
+  min-width: 56px !important;
+  padding: 0 12px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-flat-table .inline-actions {
+  justify-content: flex-start !important;
+}
+
+/* Farms: make application list readable, not heavy color blocks. */
+html body .dashboard-shell.role-admin .admin-farms-page .admin-farm-item,
+html body .dashboard-shell.role-admin .admin-farms-page .admin-farm-item.is-selected {
+  display: grid !important;
+  min-height: 86px !important;
+  padding: 13px 14px !important;
+  border: 1px solid #dfe5ee !important;
+  border-left: 3px solid transparent !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #172033 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+html body .dashboard-shell.role-admin .admin-farms-page .admin-farm-item.is-selected {
+  border-color: #bbf7d0 !important;
+  border-left-color: #116329 !important;
+  background: #f0fdf4 !important;
+}
+
+html body .dashboard-shell.role-admin .admin-farms-page .admin-farm-item *,
+html body .dashboard-shell.role-admin .admin-farms-page .admin-farm-item.is-selected * {
+  color: inherit !important;
+}
+
+html body .dashboard-shell.role-admin .admin-farms-page .admin-farm-item > span,
+html body .dashboard-shell.role-admin .admin-farms-page .admin-farm-item-meta > span:last-child {
+  color: #667085 !important;
+}
+
+html body .dashboard-shell.role-admin .admin-farms-page .admin-farm-item .status-pill {
+  color: #116329 !important;
+}
+
+body .dashboard-shell.role-admin .admin-farms-page .admin-farms-detail {
+  padding: 28px !important;
+}
+
+body .dashboard-shell.role-admin .admin-farms-page .admin-farm-info-grid {
+  gap: 14px !important;
+}
+
+body .dashboard-shell.role-admin .admin-farms-page .admin-farm-info-card,
+body .dashboard-shell.role-admin .admin-farm-license-card,
+body .dashboard-shell.role-admin .admin-farm-review-panel {
+  border-radius: 8px !important;
+}
+
+@media (max-width: 900px) {
+  body .dashboard-shell.role-admin .admin-users-flat-toolbar,
+  body .dashboard-shell.role-admin .admin-users-flat-filters {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .dashboard-shell.role-admin .admin-signal-band,
+  .dashboard-shell.role-admin .admin-simple-header,
+  .dashboard-shell.role-admin .admin-simple-work-item {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-shell.role-admin .admin-simple-header {
+    display: grid;
+  }
+
+  .dashboard-shell.role-admin .admin-simple-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-shell.role-admin .admin-simple-work-item small {
+    justify-self: start;
+  }
+}
+
+.dashboard-shell.role-admin .admin-farms-page {
+  gap: 14px !important;
+}
+
+.dashboard-shell.role-admin .admin-farms-page .section-heading {
+  align-items: center !important;
+  padding-bottom: 4px !important;
+}
+
+.dashboard-shell.role-admin .admin-farms-page .section-heading h2 {
+  font-size: 30px !important;
+}
+
+.dashboard-shell.role-admin .admin-farms-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.dashboard-shell.role-admin .admin-farms-stats .status-card {
+  min-height: 74px !important;
+  padding: 12px 14px !important;
+  border-radius: 8px !important;
+}
+
+.dashboard-shell.role-admin .admin-farms-stats .status-card span {
+  color: #667085 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.dashboard-shell.role-admin .admin-farms-stats .status-card strong {
+  font-size: 24px !important;
+}
+
+.dashboard-shell.role-admin .admin-farms-shell {
+  grid-template-columns: 300px minmax(0, 1fr) !important;
+  gap: 12px !important;
+}
+
+.dashboard-shell.role-admin .admin-farms-list,
+.dashboard-shell.role-admin .admin-farms-detail {
+  padding: 16px !important;
+}
+
+.dashboard-shell.role-admin .admin-farms-list {
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 104px);
+}
+
+.dashboard-shell.role-admin .admin-users-list-head {
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.dashboard-shell.role-admin .admin-users-list-head h3 {
+  margin: 0 !important;
+  font-size: 17px !important;
+}
+
+.dashboard-shell.role-admin .admin-users-filters {
+  gap: 8px !important;
+}
+
+.dashboard-shell.role-admin .admin-farms-items {
+  gap: 8px !important;
+  margin-top: 10px !important;
+  max-height: calc(100vh - 292px) !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-item {
+  gap: 6px !important;
+  padding: 10px 12px !important;
+  border-left: 3px solid transparent !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-item strong {
+  font-size: 14px !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-item > span {
+  color: #667085 !important;
+  font-size: 12px !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-item.is-selected {
+  border-color: var(--admin-border) !important;
+  border-left-color: var(--admin-primary) !important;
+  background: #f7fcf8 !important;
+  box-shadow: none !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-profile-head {
+  align-items: flex-start !important;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.dashboard-shell.role-admin .admin-farm-profile-head .eyebrow {
+  margin: 0 0 4px !important;
+  color: #667085 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-profile-head h3 {
+  font-size: 22px !important;
+  line-height: 1.2 !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-info-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin-top: 12px !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-info-card {
+  gap: 5px !important;
+  padding: 12px !important;
+  background: #ffffff !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-info-card span {
+  color: #667085 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-info-card strong {
+  color: var(--admin-text) !important;
+  font-size: 15px !important;
+  line-height: 1.25 !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-info-card small {
+  color: #667085 !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-license-card,
+.dashboard-shell.role-admin .admin-farm-review-panel {
+  margin-top: 12px !important;
+  padding: 14px !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  border: 1px solid var(--admin-border) !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-license-card h3,
+.dashboard-shell.role-admin .admin-farm-review-panel h3 {
+  font-size: 17px !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-license-card p,
+.dashboard-shell.role-admin .admin-farm-review-panel p {
+  margin-top: 4px !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-review-actions {
+  gap: 8px !important;
+}
+
+.dashboard-shell.role-admin .admin-farm-review-actions .button {
+  min-height: 36px !important;
+  padding: 0 12px !important;
+}
+
+.dashboard-shell.role-admin .admin-farms-detail .admin-users-table-wrap {
+  display: none !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page {
+  gap: 14px !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .section-heading {
+  align-items: center !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .section-heading h2 {
+  font-size: 30px !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .admin-overview-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .status-card {
+  min-height: 76px !important;
+  padding: 12px 14px !important;
+}
+
+.dashboard-shell.role-admin .admin-product-tabs {
+  display: inline-flex !important;
+  width: auto !important;
+  max-width: max-content !important;
+  gap: 4px !important;
+  padding: 4px !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: var(--admin-radius) !important;
+  background: var(--admin-surface) !important;
+  box-shadow: var(--admin-shadow) !important;
+}
+
+.dashboard-shell.role-admin .admin-product-tabs button {
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #475467 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+.dashboard-shell.role-admin .admin-product-tabs button.is-active {
+  background: var(--admin-primary) !important;
+  color: #ffffff !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .admin-workspace-panel {
+  padding: 16px !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .admin-table-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  margin-bottom: 12px !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .admin-table-head h3 {
+  margin: 0 0 4px !important;
+  color: var(--admin-text) !important;
+  font-size: 18px !important;
+  letter-spacing: 0 !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .admin-table-head p {
+  margin: 0 !important;
+  color: var(--admin-muted) !important;
+  font-size: 13px !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .admin-form-panel {
+  margin-bottom: 14px !important;
+  padding: 14px !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: var(--admin-radius) !important;
+  background: var(--admin-surface-muted) !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .admin-form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .form-field.full-span {
+  grid-column: 1 / -1 !important;
+}
+
+.dashboard-shell.role-admin .admin-products-page .admin-table-wrap {
+  overflow: auto !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-shell.role-admin .admin-products-page .admin-overview-grid,
+  .dashboard-shell.role-admin .admin-products-page .admin-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-shell.role-admin .admin-products-page .admin-table-head {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .dashboard-shell.role-admin .admin-farm-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-shell.role-admin .admin-farms-stats,
+  .dashboard-shell.role-admin .admin-farms-shell {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-shell.role-admin .admin-farms-list {
+    position: static;
+    max-height: none;
+  }
+}
+
+.dashboard-shell.role-admin .admin-blockchain-page {
+  max-width: 1280px !important;
+  gap: 14px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-page .section-heading {
+  align-items: center !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-page .section-heading h2 {
+  font-size: 30px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-page .admin-overview-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-page .status-card {
+  min-height: 76px !important;
+  padding: 12px 14px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-page .status-card span {
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-page .status-card strong {
+  font-size: 26px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-workspace {
+  grid-template-columns: 360px minmax(0, 1fr) !important;
+  gap: 12px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-list-card,
+.dashboard-shell.role-admin .admin-blockchain-detail-card {
+  padding: 16px !important;
+  overflow: hidden !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-list-card::before,
+.dashboard-shell.role-admin .admin-blockchain-detail-card::before,
+.dashboard-shell.role-admin .admin-blockchain-list-card::after,
+.dashboard-shell.role-admin .admin-blockchain-detail-card::after,
+.dashboard-shell.role-admin .admin-blockchain-item.is-selected::after {
+  display: none !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-list-card h3,
+.dashboard-shell.role-admin .admin-blockchain-detail-card h3 {
+  margin: 0 0 10px !important;
+  color: var(--admin-text) !important;
+  font-size: 17px !important;
+  letter-spacing: 0 !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-info-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-detail-card .admin-blockchain-info-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-info-grid > div {
+  gap: 5px !important;
+  min-width: 0 !important;
+  padding: 10px 12px !important;
+  border-radius: var(--admin-radius) !important;
+  background: var(--admin-surface-muted) !important;
+  border: 1px solid var(--admin-border) !important;
+  box-shadow: none !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-info-grid span {
+  color: var(--admin-muted) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-info-grid strong {
+  min-width: 0 !important;
+  overflow-wrap: anywhere !important;
+  color: var(--admin-text) !important;
+  font-size: 14px !important;
+  line-height: 1.3 !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-page .admin-form-panel,
+.dashboard-shell.role-admin .admin-blockchain-checklist {
+  margin-top: 12px !important;
+  padding: 12px !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: var(--admin-radius) !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-items {
+  max-height: 360px !important;
+  gap: 8px !important;
+  padding-right: 0 !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-item {
+  border-left: 3px solid transparent !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-item.is-selected {
+  border-color: var(--admin-border) !important;
+  border-left-color: var(--admin-primary) !important;
+  background: #f7fcf8 !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-detail-head {
+  margin-bottom: 12px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-detail-head h3 {
+  margin: 4px 0 !important;
+  font-size: 20px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-detail-head p {
+  margin: 0 !important;
+  color: var(--admin-muted) !important;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-shell.role-admin .admin-blockchain-page .admin-overview-grid,
+  .dashboard-shell.role-admin .admin-blockchain-workspace,
+  .dashboard-shell.role-admin .admin-blockchain-detail-card .admin-blockchain-info-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.dashboard-shell.role-admin .admin-blockchain-workspace {
+  grid-template-columns: 450px minmax(0, 1fr) !important;
+  align-items: start !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-list-card,
+.dashboard-shell.role-admin .admin-blockchain-detail-card {
+  overflow: visible !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-list-card {
+  padding: 14px !important;
+  position: static !important;
+  top: auto !important;
+  display: block !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-list-card h3,
+.dashboard-shell.role-admin .admin-blockchain-detail-card h3 {
+  margin-bottom: 10px !important;
+  font-size: 17px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-page .admin-form-panel,
+.dashboard-shell.role-admin .admin-blockchain-checklist {
+  margin-top: 10px !important;
+  padding: 10px 12px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-page .alert {
+  padding: 9px 11px !important;
+  border-radius: 8px !important;
+  line-height: 1.35 !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-page .inline-actions {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-page .inline-actions .button,
+.dashboard-shell.role-admin .admin-blockchain-page .inline-actions button {
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 0 8px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-list-card > h3:last-of-type,
+.dashboard-shell.role-admin .admin-blockchain-list-card > .admin-users-filters,
+.dashboard-shell.role-admin .admin-blockchain-list-card > .admin-blockchain-items {
+  display: none !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-detail-card .admin-blockchain-checklist {
+  max-height: 300px !important;
+  overflow: auto !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-detail-card .feature-list {
+  gap: 0 !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-detail-card .feature-list li {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 38px !important;
+  padding: 7px 0 !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  font-size: 14px !important;
+}
+
+.dashboard-shell.role-admin .admin-blockchain-detail-card .feature-list li:last-child {
+  border-bottom: 0 !important;
+}
+
+/* Final accounts/farms cleanup overrides. */
+body .dashboard-shell.role-admin .glass-card::before,
+body .dashboard-shell.role-admin .admin-users-list::before,
+body .dashboard-shell.role-admin .admin-users-detail::before,
+body .dashboard-shell.role-admin .admin-farms-list::before,
+body .dashboard-shell.role-admin .admin-farms-detail::before,
+body .dashboard-shell.role-admin .status-card::before {
+  display: none !important;
+  content: none !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-shell,
+body .dashboard-shell.role-admin .admin-farms-shell {
+  grid-template-columns: 360px minmax(0, 1fr) !important;
+  gap: 18px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-list,
+body .dashboard-shell.role-admin .admin-users-detail,
+body .dashboard-shell.role-admin .admin-farms-list,
+body .dashboard-shell.role-admin .admin-farms-detail {
+  border-radius: 10px !important;
+  border: 1px solid #d8dee8 !important;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05) !important;
+  overflow: visible !important;
+}
+
+body .dashboard-shell.role-admin .admin-user-item,
+body .dashboard-shell.role-admin .admin-farm-item {
+  min-height: 86px !important;
+  padding: 12px 14px !important;
+  border: 1px solid #dfe5ee !important;
+  border-left: 3px solid transparent !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #172033 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+body .dashboard-shell.role-admin .admin-user-item:hover,
+body .dashboard-shell.role-admin .admin-farm-item:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+body .dashboard-shell.role-admin .admin-user-item.is-selected,
+body .dashboard-shell.role-admin .admin-farm-item.is-selected {
+  background: #f0fdf4 !important;
+  border-color: #bbf7d0 !important;
+  border-left-color: #116329 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+body .dashboard-shell.role-admin .admin-user-item.is-selected::before,
+body .dashboard-shell.role-admin .admin-user-item.is-selected::after,
+body .dashboard-shell.role-admin .admin-farm-item.is-selected::before,
+body .dashboard-shell.role-admin .admin-farm-item.is-selected::after {
+  display: none !important;
+  content: none !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-table-wrap {
+  border: 1px solid #dfe5ee !important;
+  border-radius: 10px !important;
+  overflow: auto !important;
+  background: #ffffff !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .admin-table {
+  table-layout: auto !important;
+  min-width: 900px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .admin-table th,
+body .dashboard-shell.role-admin .admin-users-page .admin-table td {
+  padding: 12px 16px !important;
+  height: 64px !important;
+  text-align: left !important;
+  vertical-align: middle !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .admin-table th:nth-child(1),
+body .dashboard-shell.role-admin .admin-users-page .admin-table td:nth-child(1) {
+  width: 72px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .admin-table th:nth-child(4),
+body .dashboard-shell.role-admin .admin-users-page .admin-table td:nth-child(4) {
+  width: 190px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .admin-table th:nth-child(5),
+body .dashboard-shell.role-admin .admin-users-page .admin-table td:nth-child(5) {
+  width: 120px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .admin-table th:nth-child(6),
+body .dashboard-shell.role-admin .admin-users-page .admin-table td:nth-child(6) {
+  width: 170px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .inline-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .inline-actions .button {
+  width: auto !important;
+  min-width: 70px !important;
+  min-height: 36px !important;
+  padding: 0 12px !important;
+}
+
+body .dashboard-shell.role-admin .admin-users-page .role-chip,
+body .dashboard-shell.role-admin .admin-users-page .status-pill,
+body .dashboard-shell.role-admin .admin-farms-page .status-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: max-content !important;
+  max-width: 180px !important;
+  white-space: normal !important;
+  border: 1px solid #bbf7d0 !important;
+  background: #ecfdf3 !important;
+  color: #116329 !important;
+}
+
+body .dashboard-shell.role-admin .admin-farms-page .admin-farm-info-card,
+body .dashboard-shell.role-admin .admin-farm-license-card,
+body .dashboard-shell.role-admin .admin-farm-review-panel {
+  background: #ffffff !important;
+  border-color: #dfe5ee !important;
+}
+
+/* Admin sidebar final polish. */
+body .dashboard-shell.role-admin {
+  grid-template-columns: 272px minmax(0, 1fr) !important;
+}
+
+body .dashboard-shell.role-admin .sidebar {
+  width: 272px !important;
+  padding: 14px 10px !important;
+  background: #fbfcfd !important;
+  border-right: 1px solid #d8dee8 !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-top {
+  gap: 12px !important;
+  padding: 0 !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-brand {
+  height: 70px !important;
+  margin: 0 0 6px !important;
+  padding: 0 10px !important;
+  border-bottom: 1px solid #edf1f6 !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-brand-mark {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 10px !important;
+  background: #0f6b2f !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 18px rgba(15, 107, 47, 0.18) !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-brand-title {
+  color: #101828 !important;
+  font-size: 17px !important;
+  font-weight: 900 !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-brand-subtitle {
+  color: #5b6677 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-nav {
+  gap: 7px !important;
+  padding: 0 !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-link {
+  min-height: 52px !important;
+  padding: 0 12px !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  color: #182230 !important;
+  gap: 12px !important;
+  font-weight: 800 !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-link-icon {
+  width: 34px !important;
+  height: 34px !important;
+  flex: 0 0 34px !important;
+  border-radius: 9px !important;
+  color: #475467 !important;
+  background: #f0f3f7 !important;
+  opacity: 1 !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-link-icon .material-symbols-outlined {
+  font-size: 22px !important;
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24 !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-link-text {
+  color: inherit !important;
+  font-size: 14px !important;
+  line-height: 1.15 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-link:hover {
+  background: #f4f8f5 !important;
+  border-color: #d7eadc !important;
+  color: #0f6b2f !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-link:hover .sidebar-link-icon {
+  background: #e8f7ee !important;
+  color: #0f6b2f !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-link.active {
+  background: #e8f7ee !important;
+  border-color: #a8dfb8 !important;
+  color: #0f6b2f !important;
+  box-shadow: inset 4px 0 0 #0f6b2f !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-link.active .sidebar-link-icon {
+  background: #0f6b2f !important;
+  color: #ffffff !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-link.active .sidebar-link-icon .material-symbols-outlined {
+  font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24 !important;
+}
+
+body .dashboard-shell.role-admin .sidebar-collapse-floating {
+  display: none !important;
+}
+
+@media (max-width: 1100px) {
+  body .dashboard-shell.role-admin .admin-users-shell,
+  body .dashboard-shell.role-admin .admin-farms-shell {
+    grid-template-columns: 1fr !important;
+  }
+}

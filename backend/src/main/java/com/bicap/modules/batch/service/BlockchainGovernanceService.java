@@ -69,8 +69,8 @@ public class BlockchainGovernanceService {
 
     public BlockchainTransactionResponse retryLatestFailed(String entityType, Long entityId) {
         authorizationService.requirePermission(PermissionName.BLOCKCHAIN_GOVERNANCE);
-        BlockchainTransaction latest = transactionRepository.findTopByRelatedEntityTypeAndRelatedEntityIdOrderByCreatedAtDesc(
-                        normalizeEntityType(entityType), entityId)
+        BlockchainTransaction latest = transactionRepository.findTopByRelatedEntityTypeAndRelatedEntityIdAndGovernanceStatusOrderByCreatedAtDesc(
+                        normalizeEntityType(entityType), entityId, BlockchainGovernanceStatus.FAILED)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy transaction"));
         if (latest.getGovernanceStatus() != BlockchainGovernanceStatus.FAILED) {
             throw new BusinessException("Chỉ transaction FAILED mới được retry");
@@ -83,16 +83,13 @@ public class BlockchainGovernanceService {
         return map(transactionRepository.save(latest));
     }
 
-    /**
-     * Production-safe governance action: validates and records readiness. It does not deploy or mutate
-     * production contracts. Real deployment requires a separate secure key-management and release workflow.
-     */
     public DeployContractResponse deployOrValidateContract(DeployContractRequest request) {
         authorizationService.requirePermission(PermissionName.BLOCKCHAIN_GOVERNANCE);
         boolean dryRun = request == null || request.isDryRun();
         String requestedAddress = StringUtils.hasText(request != null ? request.getContractAddress() : null)
                 ? request.getContractAddress().trim()
                 : properties.getContractAddress();
+        String requestedAction = normalizeGovernanceAction(request != null ? request.getActionType() : null, dryRun);
         GovernanceReadiness readiness = evaluateReadiness(requestedAddress, !dryRun);
 
         DeployContractResponse response = new DeployContractResponse();
@@ -104,15 +101,29 @@ public class BlockchainGovernanceService {
 
         BlockchainGovernanceStatus governanceStatus = response.isActive()
                 ? BlockchainGovernanceStatus.GOVERNED
-                : BlockchainGovernanceStatus.FAILED;
+                : BlockchainGovernanceStatus.CONFIG_BLOCKED;
         persistGovernanceRecord(
-                dryRun ? "GOVERNANCE_VALIDATE" : "GOVERNANCE_WRITE_VALIDATE",
+                requestedAction,
                 response.getDeploymentStatus(),
                 response.getNote(),
                 requestedAddress,
                 governanceStatus
         );
         return response;
+    }
+
+    private String normalizeGovernanceAction(String actionType, boolean dryRun) {
+        if (!StringUtils.hasText(actionType)) {
+            return dryRun ? "SMART_CONTRACT_VALIDATE" : "SMART_CONTRACT_DEPLOY";
+        }
+        String normalized = actionType.trim().toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9_]", "_");
+        return switch (normalized) {
+            case "DEPLOY", "SMART_CONTRACT_DEPLOY" -> "SMART_CONTRACT_DEPLOY";
+            case "UPDATE", "SMART_CONTRACT_UPDATE" -> "SMART_CONTRACT_UPDATE";
+            case "MANAGE", "SMART_CONTRACT_MANAGE" -> "SMART_CONTRACT_MANAGE";
+            case "VALIDATE", "SMART_CONTRACT_VALIDATE" -> "SMART_CONTRACT_VALIDATE";
+            default -> dryRun ? "SMART_CONTRACT_VALIDATE" : "SMART_CONTRACT_MANAGE";
+        };
     }
 
     private GovernanceReadiness evaluateReadiness(String contractAddress, boolean requireWriteKey) {
@@ -155,7 +166,7 @@ public class BlockchainGovernanceService {
         } else {
             deploymentStatus = "READY";
             writeStatus = "READY_FOR_GOVERNANCE_WRITE";
-            note = "VeChainThor governance đã sẵn sàng; endpoint hiện chỉ validate/manage, không tự deploy contract production.";
+            note = "VeChainThor governance đã sẵn sàng cho thao tác hợp đồng thông minh.";
         }
         return new GovernanceReadiness(readyForRead, readyForWrite, score, missing, deploymentStatus, writeStatus, note);
     }

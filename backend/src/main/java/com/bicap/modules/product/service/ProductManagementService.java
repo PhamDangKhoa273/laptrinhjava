@@ -73,7 +73,7 @@ public class ProductManagementService {
     // ─── PRODUCTS ─────────────────────────────────────────────────────────────
 
     public List<ProductResponse> getAllProducts() {
-        return productRepository.findAllByOrderBySortOrderAsc().stream().map(this::toProductResponse).toList();
+        return productRepository.findVisibleProducts().stream().map(this::toProductResponse).toList();
     }
 
     @Transactional
@@ -125,8 +125,12 @@ public class ProductManagementService {
 
     @Transactional
     public void deleteProduct(Long id) {
-        if (!productRepository.existsById(id)) throw new BusinessException("Không tìm thấy sản phẩm ID: " + id);
-        productRepository.deleteById(id);
+        Product p = productRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Khong tim thay san pham ID: " + id));
+        p.setStatus("DELETED");
+        String deletedCode = "DEL-" + id + "-" + p.getProductCode();
+        p.setProductCode(deletedCode.length() > 50 ? deletedCode.substring(0, 50) : deletedCode);
+        productRepository.save(p);
     }
 
     // ─── MAPPERS ──────────────────────────────────────────────────────────────

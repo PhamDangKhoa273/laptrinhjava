@@ -1,0 +1,556 @@
+openapi: 3.0.3
+info:
+  title: BICAP API
+  version: 0.1.0
+  description: |
+    BICAP backend API. 18 operations scaffolded per design D12 of `docs-as-blueprint`.
+    Full coverage deferred to follow-up spec `docs-openapi-completion`.
+    See `docs/05-api/conventions.md` for envelope, pagination, error format.
+
+servers:
+  - url: https://{environment}.bicap.local/api/v1
+    variables:
+      environment:
+        default: localhost:8080
+        enum: [localhost:8080, staging, prod]
+
+tags:
+  - name: auth
+    description: Authentication endpoints
+  - name: order
+    description: Order lifecycle (retailer + farm + system)
+  - name: shipment
+    description: Shipment lifecycle (shipping manager + driver + retailer)
+  - name: admin
+    description: Admin governance and dashboard
+  - name: farm
+    description: Farm-side workspace endpoints
+  - name: retailer
+    description: Retailer-side workspace endpoints
+  - name: shipping-manager
+    description: Shipping manager workspace endpoints
+  - name: driver
+    description: Driver mobile workspace endpoints
+  - name: public
+    description: Public endpoints (no auth required)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: ORDER_DEPOSIT_INSUFFICIENT
+        message:
+          type: string
+          example: Số tiền đặt cọc thấp hơn mức tối thiểu
+        details:
+          type: object
+          nullable: true
+        traceId:
+          type: string
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken: { type: string }
+        refreshToken: { type: string }
+        tokenType: { type: string, example: Bearer }
+        expiresIn: { type: integer }
+        user: { $ref: '#/components/schemas/User' }
+        roles:
+          type: array
+          items: { type: string }
+
+    RegisterRequest:
+      type: object
+      required: [email, password, role, fullName]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+        role:
+          type: string
+          enum: [FARM, RETAILER, SHIPPING_MANAGER, DRIVER, GUEST]
+        fullName: { type: string }
+        phone: { type: string, nullable: true }
+
+    User:
+      type: object
+      properties:
+        userId: { type: integer, format: int64 }
+        email: { type: string }
+        fullName: { type: string }
+        roles:
+          type: array
+          items: { type: string }
+
+    OrderStatus:
+      type: string
+      enum: [PENDING, DEPOSIT_PAID, ACCEPTED, REJECTED, IN_FULFILLMENT, DELIVERED, CANCELLED, REFUNDED]
+
+    ShipmentStatus:
+      type: string
+      enum: [CREATED, ASSIGNED, PICKED_UP, IN_TRANSIT, DELIVERED, CONFIRMED, CANCELLED]
+
+    OrderCreateRequest:
+      type: object
+      required: [listingId, quantity]
+      properties:
+        listingId: { type: integer, format: int64 }
+        quantity: { type: number }
+
+    OrderResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        retailerId: { type: integer, format: int64 }
+        listingId: { type: integer, format: int64 }
+        farmId: { type: integer, format: int64 }
+        quantity: { type: number }
+        totalAmount: { type: number }
+        status: { $ref: '#/components/schemas/OrderStatus' }
+        depositAmount: { type: number, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    ShipmentCreateRequest:
+      type: object
+      required: [orderId]
+      properties:
+        orderId: { type: integer, format: int64 }
+
+    ShipmentResponse:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        orderId: { type: integer, format: int64 }
+        status: { $ref: '#/components/schemas/ShipmentStatus' }
+        driverId: { type: integer, format: int64, nullable: true }
+        vehicleId: { type: integer, format: int64, nullable: true }
+        pickupAt: { type: string, format: date-time, nullable: true }
+        deliveredAt: { type: string, format: date-time, nullable: true }
+        confirmedAt: { type: string, format: date-time, nullable: true }
+
+paths:
+  /auth/login:
+    post:
+      tags: [auth]
+      operationId: authLogin
+      x-doc-id: API-AUT-001
+      summary: Authenticate user and return tokens
+      description: |
+        Authenticate with email and password; return access + refresh JWT.
+        ---
+        Đăng nhập với email và password; trả về access token + refresh token JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginResponse' }
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /auth/register:
+    post:
+      tags: [auth]
+      operationId: authRegister
+      x-doc-id: API-AUT-002
+      summary: Register a new user
+      description: |
+        Create a new user account with the requested role.
+        ---
+        Tạo tài khoản mới với role được yêu cầu.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      operationId: authRefresh
+      x-doc-id: API-AUT-003
+      summary: Exchange refresh token for new tokens
+      description: |
+        Exchange a valid refresh token for a new access + refresh pair.
+        ---
+        Đổi refresh token hợp lệ để lấy cặp access + refresh token mới.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginResponse' }
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      operationId: authLogout
+      x-doc-id: API-AUT-004
+      summary: Logout (stateless)
+      description: |
+        Stateless logout. Backend acknowledges; frontend clears tokens locally.
+        ---
+        Logout stateless. Backend trả thông báo; frontend xóa token cục bộ.
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { description: OK }
+
+  /auth/me:
+    get:
+      tags: [auth]
+      operationId: authMe
+      x-doc-id: API-AUT-005
+      summary: Get current authenticated user
+      description: |
+        Return user info derived from the bearer token.
+        ---
+        Trả thông tin user từ access token hiện tại.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401':
+          description: Unauthorized
+
+  /orders:
+    post:
+      tags: [order]
+      operationId: orderCreate
+      x-doc-id: API-ORD-001
+      summary: Create a new order (retailer)
+      description: |
+        Create order in PENDING. Triggers STM-ORD-T01.
+        ---
+        Tạo order ở PENDING. Trigger STM-ORD-T01.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrderCreateRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderResponse' }
+
+  /orders/{id}/status:
+    patch:
+      tags: [order]
+      operationId: orderUpdateStatus
+      x-doc-id: API-ORD-002
+      summary: Update order status (farm or system)
+      description: |
+        Apply STM-ORD transitions: ACCEPTED, REJECTED, IN_FULFILLMENT.
+        ---
+        Áp transition của STM-ORD. Allowed targets phụ thuộc vai trò.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to]
+              properties:
+                to: { $ref: '#/components/schemas/OrderStatus' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderResponse' }
+
+  /orders/{id}/cancel:
+    post:
+      tags: [order]
+      operationId: orderCancel
+      x-doc-id: API-ORD-003
+      summary: Cancel an order (retailer)
+      description: |
+        Cancel an order while in PENDING or DEPOSIT_PAID. Triggers STM-ORD-T07; if deposit paid, refund job runs.
+        ---
+        Hủy order khi đang ở PENDING hoặc DEPOSIT_PAID. Trigger STM-ORD-T07.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderResponse' }
+
+  /orders/{id}/deposit:
+    post:
+      tags: [order]
+      operationId: orderDeposit
+      x-doc-id: API-ORD-004
+      summary: Submit deposit for an order (retailer)
+      description: |
+        Pay deposit for an order in PENDING. Triggers STM-ORD-T02 once gateway callback verifies.
+        ---
+        Thanh toán đặt cọc cho order PENDING. Trigger STM-ORD-T02 sau khi gateway xác nhận.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount]
+              properties:
+                amount: { type: number }
+      responses:
+        '202':
+          description: Accepted (callback pending)
+
+  /shipments:
+    post:
+      tags: [shipment]
+      operationId: shipmentCreate
+      x-doc-id: API-SHM-001
+      summary: Create a shipment (shipping manager)
+      description: |
+        Create a shipment from an eligible order. Triggers STM-SHP-T01.
+        ---
+        Tạo chuyến hàng cho order eligible. Trigger STM-SHP-T01.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ShipmentCreateRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ShipmentResponse' }
+
+  /shipments/{id}/assign:
+    post:
+      tags: [shipment]
+      operationId: shipmentAssign
+      x-doc-id: API-SHM-002
+      summary: Assign driver and vehicle to shipment
+      description: |
+        Assign active driver + vehicle. Triggers STM-SHP-T02.
+        ---
+        Gán driver + vehicle ACTIVE. Trigger STM-SHP-T02.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [driverId, vehicleId]
+              properties:
+                driverId: { type: integer, format: int64 }
+                vehicleId: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ShipmentResponse' }
+
+  /shipments/{id}/status:
+    patch:
+      tags: [shipment]
+      operationId: shipmentUpdateStatus
+      x-doc-id: API-SHM-003
+      summary: Update shipment status (driver)
+      description: |
+        Apply STM-SHP transitions: PICKED_UP, IN_TRANSIT, DELIVERED. Driver-only.
+        ---
+        Áp transition STM-SHP. Driver được assign mới hợp lệ.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to]
+              properties:
+                to: { $ref: '#/components/schemas/ShipmentStatus' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ShipmentResponse' }
+
+  /admin/dashboard-summary:
+    get:
+      tags: [admin]
+      operationId: adminDashboardSummary
+      x-doc-id: API-ADM-001
+      summary: Admin dashboard summary
+      description: |
+        Aggregated platform metrics for admin control center.
+        ---
+        Tổng hợp metrics platform cho admin control center.
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { description: OK }
+        '403': { description: Forbidden }
+
+  /farm/profile:
+    get:
+      tags: [farm]
+      operationId: farmProfileRead
+      x-doc-id: API-FRM-001
+      summary: Read own farm profile
+      description: |
+        Return farm profile owned by current user.
+        ---
+        Trả farm profile của user hiện tại.
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { description: OK }
+        '403': { description: Forbidden }
+
+  /retailer/discovery/listings:
+    get:
+      tags: [retailer]
+      operationId: retailerListingsBrowse
+      x-doc-id: API-RTL-001
+      summary: Browse marketplace listings (retailer)
+      description: |
+        List ACTIVE listings with retailer-relevant fields and filters.
+        ---
+        Danh sách listings ACTIVE với filter cho retailer.
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { description: OK }
+
+  /shipping-manager/dashboard-summary:
+    get:
+      tags: [shipping-manager]
+      operationId: shippingManagerDashboardSummary
+      x-doc-id: API-SHM-010
+      summary: Shipping manager dashboard summary
+      description: |
+        Aggregated shipment + driver + vehicle metrics.
+        ---
+        Tổng hợp metrics shipment + driver + vehicle.
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { description: OK }
+
+  /driver/assignments:
+    get:
+      tags: [driver]
+      operationId: driverAssignmentsList
+      x-doc-id: API-DRV-010
+      summary: List driver's own shipment assignments
+      description: |
+        Return shipments assigned to the authenticated driver.
+        ---
+        Trả danh sách shipments được assign cho driver hiện tại.
+      security:
+        - bearerAuth: []
+      responses:
+        '200': { description: OK }
+        '403': { description: Forbidden }
+
+  /public/listings:
+    get:
+      tags: [public]
+      operationId: guestListingsBrowse
+      x-doc-id: API-GST-001
+      summary: Browse public marketplace listings (guest)
+      description: |
+        List ACTIVE listings with public-safe fields. No authentication required.
+        ---
+        Danh sách listings ACTIVE với public-safe fields. Không yêu cầu auth.
+      responses:
+        '200': { description: OK }

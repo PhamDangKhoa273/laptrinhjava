@@ -17,7 +17,7 @@ import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 
-@Entity
+@Entity(name = "LogisticsShipment")
 @Table(name = "shipments")
 public class Shipment {
 
@@ -26,8 +26,8 @@ public class Shipment {
     @Column(name = "shipment_id")
     private Long shipmentId;
 
-    @OneToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false, unique = true)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)

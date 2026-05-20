@@ -26,9 +26,9 @@ export function ProfilePage() {
     setStatus('')
     try {
       await updateProfile(profileForm)
-      setStatus('Hồ sơ đã được cập nhật từ backend.')
+      setStatus('H? sơ đã được c?p nh?t t? backend.')
     } catch (err) {
-      setError(getErrorMessage(err, 'Không thể cập nhật hồ sơ.'))
+      setError(getErrorMessage(err, 'Không th? c?p nh?t h? sơ.'))
     } finally {
       setSavingProfile(false)
     }
@@ -39,16 +39,16 @@ export function ProfilePage() {
     setError('')
     setStatus('')
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp.')
+      setError('M?t kh?u xác nh?n không kh?p.')
       return
     }
     setSavingPassword(true)
     try {
       const message = await changePassword(passwordForm)
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
-      setStatus(message || 'Mật khẩu đã được cập nhật.')
+      setStatus(message || 'M?t kh?u đã được c?p nh?t.')
     } catch (err) {
-      setError(getErrorMessage(err, 'Không thể đổi mật khẩu.'))
+      setError(getErrorMessage(err, 'Không th? đổi m?t kh?u.'))
     } finally {
       setSavingPassword(false)
     }
@@ -93,7 +93,7 @@ export function ProfilePage() {
                 <label className="strict-readonly-field"><span>User ID</span><input value={user?.userId || user?.id || 'N/A'} readOnly /></label>
                 <label className="strict-readonly-field certificate"><span>Certification Status</span><div><span className="material-symbols-outlined" aria-hidden="true">shield_person</span>{user?.certificationStatus || 'Managed by role module'}</div></label>
               </div>
-              <label className="strict-readonly-field textarea-field"><span>Profile Source</span><textarea value="Thông tin tài khoản được lấy từ /auth/me và cập nhật qua /users/me/profile." readOnly rows={2} /></label>
+              <label className="strict-readonly-field textarea-field"><span>Profile Source</span><textarea value="Thông tin tài kho?n được l?y t? /auth/me và c?p nh?t qua /users/me/profile." readOnly rows={2} /></label>
             </div>
           </article>
         </div>

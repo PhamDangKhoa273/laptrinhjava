@@ -31,7 +31,7 @@ export function ShippingProofPage() {
       }
       setError('')
     } catch (err) {
-      setError(getErrorMessage(err, 'Không tải được danh sách order cho logistics.'))
+      setError(getErrorMessage(err, 'Không t?i được danh sách order cho logistics.'))
     } finally {
       setLoading(false)
     }
@@ -61,12 +61,12 @@ export function ShippingProofPage() {
         imageUrl,
         note: form.note.trim(),
       })
-      setSuccess('Đã cập nhật proof vận chuyển.')
+      setSuccess('Đã c?p nh?t proof v?n chuy?n.')
       setForm(initialForm)
       setProofFile(null)
       await loadOrders()
     } catch (err) {
-      setError(getErrorMessage(err, 'Không cập nhật được proof vận chuyển.'))
+      setError(getErrorMessage(err, 'Không c?p nh?t được proof v?n chuy?n.'))
     } finally {
       setSaving(false)
     }
@@ -77,18 +77,18 @@ export function ShippingProofPage() {
       <div className="section-heading">
         <div>
           <p className="eyebrow">Shipping proof</p>
-          <h2>Cập nhật bằng chứng giao vận</h2>
-          <p>Dành cho shipping manager hoặc driver ghi nhận proof trong flow đơn hàng.</p>
+          <h2>C?p nh?t b?ng ch?ng giao v?n</h2>
+          <p>Dành cho shipping manager ho?c driver ghi nh?n proof trong flow đơn hàng.</p>
         </div>
       </div>
 
-      {loading ? <div className="glass-card">Đang tải đơn hàng...</div> : null}
+      {loading ? <div className="glass-card">Đang t?i đơn hàng...</div> : null}
       {error ? <div className="alert alert-error">{error}</div> : null}
       {success ? <div className="alert alert-success">{success}</div> : null}
 
       <div className="content-grid">
         <article className="glass-card">
-          <h3>Chọn order</h3>
+          <h3>Ch?n order</h3>
           <div className="form-grid">
             {orders.map((order) => (
               <div key={order.orderId} className="business-card">
@@ -97,22 +97,22 @@ export function ShippingProofPage() {
                   <p>Status: {order.status}</p>
                   <p>Shipping proof: {order.shippingProofImageUrl || 'Chưa có'}</p>
                 </div>
-                <Button variant="secondary" onClick={() => setSelectedOrderId(String(order.orderId))}>Chọn</Button>
+                <Button variant="secondary" onClick={() => setSelectedOrderId(String(order.orderId))}>Ch?n</Button>
               </div>
             ))}
           </div>
         </article>
 
         <article className="glass-card">
-          <h3>Gửi proof</h3>
+          <h3>G?i proof</h3>
           <form className="form-grid" onSubmit={handleSubmit}>
             <TextInput label="Image URL" name="imageUrl" value={form.imageUrl} onChange={handleChange} required />
             <label className="form-field">
-              <span className="form-label">Hoặc chọn file proof</span>
+              <span className="form-label">Ho?c ch?n file proof</span>
               <input className="form-input" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setProofFile(event.target.files?.[0] || null)} />
             </label>
             <TextAreaField label="Ghi chú" name="note" value={form.note} onChange={handleChange} />
-            <Button type="submit" disabled={saving || !selectedOrderId}>{saving ? 'Đang lưu...' : 'Cập nhật proof'}</Button>
+            <Button type="submit" disabled={saving || !selectedOrderId}>{saving ? 'Đang lưu...' : 'C?p nh?t proof'}</Button>
           </form>
         </article>
       </div>

@@ -19,7 +19,7 @@ public class ShipmentReport {
     private Long driverId;
 
     @Column(name = "issue_type", nullable = false, length = 50)
-    private String issueType; // DELAY, DAMAGED, WRONG_BATCH, ROUTE_ISSUE
+    private String issueType; // ACCIDENT, BREAKDOWN, DELAY, DAMAGED, THEFT, OTHER, WRONG_BATCH, SHORTAGE, ROUTE_ISSUE
 
     @Column(name = "description", length = 1000)
     private String description;

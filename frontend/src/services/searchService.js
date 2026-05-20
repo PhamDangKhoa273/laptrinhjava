@@ -1,4 +1,5 @@
 import { api } from './api'
+import { repairText } from '../utils/textRepair'
 
 function unwrap(response) {
   return response.data?.data || response.data
@@ -8,6 +9,23 @@ function shouldKeepValue(value) {
   if (value === undefined || value === null) return false
   if (typeof value === 'string') return value.trim() !== ''
   return true
+}
+
+export async function getFilterOptions() {
+  const payload = unwrap(await api.get('/listings/filter-options'))
+  return {
+    categories: Array.isArray(payload?.categories) ? payload.categories.map(repairText).filter(Boolean) : [],
+    provinces: Array.isArray(payload?.provinces) ? payload.provinces.filter(Boolean) : [],
+    certifications: Array.isArray(payload?.certifications) ? payload.certifications.filter(Boolean) : [],
+  }
+}
+
+export async function getCategories() {
+  const payload = unwrap(await api.get('/categories'))
+  return Array.isArray(payload) ? payload.map((item) => ({
+    ...item,
+    categoryLabel: repairText(item.categoryName),
+  })) : []
 }
 
 export async function searchListings(params = {}) {

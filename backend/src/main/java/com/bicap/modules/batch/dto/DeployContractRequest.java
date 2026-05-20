@@ -6,6 +6,7 @@ public class DeployContractRequest {
      */
     private boolean dryRun = true;
     private String contractAddress;
+    private String actionType;
 
     public boolean isDryRun() {
         return dryRun;
@@ -21,6 +22,14 @@ public class DeployContractRequest {
 
     public void setContractAddress(String contractAddress) {
         this.contractAddress = contractAddress;
+    }
+
+    public String getActionType() {
+        return actionType;
+    }
+
+    public void setActionType(String actionType) {
+        this.actionType = actionType;
     }
 }
 

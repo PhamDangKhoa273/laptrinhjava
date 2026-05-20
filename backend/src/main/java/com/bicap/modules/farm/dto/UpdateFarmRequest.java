@@ -1,6 +1,7 @@
 package com.bicap.modules.farm.dto;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -32,6 +33,13 @@ public class UpdateFarmRequest {
     @Size(max = 150, message = "Người liên hệ không được vượt quá 150 ký tự")
     private String contactPerson;
 
+    @Size(max = 30, message = "Số điện thoại không được vượt quá 30 ký tự")
+    private String phone;
+
+    @Email(message = "Email không hợp lệ")
+    @Size(max = 150, message = "Email không được vượt quá 150 ký tự")
+    private String email;
+
     @Size(max = 2000, message = "Mô tả không được vượt quá 2000 ký tự")
     private String description;
 
@@ -49,6 +57,10 @@ public class UpdateFarmRequest {
     public void setTotalArea(Double d) { this.totalArea = d; }
     public String getContactPerson() { return contactPerson; }
     public void setContactPerson(String s) { this.contactPerson = s; }
+    public String getPhone() { return phone; }
+    public void setPhone(String s) { this.phone = s; }
+    public String getEmail() { return email; }
+    public void setEmail(String s) { this.email = s; }
     public String getDescription() { return description; }
     public void setDescription(String s) { this.description = s; }
 }

@@ -11,7 +11,7 @@ function normalizeUser(user) {
 }
 
 export async function login(payload) {
-  const response = await api.post('/auth/login', payload)
+  const response = await api.post('/auth/login', payload, { skipAuth: true })
   const data = response.data?.data || response.data
   return {
     ...data,
@@ -29,7 +29,7 @@ export async function register(payload) {
     role: payload.role ?? 'GUEST',
   }
 
-  const response = await api.post('/auth/register', requestPayload)
+  const response = await api.post('/auth/register', requestPayload, { skipAuth: true })
   return normalizeUser(response.data?.data || response.data)
 }
 
@@ -63,11 +63,11 @@ export async function logout() {
 }
 
 export async function forgotPassword(payload) {
-  const response = await api.post('/auth/forgot-password', payload)
+  const response = await api.post('/auth/forgot-password', payload, { skipAuth: true })
   return response.data?.data || response.data
 }
 
 export async function resetPassword(payload) {
-  const response = await api.post('/auth/reset-password', payload)
+  const response = await api.post('/auth/reset-password', payload, { skipAuth: true })
   return response.data?.data || response.data
 }

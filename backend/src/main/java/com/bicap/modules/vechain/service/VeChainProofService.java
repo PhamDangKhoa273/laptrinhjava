@@ -15,7 +15,6 @@ import org.vechain.devkit.Transaction;
 import org.vechain.devkit.cry.Keccak;
 import org.vechain.devkit.cry.Secp256k1;
 import org.vechain.devkit.cry.Utils;
-import org.web3j.crypto.Credentials;
 import org.vechain.devkit.types.Clause;
 import org.vechain.devkit.types.Reserved;
 
@@ -125,7 +124,12 @@ public class VeChainProofService {
         }
     }
 
-    @Transactional
+    // REQUIRES_NEW: blockchain commit runs in its own transaction.
+    // If it fails (including NoClassDefFoundError from devkit), only this sub-transaction
+    // rolls back — the caller's (exportSeason) transaction is unaffected.
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW,
+            noRollbackFor = Throwable.class)
     public BlockchainTransaction commitAndTrack(String relatedEntityType,
                                                 Long relatedEntityId,
                                                 String actionType,
@@ -159,7 +163,8 @@ public class VeChainProofService {
             tx.setGovernanceStatus(reverted ? BlockchainGovernanceStatus.FAILED : BlockchainGovernanceStatus.SUCCESS);
             tx.setGovernanceNote("txId=" + txId + ", block=" + blockNumber + ", gasUsed=" + gasUsed + ", reverted=" + reverted);
             return transactionRepository.save(tx);
-        } catch (Exception e) {
+        } catch (Throwable e) {
+            // Catch Throwable to handle NoClassDefFoundError from devkit/web3j guava mismatch.
             tx.setTxHash("FAILED-" + canonicalHashHexNo0x);
             tx.setTxStatus("FAILED");
             tx.setGovernanceStatus(BlockchainGovernanceStatus.FAILED);
@@ -215,9 +220,12 @@ public class VeChainProofService {
         );
 
         log.debug("VeChain intrinsicGas={}", tx.getIntrinsicGas());
-        Credentials credentials = Credentials.create(props.getDevPrivateKey().trim());
-        String origin = credentials.getAddress().startsWith("0x") ? credentials.getAddress() : ("0x" + credentials.getAddress());
+        // Derive address from private key using devkit Secp256k1 (avoids web3j Guava dependency).
         byte[] priv = Utils.hexToBytes(strip0x(props.getDevPrivateKey()));
+        byte[] pubKey = Secp256k1.derivePublicKey(priv, false); // uncompressed 65 bytes
+        // Keccak256 of pubKey[1..65], take last 20 bytes → Ethereum-style address.
+        byte[] addrHash = Keccak.keccak256(java.util.Arrays.copyOfRange(pubKey, 1, 65));
+        String origin = "0x" + Utils.bytesToHex(java.util.Arrays.copyOfRange(addrHash, 12, 32));
         byte[] signingHash = tx.getSigningHash(null);
         byte[] sig = Secp256k1.sign(signingHash, priv);
         log.debug("VeChain origin={}, signingHashLen={}, sigLen={}, v={}", origin, signingHash.length, sig.length, sig[64] & 0xff);

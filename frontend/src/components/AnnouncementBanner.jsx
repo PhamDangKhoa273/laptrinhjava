@@ -46,7 +46,7 @@ export function AnnouncementBanner() {
         </div>
         <div className="announcement-body" dangerouslySetInnerHTML={{ __html: content }} />
         <div className="announcement-actions">
-          <Button variant="secondary" style={{ color: '#3a4f67', backgroundColor: '#eef2f6', borderColor: '#d1dce6' }} onClick={hidePermanently}>Không hiển thị lại</Button>
+          <Button variant="secondary" style={{ color: '#3a4f67', backgroundColor: '#eef2f6', borderColor: '#d1dce6' }} onClick={hidePermanently}>Không hi?n th? l?i</Button>
           <Button onClick={dismissForSession}>Đóng</Button>
         </div>
       </div>

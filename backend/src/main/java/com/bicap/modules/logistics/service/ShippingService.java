@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ShippingService {
 
-    private final ShipmentRepository shipmentRepository;
+    private final LogisticsShipmentRepository shipmentRepository;
     private final ShipmentHistoryRepository shipmentHistoryRepository;
     private final DriverRepository driverRepository;
     private final VehicleRepository vehicleRepository;
@@ -57,7 +57,7 @@ public class ShippingService {
         }
         
         // 5. Kiểm tra shipment chưa tồn tại cho đơn hàng này
-        if (shipmentRepository.findByOrderId(request.getOrderId()).isPresent()) {
+        if (shipmentRepository.findByOrderOrderId(request.getOrderId()).isPresent()) {
             throw new BadRequestException("Đơn hàng này đã có shipment rồi");
         }
         
@@ -101,7 +101,7 @@ public class ShippingService {
         }
         
         // 3. Tìm shipment của đơn hàng này
-        Shipment shipment = shipmentRepository.findByOrderId(qrCode.getOrder().getOrderId())
+        Shipment shipment = shipmentRepository.findByOrderOrderId(qrCode.getOrder().getOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy shipment cho đơn hàng này"));
         
         // 4. Kiểm tra tài xế là người được giao đơn
@@ -191,7 +191,7 @@ public class ShippingService {
      */
     @Transactional(readOnly = true)
     public List<ShipmentResponse> getMyShipments(Long driverId) {
-        return shipmentRepository.findByDriverId(driverId).stream()
+        return shipmentRepository.findByDriverDriverId(driverId).stream()
                 .map(this::toShipmentResponse)
                 .collect(Collectors.toList());
     }

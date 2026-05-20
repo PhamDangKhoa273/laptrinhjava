@@ -16,9 +16,9 @@ export default function ProductDetail() {
       <h2>{data.name}</h2>
       <p>{data.description}</p>
 
-      {/* 👉 NÚT QUAN TRỌNG */}
+      {/* ?? NÚT QUAN TR?NG */}
       <button onClick={() => navigate(`/trace/${data.batchId}`)}>
-        Xem nguồn gốc lô hàng
+        Xem ngu?n g?c lô hàng
       </button>
 
       <button onClick={() => navigate(`/cart/${data.id}`)}>

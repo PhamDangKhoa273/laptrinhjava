@@ -46,7 +46,7 @@ export function AdminPackagesPage() {
       setPackages(data)
       if (!selectedPackageId && data.length > 0) setSelectedPackageId(getPackageId(data[0]))
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || 'Không tải được danh sách gói dịch vụ.')
+      setError(err?.response?.data?.message || err?.message || 'Không t?i được danh sách gói d?ch v?.')
     } finally {
       setLoading(false)
     }
@@ -89,19 +89,19 @@ export function AdminPackagesPage() {
     <section className="page-section admin-page admin-packages-page">
       <div className="section-heading">
         <div>
-          <h2>Quản lý gói dịch vụ</h2>
+          <h2>Qu?n l? gói d?ch v?</h2>
         </div>
         <div className="section-actions">
-          <Button variant="secondary" onClick={loadPackages} disabled={loading}>{loading ? 'Đang tải...' : 'Làm mới'}</Button>
+          <Button variant="secondary" onClick={loadPackages} disabled={loading}>{loading ? 'Đang t?i...' : 'Làm m?i'}</Button>
         </div>
       </div>
 
       <div className="status-grid admin-overview-grid">
-        <article className="status-card"><span>Tổng gói</span><strong>{packages.length}</strong></article>
+        <article className="status-card"><span>T?ng gói</span><strong>{packages.length}</strong></article>
         <article className="status-card"><span>Gói active</span><strong>{metrics.active}</strong></article>
         <article className="status-card"><span>Gói inactive</span><strong>{metrics.inactive}</strong></article>
-        <article className="status-card"><span>Tổng mùa vụ hỗ trợ</span><strong>{metrics.totalSeasons}</strong></article>
-        <article className="status-card"><span>Tổng tin đăng tối đa</span><strong>{metrics.totalListings}</strong></article>
+        <article className="status-card"><span>T?ng mùa v? h? tr?</span><strong>{metrics.totalSeasons}</strong></article>
+        <article className="status-card"><span>T?ng tin đăng t?i đa</span><strong>{metrics.totalListings}</strong></article>
       </div>
 
       {error ? <div className="alert alert-error">{error}</div> : null}
@@ -114,11 +114,11 @@ export function AdminPackagesPage() {
               className="form-input"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Tìm tên/mã gói"
+              placeholder="T?m tên/mã gói"
             />
             <select className="form-input" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
               {availableStatuses.map((status) => (
-                <option key={status} value={status}>{status === 'ALL' ? 'Tất cả trạng thái' : status}</option>
+                <option key={status} value={status}>{status === 'ALL' ? 'T?t c? tr?ng thái' : status}</option>
               ))}
             </select>
           </div>
@@ -147,7 +147,7 @@ export function AdminPackagesPage() {
                 </button>
               )
             })}
-            {!loading && filteredPackages.length === 0 ? <p className="muted-inline">Không có gói phù hợp.</p> : null}
+            {!loading && filteredPackages.length === 0 ? <p className="muted-inline">Không có gói phù h?p.</p> : null}
           </div>
         </aside>
 
@@ -156,9 +156,9 @@ export function AdminPackagesPage() {
             <>
               <div className="admin-package-detail-head">
                 <div>
-                  <span className="feature-badge">Gói dịch vụ</span>
+                  <span className="feature-badge">Gói d?ch v?</span>
                   <h3>{selectedPackage.packageName || 'Gói chưa đặt tên'}</h3>
-                  <p>Mã gói: {selectedPackage.packageCode || `#${getPackageId(selectedPackage)}`}</p>
+                  <p>M? gói: {selectedPackage.packageCode || `#${getPackageId(selectedPackage)}`}</p>
                 </div>
                 <span className={`status-pill status-${String(getPackageStatus(selectedPackage)).toLowerCase()}`}>
                   {getPackageStatus(selectedPackage)}
@@ -171,29 +171,29 @@ export function AdminPackagesPage() {
               </div>
 
               <div className="admin-package-info-grid">
-                <div><span>Thời hạn sử dụng</span><strong>{selectedPackage.durationDays || 0} ngày</strong></div>
-                <div><span>Số mùa vụ hỗ trợ</span><strong>{selectedPackage.maxSeasons || 0}</strong></div>
-                <div><span>Số tin đăng tối đa</span><strong>{selectedPackage.maxListings || 0}</strong></div>
-                <div><span>Trạng thái</span><strong>{getPackageStatus(selectedPackage)}</strong></div>
-                <div><span>Mã định danh</span><strong>#{getPackageId(selectedPackage)}</strong></div>
-                <div><span>Mô tả</span><strong>{selectedPackage.description || 'Chưa cập nhật'}</strong></div>
+                <div><span>Th?i h?n s? d?ng</span><strong>{selectedPackage.durationDays || 0} ngày</strong></div>
+                <div><span>S? mùa v? h? tr?</span><strong>{selectedPackage.maxSeasons || 0}</strong></div>
+                <div><span>S? tin đăng t?i đa</span><strong>{selectedPackage.maxListings || 0}</strong></div>
+                <div><span>Tr?ng thái</span><strong>{getPackageStatus(selectedPackage)}</strong></div>
+                <div><span>M? định danh</span><strong>#{getPackageId(selectedPackage)}</strong></div>
+                <div><span>Mô t?</span><strong>{selectedPackage.description || 'Chưa c?p nh?t'}</strong></div>
               </div>
 
               <div className="admin-package-checklist">
-                <h3>Kiểm tra cấu hình gói</h3>
+                <h3>Ki?m tra c?u h?nh gói</h3>
                 <ul className="feature-list">
-                  <li className={Number(selectedPackage.price || 0) >= 0 ? 'is-ok' : 'is-warning'}>Giá gói đã có giá trị hợp lệ.</li>
+                  <li className={Number(selectedPackage.price || 0) >= 0 ? 'is-ok' : 'is-warning'}>Giá gói đã có giá tr? h?p l?.</li>
                   <li className={Number(selectedPackage.durationDays || 0) > 0 ? 'is-ok' : 'is-warning'}>
-                    {Number(selectedPackage.durationDays || 0) > 0 ? 'Đã cấu hình thời hạn sử dụng.' : 'Chưa cấu hình thời hạn sử dụng.'}
+                    {Number(selectedPackage.durationDays || 0) > 0 ? 'Đã c?u h?nh th?i h?n s? d?ng.' : 'Chưa c?u h?nh th?i h?n s? d?ng.'}
                   </li>
                   <li className={Number(selectedPackage.maxListings || 0) > 0 ? 'is-ok' : 'is-warning'}>
-                    {Number(selectedPackage.maxListings || 0) > 0 ? 'Đã cấu hình giới hạn tin đăng.' : 'Chưa cấu hình giới hạn tin đăng.'}
+                    {Number(selectedPackage.maxListings || 0) > 0 ? 'Đã c?u h?nh gi?i h?n tin đăng.' : 'Chưa c?u h?nh gi?i h?n tin đăng.'}
                   </li>
                 </ul>
               </div>
             </>
           ) : (
-            <p className="muted-inline">Chưa có gói dịch vụ để hiển thị.</p>
+            <p className="muted-inline">Chưa có gói d?ch v? để hi?n th?.</p>
           )}
         </main>
       </div>

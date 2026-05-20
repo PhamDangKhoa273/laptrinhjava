@@ -22,5 +22,5 @@ public interface ShipmentHistoryRepository extends JpaRepository<ShipmentHistory
     /**
      * Tìm tất cả những thay đổi trạng thái được thực hiện bởi một người dùng cụ thể
      */
-    List<ShipmentHistory> findByChangedByIdOrderByChangedAtDesc(Long userId);
+    List<ShipmentHistory> findByChangedByUserIdOrderByChangedAtDesc(Long userId);
 }
