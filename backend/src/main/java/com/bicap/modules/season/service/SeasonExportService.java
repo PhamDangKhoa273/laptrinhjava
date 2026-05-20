@@ -17,6 +17,8 @@ import com.bicap.modules.user.entity.User;
 import com.bicap.modules.user.repository.UserRepository;
 import com.bicap.modules.user.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +61,7 @@ public class SeasonExportService {
     }
 
     @Transactional(noRollbackFor = Throwable.class)
+    @CacheEvict(value = "publicTrace", allEntries = true)
     public SeasonExportResponse exportSeason(Long seasonId) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         try {
@@ -181,6 +184,7 @@ public class SeasonExportService {
         return toResponse(export, null, null);
     }
 
+    @Cacheable(value = "publicTrace", key = "'season-export:' + #traceCode")
     public SeasonExportResponse getByTraceCode(String traceCode) {
         SeasonExport export = exportRepository.findByTraceCode(traceCode)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy export theo traceCode."));

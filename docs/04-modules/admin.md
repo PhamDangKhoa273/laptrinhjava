@@ -57,6 +57,9 @@ Admin module owns platform governance for the brief-aligned admin workspace:
 - 2026-05-19: `frontend/src/admin-clean.css` is imported last and provides flat SaaS surfaces, compact tables, restrained spacing, and removal of legacy glass/gradient treatment.
 - 2026-05-19: `AdminProductsPage.jsx` manages only product catalog and categories. Batch QR, batch verification, and trace operations live under blockchain/trace governance instead of product catalog oversight.
 - 2026-05-19: `AdminProductsPage.jsx` highlights products missing code, description, or category so admin can correct catalog data quality.
+- 2026-05-21: Admin product governance is monitoring/normalization only for Farm-registered products; the admin UI no longer presents "create product" as an admin crop-production action.
+- 2026-05-21: Admin product governance separates Farm listing oversight from the small catalog baseline. `/dashboard/admin/products` now defaults to all Farm-created listings, while the catalog tab is only normalization metadata.
+- 2026-05-21: Pending Farm listings can be approved or rejected directly inside `/dashboard/admin/products`, so the product oversight count and action are in the same workflow.
 - 2026-05-19: `AdminBlockchainTracePage.jsx` exposes validate, deploy, update, and manage actions for smart-contract governance and shows trace verification evidence.
 - 2026-05-19: Product deletion soft-deletes catalog products so historical seasons/batches keep traceability.
 - 2026-05-19: `AdminControlCenterPage.jsx` includes an operational signal band for pending farm review, catalog oversight, and blockchain readiness while staying limited to the five admin brief areas.

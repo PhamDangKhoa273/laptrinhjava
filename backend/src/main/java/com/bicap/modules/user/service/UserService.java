@@ -86,18 +86,34 @@ public class UserService {
             userRole.setRole(guestRole);
             userRoleRepository.save(userRole);
         }
+        if (request.getInitialRole() != null && request.getInitialRole() != RoleName.GUEST) {
+            Role initialRole = roleRepository.findByRoleName(request.getInitialRole().name())
+                    .orElseThrow(() -> new BusinessException("Role khong ton tai"));
+            if (!userRoleRepository.existsByUserAndRole(saved, initialRole)) {
+                UserRole userRole = new UserRole();
+                userRole.setUser(saved);
+                userRole.setRole(initialRole);
+                userRoleRepository.save(userRole);
+            }
+            userRoleRepository.findByUser(saved).stream()
+                    .filter(userRole -> RoleName.GUEST.name().equalsIgnoreCase(userRole.getRole().getRoleName()))
+                    .forEach(userRoleRepository::delete);
+        }
+        userRoleRepository.flush();
         securityAuditService.logAdminAction(SecurityUtils.getCurrentUserIdOrNull(), "USER_CREATE", String.valueOf(saved.getUserId()), saved.getEmail());
         return toResponse(saved);
     }
 
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
+                .filter(user -> user.getStatus() != UserStatus.DELETED)
                 .map(this::toResponse)
                 .toList();
     }
 
     public List<UserResponse> getUsersByRole(String roleName) {
         return userRepository.findAll().stream()
+                .filter(u -> u.getStatus() != UserStatus.DELETED)
                 .filter(u -> u.getRoles().stream().anyMatch(r -> r.getRoleName().equalsIgnoreCase(roleName)))
                 .map(this::toResponse)
                 .toList();
@@ -126,18 +142,29 @@ public class UserService {
     public void deleteUser(Long userId) {
         requirePermissionSafe(PermissionName.USERS_MANAGE);
         User user = getUserEntityById(userId);
-        if (userRepository.count() <= 1) {
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
+        if (currentUserId != null && currentUserId.equals(userId)) {
+            throw new BusinessException("Khong the xoa tai khoan dang dang nhap");
+        }
+        if (userRepository.findAll().stream().filter(existing -> existing.getStatus() != UserStatus.DELETED).count() <= 1) {
             throw new BusinessException("Không thể xoá tài khoản cuối cùng");
         }
         if (hasRole(user, RoleName.ADMIN)) {
-            long adminCount = userRepository.findAll().stream().filter(this::hasAdminRole).count();
+            long adminCount = userRepository.findAll().stream()
+                    .filter(existing -> existing.getStatus() != UserStatus.DELETED)
+                    .filter(this::hasAdminRole)
+                    .count();
             if (adminCount <= 1) {
                 throw new BusinessException("Không thể xoá admin cuối cùng");
             }
         }
-        userRoleRepository.findByUser(user).forEach(userRoleRepository::delete);
-        userRepository.delete(user);
-        securityAuditService.logAdminAction(SecurityUtils.getCurrentUserIdOrNull(), "USER_DELETE", String.valueOf(userId), user.getEmail());
+        String originalEmail = user.getEmail();
+        user.setStatus(UserStatus.DELETED);
+        user.setEmail("deleted-" + userId + "-" + System.currentTimeMillis() + "@bicap.local");
+        user.setPhone(null);
+        userRepository.save(user);
+        userRepository.flush();
+        securityAuditService.logAdminAction(currentUserId, "USER_DELETE", String.valueOf(userId), originalEmail);
     }
 
     private boolean hasAdminRole(User user) {
@@ -167,7 +194,9 @@ public class UserService {
         User user = getUserEntityById(userId);
         validateStatusTransition(user.getStatus(), request.getStatus());
         user.setStatus(request.getStatus());
-        UserResponse response = toResponse(userRepository.save(user));
+        User saved = userRepository.save(user);
+        userRepository.flush();
+        UserResponse response = getUserById(saved.getUserId());
         securityAuditService.logAdminAction(SecurityUtils.getCurrentUserIdOrNull(), "USER_STATUS_CHANGE", String.valueOf(userId), request.getStatus().name());
         return response;
     }
@@ -199,7 +228,8 @@ public class UserService {
         }
 
         userRoleRepository.delete(userRole);
-        UserResponse response = toResponse(user);
+        userRoleRepository.flush();
+        UserResponse response = getUserById(userId);
         securityAuditService.logAdminAction(SecurityUtils.getCurrentUserIdOrNull(), "USER_ROLE_REMOVE", String.valueOf(userId), roleName.name());
         return response;
     }
@@ -220,8 +250,9 @@ public class UserService {
         userRole.setUser(user);
         userRole.setRole(role);
         userRoleRepository.save(userRole);
+        userRoleRepository.flush();
 
-        UserResponse response = toResponse(user);
+        UserResponse response = getUserById(userId);
         securityAuditService.logAdminAction(SecurityUtils.getCurrentUserIdOrNull(), "USER_ROLE_ASSIGN", String.valueOf(userId), request.getRoleName().name());
         return response;
     }
@@ -271,6 +302,7 @@ public class UserService {
             case ACTIVE -> Arrays.asList(UserStatus.INACTIVE, UserStatus.BLOCKED);
             case INACTIVE -> Arrays.asList(UserStatus.ACTIVE, UserStatus.BLOCKED);
             case BLOCKED -> List.of(UserStatus.INACTIVE, UserStatus.ACTIVE);
+            case DELETED -> List.of();
         };
 
         if (!allowedStatuses.contains(nextStatus)) {

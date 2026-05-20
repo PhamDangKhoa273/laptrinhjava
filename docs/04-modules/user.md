@@ -47,3 +47,8 @@ User/RBAC module sở hữu accounts, roles, permissions, và role assignment da
 ## Open gaps
 
 - pending — explicit permission matrix nếu permissions trở nên granular hơn role workspaces
+## Change notes
+
+- 2026-05-21: Admin-created users honor `initialRole`; if a non-guest role is selected, the default `GUEST` role is removed.
+- 2026-05-21: User status/role mutation APIs flush persistence changes before returning so admin UI receives current DB status and roles.
+- 2026-05-21: Admin delete uses soft delete (`DELETED`) so accounts with farm/order/driver references can be removed from admin lists without breaking historical data.

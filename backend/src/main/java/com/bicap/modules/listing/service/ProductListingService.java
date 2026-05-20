@@ -387,20 +387,35 @@ public class ProductListingService {
     @Transactional
     public ListingRegistrationResponse reviewRegistration(Long registrationId, ReviewListingRegistrationRequest request) {
         ListingRegistrationRequest registrationRequest = listingRegistrationRequestRepository.findById(registrationId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy yêu cầu duyệt listing với ID: " + registrationId));
+                .orElseThrow(() -> new BusinessException("Khong tim thay yeu cau duyet listing voi ID: " + registrationId));
+        return reviewRegistrationRequest(registrationRequest, request);
+    }
 
+    @Transactional
+    public ListingRegistrationResponse reviewListing(Long listingId, ReviewListingRegistrationRequest request) {
+        Optional<ListingRegistrationRequest> registrationRequest = listingRegistrationRequestRepository.findByListingListingId(listingId);
+        if (registrationRequest.isPresent()) {
+            return reviewRegistrationRequest(registrationRequest.get(), request);
+        }
+
+        ProductListing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new BusinessException("Khong tim thay listing ID: " + listingId));
+        return reviewListingWithoutRegistration(listing, request);
+    }
+
+    private ListingRegistrationResponse reviewRegistrationRequest(ListingRegistrationRequest registrationRequest, ReviewListingRegistrationRequest request) {
         if (!ApprovalStatus.PENDING.name().equals(registrationRequest.getStatus())) {
-            throw new BusinessException("Yêu cầu này đã được xử lý trước đó");
+            throw new BusinessException("Yeu cau nay da duoc xu ly truoc do");
         }
 
         String status = request.getStatus().trim().toUpperCase();
         if (!ApprovalStatus.APPROVED.name().equals(status) && !ApprovalStatus.REJECTED.name().equals(status)) {
-            throw new BusinessException("Trạng thái duyệt chỉ có thể là APPROVED hoặc REJECTED");
+            throw new BusinessException("Trang thai duyet chi co the la APPROVED hoac REJECTED");
         }
 
         Long reviewerId = SecurityUtils.getCurrentUserId();
         User reviewer = userRepository.findById(reviewerId)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy admin duyệt yêu cầu"));
+                .orElseThrow(() -> new BusinessException("Khong tim thay admin duyet yeu cau"));
 
         registrationRequest.setReviewedByUser(reviewer);
         registrationRequest.setReviewedAt(java.time.LocalDateTime.now());
@@ -414,14 +429,38 @@ public class ProductListingService {
 
         CreateNotificationRequest notification = new CreateNotificationRequest();
         notification.setRecipientUserId(registrationRequest.getRequestedByUser().getUserId());
-        notification.setTitle("Kết quả duyệt listing");
-        notification.setMessage("Listing '" + listing.getTitle() + "' đã được " + (ApprovalStatus.APPROVED.name().equals(status) ? "phê duyệt" : "từ chối"));
+        notification.setTitle("Ket qua duyet listing");
+        notification.setMessage("Listing '" + listing.getTitle() + "' da duoc " + (ApprovalStatus.APPROVED.name().equals(status) ? "phe duyet" : "tu choi"));
         notification.setNotificationType("LISTING_REVIEW");
         notification.setTargetType("LISTING");
         notification.setTargetId(listing.getListingId());
         notificationService.create(notification);
 
         return toRegistrationResponse(listingRegistrationRequestRepository.save(registrationRequest));
+    }
+
+    private ListingRegistrationResponse reviewListingWithoutRegistration(ProductListing listing, ReviewListingRegistrationRequest request) {
+        if (!ApprovalStatus.PENDING.name().equals(listing.getApprovalStatus())) {
+            throw new BusinessException("Listing nay khong o trang thai cho duyet");
+        }
+
+        String status = request.getStatus().trim().toUpperCase();
+        if (!ApprovalStatus.APPROVED.name().equals(status) && !ApprovalStatus.REJECTED.name().equals(status)) {
+            throw new BusinessException("Trang thai duyet chi co the la APPROVED hoac REJECTED");
+        }
+
+        listing.setApprovalStatus(ApprovalStatus.valueOf(status));
+        listing.setStatus(ApprovalStatus.APPROVED.name().equals(status) ? ListingStatus.ACTIVE : ListingStatus.INACTIVE);
+        ProductListing saved = listingRepository.save(listing);
+
+        ListingRegistrationResponse response = new ListingRegistrationResponse();
+        response.setListingId(saved.getListingId());
+        response.setListingTitle(saved.getTitle());
+        response.setListingStatus(saved.getStatus());
+        response.setStatus(saved.getApprovalStatus());
+        response.setNote(trimToNull(request.getNote()));
+        response.setUpdatedAt(saved.getUpdatedAt());
+        return response;
     }
 
     public List<ListingRegistrationResponse> getMyRegistrationRequests() {

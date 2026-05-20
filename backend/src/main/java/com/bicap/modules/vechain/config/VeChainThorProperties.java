@@ -18,6 +18,12 @@ public class VeChainThorProperties {
     /** If null/blank, defaults to 0x0000000000000000000000000000000000000000 (data clause). */
     private String toAddress;
 
+    /** Max jobs submitted to Thor concurrently by the async worker. */
+    private int workerConcurrency = 4;
+
+    /** Max queued jobs claimed per worker tick. */
+    private int workerBatchSize = 50;
+
     public String getUrl() {
         return url;
     }
@@ -48,5 +54,21 @@ public class VeChainThorProperties {
 
     public void setToAddress(String toAddress) {
         this.toAddress = toAddress;
+    }
+
+    public int getWorkerConcurrency() {
+        return workerConcurrency;
+    }
+
+    public void setWorkerConcurrency(int workerConcurrency) {
+        this.workerConcurrency = workerConcurrency;
+    }
+
+    public int getWorkerBatchSize() {
+        return workerBatchSize;
+    }
+
+    public void setWorkerBatchSize(int workerBatchSize) {
+        this.workerBatchSize = workerBatchSize;
     }
 }

@@ -17,6 +17,8 @@ import com.bicap.modules.season.repository.FarmingProcessRepository;
 import com.bicap.modules.season.service.SeasonService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +50,7 @@ public class ProductBatchService {
     private final SeasonService seasonService;
 
     @Transactional
+    @CacheEvict(value = "publicTrace", allEntries = true)
     public BatchResponse createBatch(CreateBatchRequest request) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         FarmingSeason season = seasonService.findSeasonAndCheckPermission(request.getSeasonId(), currentUserId);
@@ -116,6 +119,7 @@ public class ProductBatchService {
     }
 
     @Transactional
+    @CacheEvict(value = "publicTrace", allEntries = true)
     public BatchResponse updateBatch(Long id, UpdateBatchRequest request) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         ProductBatch batch = productBatchRepository.findById(id)
@@ -161,6 +165,7 @@ public class ProductBatchService {
     }
 
     @Transactional
+    @CacheEvict(value = "publicTrace", allEntries = true)
     public QrCodeResponse generateQrCode(Long batchId, String requestOrigin) {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         ProductBatch batch = productBatchRepository.findById(batchId)
@@ -230,6 +235,7 @@ public class ProductBatchService {
         return traceBatch(id, null);
     }
 
+    @Cacheable(value = "publicTrace", key = "'batch:' + #id + ':' + (#requestOrigin == null ? '' : #requestOrigin)")
     public TraceBatchResponse traceBatch(Long id, String requestOrigin) {
         ProductBatch batch = productBatchRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy lô hàng để truy xuất: " + id));
@@ -240,6 +246,7 @@ public class ProductBatchService {
         return traceBatchByTraceCode(traceCode, null);
     }
 
+    @Cacheable(value = "publicTrace", key = "'code:' + #traceCode + ':' + (#requestOrigin == null ? '' : #requestOrigin)")
     public TraceBatchResponse traceBatchByTraceCode(String traceCode, String requestOrigin) {
         String normalizedTraceCode = normalizeText(traceCode, "Trace code không hợp lệ.").toUpperCase(Locale.ROOT);
         QrCode qrCode = qrCodeRepository.findByQrValue(normalizedTraceCode)
@@ -248,6 +255,13 @@ public class ProductBatchService {
         if (batch == null) {
             throw new BusinessException("QR này chưa được ánh xạ tới batch hợp lệ.");
         }
+        return cachedPublicTraceByBatchId(batch.getBatchId(), requestOrigin);
+    }
+
+    @Cacheable(value = "publicTrace", key = "'batch:' + #batchId + ':' + (#requestOrigin == null ? '' : #requestOrigin)")
+    public TraceBatchResponse cachedPublicTraceByBatchId(Long batchId, String requestOrigin) {
+        ProductBatch batch = productBatchRepository.findById(batchId)
+                .orElseThrow(() -> new BusinessException("Khong tim thay lo hang de truy xuat: " + batchId));
         return buildTraceBatchResponse(batch, requestOrigin);
     }
 

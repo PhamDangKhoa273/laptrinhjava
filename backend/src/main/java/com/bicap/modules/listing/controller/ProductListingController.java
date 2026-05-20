@@ -82,6 +82,18 @@ public class ProductListingController {
         return ResponseEntity.ok(ApiResponse.success(listingService.getFilterOptions()));
     }
 
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<ListingResponse>>> getAdminListings() {
+        return ResponseEntity.ok(ApiResponse.success("Lay tat ca listing cho admin thanh cong", listingService.getAllListings()));
+    }
+
+    @PatchMapping("/{id}/review")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ListingRegistrationResponse>> reviewListing(@PathVariable Long id, @Valid @RequestBody ReviewListingRegistrationRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Duyet listing thanh cong", listingService.reviewListing(id, request)));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ListingResponse>> getListingById(@PathVariable Long id) {
         ListingResponse response = listingService.getListingById(id);

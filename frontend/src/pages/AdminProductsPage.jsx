@@ -3,11 +3,12 @@ import { Button } from '../components/Button.jsx'
 import { StatusCard } from '../components/StatusCard.jsx'
 import {
   createCategory,
-  createProduct,
   deleteCategory,
   deleteProduct,
+  getAdminListings,
   getCategories,
   getProducts,
+  reviewAdminListing,
   updateCategory,
   updateProduct,
 } from '../services/adminService.js'
@@ -53,10 +54,17 @@ function isIncompleteProduct(item) {
   return !item.productName || !item.productCode || !item.description || !item.categoryId
 }
 
+function money(value) {
+  if (value === undefined || value === null || value === '') return '-'
+  const number = Number(value)
+  return Number.isFinite(number) ? number.toLocaleString('vi-VN') + 'đ' : String(value)
+}
+
 export function AdminProductsPage() {
   const [products, setProducts] = useState([])
+  const [listings, setListings] = useState([])
   const [categories, setCategories] = useState([])
-  const [activeTab, setActiveTab] = useState('products')
+  const [activeTab, setActiveTab] = useState('listings')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [statusMessage, setStatusMessage] = useState('')
@@ -66,13 +74,15 @@ export function AdminProductsPage() {
   const [showCategoryForm, setShowCategoryForm] = useState(false)
   const [editingCategory, setEditingCategory] = useState(null)
   const [categoryForm, setCategoryForm] = useState(emptyCategoryForm)
+  const [reviewingListingId, setReviewingListingId] = useState(null)
 
   async function loadData() {
     try {
       setLoading(true)
       setError('')
-      const [productData, categoryData] = await Promise.all([getProducts(), getCategories()])
+      const [productData, listingData, categoryData] = await Promise.all([getProducts(), getAdminListings(), getCategories()])
       setProducts(normalizeList(productData))
+      setListings(normalizeList(listingData))
       setCategories(normalizeList(categoryData))
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || 'Không tải được dữ liệu sản phẩm.')
@@ -88,10 +98,12 @@ export function AdminProductsPage() {
   const metrics = useMemo(() => {
     const activeProducts = products.filter((item) => item.status === 'ACTIVE').length
     const hiddenProducts = products.filter((item) => item.status !== 'ACTIVE').length
+    const pendingListings = listings.filter((item) => String(item.approvalStatus || '').toUpperCase() === 'PENDING').length
+    const approvedListings = listings.filter((item) => String(item.approvalStatus || '').toUpperCase() === 'APPROVED').length
     const activeCategories = categories.filter((item) => item.status === 'ACTIVE').length
     const incompleteProducts = products.filter(isIncompleteProduct).length
-    return { activeProducts, hiddenProducts, activeCategories, incompleteProducts }
-  }, [products, categories])
+    return { activeProducts, hiddenProducts, pendingListings, approvedListings, activeCategories, incompleteProducts }
+  }, [products, listings, categories])
 
   function openProductForm(item = null) {
     setActiveTab('products')
@@ -126,18 +138,21 @@ export function AdminProductsPage() {
   async function handleSaveProduct() {
     try {
       setError('')
+      if (!editingProduct) {
+        setError('Sản phẩm mới phải được đăng ký từ Farm. Admin chỉ chuẩn hóa dữ liệu catalog.')
+        return
+      }
       const payload = {
         ...productForm,
         sortOrder: Number(productForm.sortOrder) || 0,
         price: productForm.price ? Number(productForm.price) : null,
         categoryId: productForm.categoryId ? Number(productForm.categoryId) : null,
       }
-      if (editingProduct) await updateProduct(editingProduct.productId || editingProduct.id, payload)
-      else await createProduct(payload)
+      await updateProduct(editingProduct.productId || editingProduct.id, payload)
       setShowProductForm(false)
       setEditingProduct(null)
       setProductForm(emptyProductForm)
-      setStatusMessage(editingProduct ? 'Đã cập nhật sản phẩm.' : 'Đã thêm sản phẩm.')
+      setStatusMessage('Đã cập nhật dữ liệu sản phẩm.')
       await loadData()
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || 'Lỗi lưu sản phẩm.')
@@ -184,17 +199,40 @@ export function AdminProductsPage() {
     }
   }
 
+  async function handleReviewListing(item, status) {
+    const listingId = item.listingId || item.id
+    if (!listingId) return
+    const isApproved = status === 'APPROVED'
+    if (!isApproved && !window.confirm('Từ chối listing này?')) return
+    try {
+      setError('')
+      setStatusMessage('')
+      setReviewingListingId(listingId)
+      await reviewAdminListing(listingId, {
+        status,
+        note: isApproved
+          ? 'Listing đã được admin duyệt từ màn hình giám sát sản phẩm.'
+          : 'Listing bị từ chối từ màn hình giám sát sản phẩm.',
+      })
+      setStatusMessage(isApproved ? 'Đã duyệt listing lên chợ.' : 'Đã từ chối listing.')
+      await loadData()
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || 'Không xử lý được listing.')
+    } finally {
+      setReviewingListingId(null)
+    }
+  }
+
   return (
     <section className="page-section admin-page admin-products-page">
       <div className="section-heading">
         <div>
           <span className="feature-badge">Product governance</span>
-          <h2>Quản lý sản phẩm</h2>
-          <p>Giám sát sản phẩm đã đăng ký, danh mục, mô tả và độ chính xác dữ liệu catalog.</p>
+          <h2>Giám sát sản phẩm</h2>
+          <p>Theo dõi toàn bộ listing do Farm đăng ký, đồng thời chuẩn hóa catalog nền và danh mục sản phẩm.</p>
         </div>
         <div className="section-actions">
           <Button variant="secondary" onClick={loadData} disabled={loading}>{loading ? 'Đang tải...' : 'Làm mới'}</Button>
-          <Button onClick={() => openProductForm()}>Thêm sản phẩm</Button>
         </div>
       </div>
 
@@ -202,25 +240,68 @@ export function AdminProductsPage() {
       {statusMessage ? <div className="alert alert-success">{statusMessage}</div> : null}
 
       <div className="status-grid admin-overview-grid">
-        <StatusCard label="Sản phẩm" value={products.length} tone="primary" />
-        <StatusCard label="Đang hiển thị" value={metrics.activeProducts} tone="success" />
-        <StatusCard label="Đang ẩn" value={metrics.hiddenProducts} tone="warning" />
-        <StatusCard label="Cần bổ sung dữ liệu" value={metrics.incompleteProducts} tone="danger" />
+        <StatusCard label="Listing từ Farm" value={listings.length} tone="primary" />
+        <StatusCard label="Đã duyệt" value={metrics.approvedListings} tone="success" />
+        <StatusCard label="Chờ duyệt" value={metrics.pendingListings} tone="warning" />
+        <StatusCard label="Catalog nền" value={products.length} tone="primary" />
       </div>
 
       <div className="admin-product-tabs" role="tablist" aria-label="Product admin tabs">
-        <button type="button" className={activeTab === 'products' ? 'is-active' : ''} onClick={() => setActiveTab('products')}>Sản phẩm <strong>{products.length}</strong></button>
+        <button type="button" className={activeTab === 'listings' ? 'is-active' : ''} onClick={() => setActiveTab('listings')}>Listing từ Farm <strong>{listings.length}</strong></button>
+        <button type="button" className={activeTab === 'products' ? 'is-active' : ''} onClick={() => setActiveTab('products')}>Catalog nền <strong>{products.length}</strong></button>
         <button type="button" className={activeTab === 'categories' ? 'is-active' : ''} onClick={() => setActiveTab('categories')}>Danh mục <strong>{categories.length}</strong></button>
       </div>
+
+      {activeTab === 'listings' ? (
+        <article className="glass-card admin-workspace-panel">
+          <div className="admin-table-head">
+            <div>
+              <h3>Sản phẩm Farm đăng sàn</h3>
+              <p>Đây là toàn bộ sản phẩm/lô hàng Farm đưa lên hệ thống để admin giám sát.</p>
+            </div>
+          </div>
+
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead><tr><th>Listing</th><th>Sản phẩm</th><th>Farm</th><th>Số lượng</th><th>Giá</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
+              <tbody>
+                {listings.map((item) => {
+                  const listingId = item.listingId || item.id
+                  const pending = String(item.approvalStatus || '').toUpperCase() === 'PENDING'
+                  const busy = reviewingListingId === listingId
+                  return (
+                    <tr key={listingId}>
+                      <td><strong>{item.title || `Listing #${listingId}`}</strong><br /><small>{item.batchCode || 'Chưa có batch'} · {item.traceCode || 'Chưa có QR'}</small></td>
+                      <td><strong>{item.productName || '-'}</strong><br /><small>{item.productCategory || item.productCode || '-'}</small></td>
+                      <td><strong>{item.farmName || '-'}</strong><br /><small>{item.province || item.farmCode || '-'}</small></td>
+                      <td>{item.quantityAvailable ?? '-'} {item.unit || ''}</td>
+                      <td>{money(item.price)}</td>
+                      <td><span className={statusClass(item.approvalStatus || item.status)}>{item.approvalStatus || '-'}</span><br /><small>{item.status || '-'}</small></td>
+                      <td>
+                        {pending ? (
+                          <div className="inline-actions">
+                            <Button variant="secondary" onClick={() => handleReviewListing(item, 'APPROVED')} disabled={busy}>{busy ? 'Đang xử lý...' : 'Duyệt'}</Button>
+                            <Button variant="secondary" onClick={() => handleReviewListing(item, 'REJECTED')} disabled={busy}>Từ chối</Button>
+                          </div>
+                        ) : <span className="muted-inline">Đã xử lý</span>}
+                      </td>
+                    </tr>
+                  )
+                })}
+                {listings.length === 0 ? <tr><td colSpan="7">Chưa có listing nào từ Farm.</td></tr> : null}
+              </tbody>
+            </table>
+          </div>
+        </article>
+      ) : null}
 
       {activeTab === 'products' ? (
         <article className="glass-card admin-workspace-panel">
           <div className="admin-table-head">
             <div>
-              <h3>Catalog sản phẩm</h3>
-              <p>Quản trị tên, mã, danh mục, mô tả, giá và trạng thái hiển thị.</p>
+              <h3>Catalog nền</h3>
+              <p>Catalog nền dùng để chuẩn hóa tên, mã, danh mục, mô tả, giá và trạng thái hiển thị.</p>
             </div>
-            <Button onClick={() => openProductForm()}>Thêm sản phẩm</Button>
           </div>
 
           {showProductForm ? (
@@ -236,7 +317,7 @@ export function AdminProductsPage() {
                 <label className="form-field full-span"><span className="form-label">Mô tả</span><textarea className="form-input" rows={3} value={productForm.description} onChange={(event) => setProductForm((form) => ({ ...form, description: event.target.value }))} /></label>
               </div>
               <div className="inline-actions top-gap">
-                <Button onClick={handleSaveProduct}>{editingProduct ? 'Lưu thay đổi' : 'Thêm sản phẩm'}</Button>
+                <Button onClick={handleSaveProduct}>Lưu thay đổi</Button>
                 <Button variant="secondary" onClick={() => { setShowProductForm(false); setEditingProduct(null) }}>Hủy</Button>
               </div>
             </div>

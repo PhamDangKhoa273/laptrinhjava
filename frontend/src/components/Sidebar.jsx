@@ -21,7 +21,7 @@ function Icon({ name }) {
     orders: 'receipt_long',
     shipping: 'local_shipping',
     notifications: 'inbox',
-    messages: 'outgoing_mail',
+    messages: 'campaign',
     reports: 'assignment_late',
     subscription: 'workspace_premium',
     seasons: 'psychiatry',
@@ -53,6 +53,13 @@ function guessIcon(to) {
   if (to.includes('/farms')) return 'farm'
   if (to.includes('/retailers')) return 'retailer'
   if (to.includes('/packages')) return 'packages'
+  if (to.includes('/shipping/orders')) return 'orders'
+  if (to.includes('/shipping/completed')) return 'completed'
+  if (to.includes('/shipping/drivers')) return 'drivers'
+  if (to.includes('/shipping/vehicles')) return 'vehicles'
+  if (to.includes('/shipping/sendnotification')) return 'messages'
+  if (to.includes('/shipping/reports')) return 'shipmentReports'
+  if (to.includes('/shipping/profile')) return 'profile'
   if (to.includes('/logistics') || to.includes('/shipping')) return 'logistics'
   if (to.includes('/blockchain')) return 'blockchain'
   if (to.includes('/products') || to.includes('/marketplace')) return 'products'

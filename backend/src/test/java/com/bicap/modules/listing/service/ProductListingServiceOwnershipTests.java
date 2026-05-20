@@ -8,6 +8,7 @@ import com.bicap.modules.batch.repository.QrCodeRepository;
 import com.bicap.modules.common.notification.service.NotificationService;
 import com.bicap.modules.farm.entity.Farm;
 import com.bicap.modules.listing.dto.CreateListingRequest;
+import com.bicap.modules.listing.dto.ReviewListingRegistrationRequest;
 import com.bicap.modules.listing.entity.ProductListing;
 import com.bicap.modules.listing.repository.ListingRegistrationRequestRepository;
 import com.bicap.modules.listing.repository.ProductListingRepository;
@@ -27,6 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
@@ -167,5 +169,33 @@ class ProductListingServiceOwnershipTests {
             security.when(SecurityUtils::getCurrentUserId).thenReturn(10L);
             service.createListing(request);
         }
+    }
+
+    @Test
+    void reviewListing_shouldApprovePendingListingWithoutRegistrationRequest() {
+        ProductListing listing = new ProductListing();
+        listing.setListingId(5L);
+        listing.setBatch(batch);
+        listing.setTitle("Pending listing");
+        listing.setPrice(BigDecimal.ONE);
+        listing.setQuantityAvailable(BigDecimal.ONE);
+        listing.setUnit("kg");
+        listing.setStatus(com.bicap.core.enums.ListingStatus.ACTIVE);
+        listing.setApprovalStatus(com.bicap.core.enums.ApprovalStatus.PENDING);
+
+        ReviewListingRegistrationRequest request = new ReviewListingRegistrationRequest();
+        request.setStatus("APPROVED");
+        request.setNote("OK");
+
+        when(listingRegistrationRequestRepository.findByListingListingId(5L)).thenReturn(Optional.empty());
+        when(listingRepository.findById(5L)).thenReturn(Optional.of(listing));
+        when(listingRepository.save(any(ProductListing.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var response = service.reviewListing(5L, request);
+
+        assertThat(response.getListingId()).isEqualTo(5L);
+        assertThat(response.getStatus()).isEqualTo("APPROVED");
+        assertThat(listing.getStatus()).isEqualTo("ACTIVE");
+        assertThat(listing.getApprovalStatus()).isEqualTo("APPROVED");
     }
 }
