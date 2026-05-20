@@ -3,7 +3,6 @@ import { Button } from '../components/Button.jsx'
 import { StatusCard } from '../components/StatusCard.jsx'
 import {
   createCategory,
-  createProduct,
   deleteCategory,
   deleteProduct,
   getCategories,
@@ -126,18 +125,21 @@ export function AdminProductsPage() {
   async function handleSaveProduct() {
     try {
       setError('')
+      if (!editingProduct) {
+        setError('Sản phẩm mới phải được đăng ký từ Farm. Admin chỉ chuẩn hóa dữ liệu catalog.')
+        return
+      }
       const payload = {
         ...productForm,
         sortOrder: Number(productForm.sortOrder) || 0,
         price: productForm.price ? Number(productForm.price) : null,
         categoryId: productForm.categoryId ? Number(productForm.categoryId) : null,
       }
-      if (editingProduct) await updateProduct(editingProduct.productId || editingProduct.id, payload)
-      else await createProduct(payload)
+      await updateProduct(editingProduct.productId || editingProduct.id, payload)
       setShowProductForm(false)
       setEditingProduct(null)
       setProductForm(emptyProductForm)
-      setStatusMessage(editingProduct ? 'Đã cập nhật sản phẩm.' : 'Đã thêm sản phẩm.')
+      setStatusMessage('Đã cập nhật dữ liệu sản phẩm.')
       await loadData()
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || 'Lỗi lưu sản phẩm.')
@@ -189,12 +191,11 @@ export function AdminProductsPage() {
       <div className="section-heading">
         <div>
           <span className="feature-badge">Product governance</span>
-          <h2>Quản lý sản phẩm</h2>
-          <p>Giám sát sản phẩm đã đăng ký, danh mục, mô tả và độ chính xác dữ liệu catalog.</p>
+          <h2>Giám sát sản phẩm</h2>
+          <p>Theo dõi sản phẩm do Farm đăng ký, chuẩn hóa danh mục, mô tả và độ chính xác dữ liệu catalog.</p>
         </div>
         <div className="section-actions">
           <Button variant="secondary" onClick={loadData} disabled={loading}>{loading ? 'Đang tải...' : 'Làm mới'}</Button>
-          <Button onClick={() => openProductForm()}>Thêm sản phẩm</Button>
         </div>
       </div>
 
@@ -218,9 +219,8 @@ export function AdminProductsPage() {
           <div className="admin-table-head">
             <div>
               <h3>Catalog sản phẩm</h3>
-              <p>Quản trị tên, mã, danh mục, mô tả, giá và trạng thái hiển thị.</p>
+              <p>Sản phẩm được đăng ký từ Farm; admin chỉ chuẩn hóa tên, mã, danh mục, mô tả, giá và trạng thái hiển thị.</p>
             </div>
-            <Button onClick={() => openProductForm()}>Thêm sản phẩm</Button>
           </div>
 
           {showProductForm ? (
@@ -236,7 +236,7 @@ export function AdminProductsPage() {
                 <label className="form-field full-span"><span className="form-label">Mô tả</span><textarea className="form-input" rows={3} value={productForm.description} onChange={(event) => setProductForm((form) => ({ ...form, description: event.target.value }))} /></label>
               </div>
               <div className="inline-actions top-gap">
-                <Button onClick={handleSaveProduct}>{editingProduct ? 'Lưu thay đổi' : 'Thêm sản phẩm'}</Button>
+                <Button onClick={handleSaveProduct}>Lưu thay đổi</Button>
                 <Button variant="secondary" onClick={() => { setShowProductForm(false); setEditingProduct(null) }}>Hủy</Button>
               </div>
             </div>

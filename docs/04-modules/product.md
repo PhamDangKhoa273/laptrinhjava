@@ -40,6 +40,7 @@ Product module owns catalog data, product categories, product descriptions, disp
 ## UI notes
 
 - 2026-05-19: Admin product page exposes only product catalog and category governance. It shows incomplete products when name/code/description/category data is missing so admin can correct catalog accuracy.
+- 2026-05-21: Product records originate from Farm registration/suggestion flows; Admin product UI monitors and normalizes catalog data, manages categories, and can hide/delete catalog records, but does not present product creation as an admin production workflow.
 
 ## Open gaps
 
