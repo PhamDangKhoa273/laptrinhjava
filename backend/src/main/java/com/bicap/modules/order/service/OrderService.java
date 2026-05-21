@@ -15,6 +15,7 @@ import com.bicap.modules.farm.entity.Farm;
 import com.bicap.modules.farm.repository.FarmRepository;
 import com.bicap.modules.listing.entity.ProductListing;
 import com.bicap.modules.listing.repository.ProductListingRepository;
+import com.bicap.modules.logistics.entity.Driver;
 import com.bicap.modules.logistics.repository.DriverRepository;
 import com.bicap.modules.media.dto.MediaFileResponse;
 import com.bicap.modules.media.service.MediaStorageService;
@@ -318,7 +319,7 @@ public class OrderService {
         order.setDeliveryConfirmedAt(LocalDateTime.now());
         order.setDeliveryConfirmedByUserId(currentUserId);
         order.setCloseEligibleAt(LocalDateTime.now().plusHours(24));
-        shipmentRepository.findByOrderId(orderId).ifPresent(shipment -> {
+        shipmentRepository.findFirstByOrderIdAndStatusNotOrderByCreatedAtDesc(orderId, ShipmentStatus.CANCELLED).ifPresent(shipment -> {
             shipment.setDeliveryConfirmedAt(LocalDateTime.now());
             shipment.setStatus(ShipmentStatus.CONFIRMED);
             shipmentRepository.save(shipment);
@@ -576,11 +577,8 @@ public class OrderService {
         if (order == null) throw new BusinessException("Đơn hàng không tồn tại");
         if (hasAnyRole("ADMIN", "SHIPPING_MANAGER")) return;
         if (hasAnyRole("DRIVER")) {
-            boolean assignedDriver = shipmentRepository.findByOrderId(order.getOrderId())
-                    .flatMap(shipment -> driverRepository.findByUserUserId(currentUserId)
-                            .map(driver -> driver.getDriverId().equals(shipment.getDriverId())))
-                    .orElse(false);
-            if (assignedDriver) return;
+            Driver driver = driverRepository.findByUserUserId(currentUserId).orElse(null);
+            if (driver != null && shipmentRepository.existsByOrderIdAndDriverId(order.getOrderId(), driver.getDriverId())) return;
         }
         throw new BusinessException("Bạn không có quyền upload proof vận chuyển cho order này");
     }

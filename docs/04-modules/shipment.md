@@ -54,6 +54,7 @@ Shipment module sở hữu shipment lifecycle (create → assign → pickup → 
 - 2026-05-20: Driver execution flow requires product QR match before pickup at farm, then requires delivery proof image before driver handover marks the shipment `DELIVERED` (`R-DRV-030`, `R-DRV-050`).
 - 2026-05-21: Shipping Manager sidebar uses explicit icons per menu item instead of the generic shipping icon, and completed-delivery views count both `DELIVERED` and retailer-confirmed `CONFIRMED` shipments as completed.
 - 2026-05-21: Driver handover proof selected from a phone camera is compressed client-side before upload; frontend nginx allows up to 8 MB so camera photos do not fail before backend validation (`BR-SHP-050`).
+- 2026-05-21: Driver shipping-proof authorization accepts any shipment on the order assigned to the current driver, so historical cancelled shipments on the same order do not make proof upload fail with a non-unique order lookup (`BR-SHP-050`).
 
 ## Depends-on
 

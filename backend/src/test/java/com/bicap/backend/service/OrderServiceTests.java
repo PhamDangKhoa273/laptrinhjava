@@ -309,7 +309,7 @@ class OrderServiceTests {
         shipment.setShipmentId(9L);
         shipment.setOrderId(7L);
         shipment.setStatus(ShipmentStatus.DELIVERED);
-        when(shipmentRepository.findByOrderId(7L)).thenReturn(Optional.of(shipment));
+        when(shipmentRepository.findFirstByOrderIdAndStatusNotOrderByCreatedAtDesc(7L, ShipmentStatus.CANCELLED)).thenReturn(Optional.of(shipment));
         when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ConfirmDeliveryRequest request = new ConfirmDeliveryRequest();
