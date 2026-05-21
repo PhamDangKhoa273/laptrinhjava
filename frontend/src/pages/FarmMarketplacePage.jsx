@@ -207,7 +207,7 @@ export function FarmMarketplacePage() {
   const ineligibleBatches = batches.filter((b) => b?.batchId && batchEligibilityReason(b))
 
   return (
-    <section className="farm-content farm-proto-content">
+    <section className="farm-content farm-proto-content farm-marketplace-page">
       <div className="farm-page-head">
         <div>
           <h2>Quản lý đăng sàn</h2>
@@ -229,13 +229,13 @@ export function FarmMarketplacePage() {
         <article className="farm-stat-card red"><span>Đang chờ duyệt</span><strong>{pendingApproval}</strong></article>
       </div>
 
-      <article className="farm-glass-card farm-form-card" style={{ marginTop: 16 }}>
+      <article className="farm-glass-card farm-form-card farm-listing-form-card">
         <h3>
           <span className="material-symbols-outlined">{editingId ? 'edit' : 'add_circle'}</span>
           {editingId ? `Cập nhật listing #${editingId}` : 'Tạo listing mới từ lô hàng'}
         </h3>
         <form onSubmit={handleSubmit}>
-          <div className="strict-info-grid">
+          <div className="strict-info-grid farm-listing-form-grid">
             <label className="strict-readonly-field editable">
               <span>Lô hàng còn hạn (bắt buộc)</span>
               <select
@@ -252,14 +252,14 @@ export function FarmMarketplacePage() {
                 ))}
               </select>
               {ineligibleBatches.length ? (
-                <small style={{ color: 'var(--ship-danger, #b42318)' }}>
+                <small className="farm-listing-warning">
                   {ineligibleBatches.length} lô chưa đủ điều kiện đăng sàn.
                 </small>
               ) : null}
               {ineligibleBatches.length ? (
-                <div style={{ marginTop: 6, display: 'grid', gap: 4 }}>
+                <div className="farm-listing-ineligible-list">
                   {ineligibleBatches.slice(0, 4).map((batch) => (
-                    <small key={batch.batchId} style={{ color: 'var(--ship-muted, #667085)' }}>
+                    <small key={batch.batchId}>
                       {batch.batchCode || `Lô #${batch.batchId}`}: {batchEligibilityReason(batch)}
                     </small>
                   ))}
@@ -296,7 +296,7 @@ export function FarmMarketplacePage() {
               <textarea rows={3} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Mô tả sản phẩm, chứng nhận, vùng trồng..." maxLength={3000} />
             </label>
           </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+          <div className="farm-listing-form-actions">
             <Button type="submit" disabled={submitting}>
               {submitting ? 'Đang lưu...' : editingId ? 'Cập nhật' : 'Tạo listing'}
             </Button>

@@ -51,6 +51,7 @@ Listing module owns marketplace listings, connecting farm-owned products/batches
 - Admin product governance uses the admin listing endpoint to monitor all Farm-created marketplace listings, not only the seed catalog rows.
 - Admin can approve or reject pending listings directly from the product governance table; approved listings become `ACTIVE + APPROVED`, rejected listings become `INACTIVE + REJECTED`.
 - If a legacy or seeded listing is `approval_status = PENDING` but has no `listing_registration_requests` row, admin review by listing id still applies the same state transition directly.
+- 2026-05-21: Farm listing creation UI uses a scoped marketplace form style with stronger field contrast, tighter spacing, and clearer ineligible-batch callouts; behavior remains create-draft then submit for admin review.
 
 ## Tests
 
