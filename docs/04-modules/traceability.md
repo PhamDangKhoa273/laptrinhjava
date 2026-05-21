@@ -44,3 +44,4 @@ Traceability module là cross-cutting facade cho proof of origin: liên kết fa
 ## Change notes
 
 - 2026-05-21: Public trace lookups use Spring cache (`publicTrace`) so repeated QR/product trace reads can be served from Redis in staging/prod (`SPRING_CACHE_TYPE=redis`) instead of hitting DB/blockchain-adjacent services on every scan.
+- 2026-05-21: Redis-backed Spring Cache stores public trace responses with JSON value serialization instead of JDK serialization, so DTO trace responses can be cached without breaking public QR lookup.

@@ -157,6 +157,52 @@
 .farm-form-card { display: grid; gap: 18px; align-content: start; }
 .farm-form-card label { display: grid; gap: 8px; font-weight: 800; color: var(--muted); }
 .farm-form-card select { padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.farm-marketplace-page { max-width: 1180px; }
+.farm-marketplace-page .farm-kpi-grid.four { gap: 18px; margin-bottom: 28px; }
+.farm-marketplace-page .farm-stat-card { min-height: 104px; padding: 20px 24px; border: 1px solid #d7e2d5; background: #fff; box-shadow: 0 12px 30px rgba(22, 54, 30, .07); }
+.farm-marketplace-page .farm-stat-card span { color: #5f6b60; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+.farm-marketplace-page .farm-stat-card strong { color: #121a14; font-size: 34px; line-height: 1; }
+.farm-listing-form-card { margin-top: 18px; padding: 32px 34px; border: 1px solid #abc6a7; background: linear-gradient(180deg, #ffffff 0%, #fbfdf8 100%); box-shadow: 0 22px 48px rgba(19, 45, 25, .12); }
+.farm-listing-form-card > h3 { padding-bottom: 18px; border-bottom: 1px solid #e2eadf; color: #121a14; font-size: 28px; }
+.farm-listing-form-card > h3 .material-symbols-outlined { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: #0d631b; background: #e7f6e9; }
+.farm-listing-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 28px; margin-top: 8px; align-items: start; }
+.farm-listing-form-grid .strict-readonly-field:nth-child(1),
+.farm-listing-form-grid .strict-readonly-field:nth-child(2),
+.farm-listing-form-grid .textarea-field { grid-column: 1 / -1; }
+.farm-listing-form-grid .strict-readonly-field:nth-child(2) { padding: 16px 18px; border: 1px solid #d8e4d5; border-radius: 12px; background: #f6faf4; }
+.farm-listing-form-grid .strict-readonly-field:nth-child(2) input { background: #fff; }
+.farm-listing-form-card .strict-readonly-field { gap: 10px; min-width: 0; }
+.farm-listing-form-card .strict-readonly-field > span { color: #525c51; font-size: 13px; letter-spacing: .01em; }
+.farm-listing-form-card .strict-readonly-field input,
+.farm-listing-form-card .strict-readonly-field textarea,
+.farm-listing-form-card .strict-readonly-field select {
+  min-height: 54px;
+  border: 1px solid #b8c7b4;
+  border-radius: 9px;
+  background: #fff;
+  color: #111827;
+  font-size: 16px;
+  font-weight: 750;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+}
+.farm-listing-form-card .strict-readonly-field input:focus,
+.farm-listing-form-card .strict-readonly-field textarea:focus,
+.farm-listing-form-card .strict-readonly-field select:focus {
+  outline: 3px solid rgba(46,125,50,.16);
+  border-color: #2e7d32;
+}
+.farm-listing-form-card .strict-readonly-field input[readonly] { background: #f6f8f5; color: #1f2937; }
+.farm-listing-form-card .strict-readonly-field small { color: #3f4a40; font-size: 13px; font-weight: 750; line-height: 1.45; }
+.farm-listing-form-card .textarea-field textarea { min-height: 112px; resize: vertical; }
+.farm-listing-warning { color: #a32718 !important; }
+.farm-listing-ineligible-list { margin-top: 4px; display: grid; gap: 4px; padding: 10px 12px; border-radius: 9px; background: #fff7ed; border: 1px solid #fed7aa; }
+.farm-listing-ineligible-list small { color: #7c2d12 !important; }
+.farm-listing-form-actions { display: flex; gap: 10px; margin-top: 18px; padding-top: 18px; border-top: 1px solid #e2eadf; }
+.farm-listing-form-actions .button { min-height: 44px; padding-inline: 18px; border-radius: 9px; font-weight: 900; }
+@media (max-width: 900px) {
+  .farm-listing-form-grid { grid-template-columns: 1fr; }
+  .farm-listing-form-grid .strict-readonly-field { grid-column: 1 / -1; }
+}
 .farm-info-strip { padding: 14px; border-radius: 12px; background: #fff; display: grid; grid-template-columns: 1fr auto; gap: 8px; border: 1px solid var(--line); }
 .farm-info-strip b { color: var(--primary-2); }
 .farm-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

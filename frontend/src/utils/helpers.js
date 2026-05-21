@@ -39,6 +39,8 @@ export function getErrorMessage(error, fallback = 'Đã xảy ra lỗi. Vui lòn
     return 'Không thể kết nối máy chủ. Vui lòng kiểm tra backend.'
   }
 
+  if (error.response.status === 413) return 'Anh proof qua lon. Vui long chup lai hoac chon anh nho hon.'
+
   const apiMessage = error?.response?.data?.message || error?.response?.data?.error
   if (typeof apiMessage === 'string' && apiMessage.trim()) return apiMessage
 

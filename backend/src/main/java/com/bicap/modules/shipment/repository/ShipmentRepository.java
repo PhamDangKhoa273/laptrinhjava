@@ -14,6 +14,8 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
     Optional<Shipment> findByOrderIdAndVersion(Long orderId, Long version);
     Optional<Shipment> findByOrderId(Long orderId);
     Optional<Shipment> findByOrderIdAndStatusNot(Long orderId, com.bicap.core.enums.ShipmentStatus status);
+    Optional<Shipment> findFirstByOrderIdAndStatusNotOrderByCreatedAtDesc(Long orderId, com.bicap.core.enums.ShipmentStatus status);
+    boolean existsByOrderIdAndDriverId(Long orderId, Long driverId);
     List<Shipment> findByDriverId(Long driverId);
     List<Shipment> findByShippingManagerUserIdOrderByCreatedAtDesc(Long shippingManagerUserId);
 

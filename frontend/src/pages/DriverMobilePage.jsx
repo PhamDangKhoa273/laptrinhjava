@@ -26,6 +26,8 @@ const STATUS_STEPS = ['ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED', 'CONFI
 const ACTIVE_STATUSES = ['CREATED', 'ASSIGNED', 'PICKED_UP', 'IN_TRANSIT']
 const COMPLETE_STATUSES = ['DELIVERED', 'CONFIRMED']
 const LOCKED_STATUSES = ['CONFIRMED', 'CANCELLED', 'REJECTED', 'DISPUTED', 'ESCALATED']
+const DRIVER_PROOF_MAX_BYTES = 900 * 1024
+const DRIVER_PROOF_MAX_DIMENSION = 1600
 const STATUS_LABELS = {
   ASSIGNED: 'Đã phân công',
   PICKED_UP: 'Đã nhận hàng',
@@ -113,6 +115,47 @@ function findAssignedShipmentByCode(shipments, value) {
   const matches = safeList(shipments).filter((item) => shipmentMatchesScannedCode(item, value))
   const priority = ['ASSIGNED', 'PICKED_UP', 'IN_TRANSIT', 'CREATED', 'DELIVERED', 'CONFIRMED']
   return matches.sort((a, b) => priority.indexOf(normalizeStatus(a.status)) - priority.indexOf(normalizeStatus(b.status)))[0] || null
+}
+
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const image = new Image()
+    image.onload = () => {
+      URL.revokeObjectURL(url)
+      resolve(image)
+    }
+    image.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('Cannot read proof image'))
+    }
+    image.src = url
+  })
+}
+
+async function compressProofImage(file) {
+  if (!file?.type?.startsWith('image/') || file.size <= DRIVER_PROOF_MAX_BYTES) return file
+
+  const image = await loadImageFromFile(file)
+  const scale = Math.min(1, DRIVER_PROOF_MAX_DIMENSION / Math.max(image.width, image.height))
+  const width = Math.max(1, Math.round(image.width * scale))
+  const height = Math.max(1, Math.round(image.height * scale))
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const context = canvas.getContext('2d')
+  if (!context) return file
+  context.drawImage(image, 0, 0, width, height)
+
+  let quality = 0.82
+  let blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality))
+  while (blob && blob.size > DRIVER_PROOF_MAX_BYTES && quality > 0.46) {
+    quality -= 0.12
+    blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality))
+  }
+  if (!blob) return file
+  const name = file.name.replace(/\.[^.]+$/, '') || 'handover-proof'
+  return new File([blob], `${name}.jpg`, { type: 'image/jpeg', lastModified: Date.now() })
 }
 
 function displayStatus(value) {
@@ -575,11 +618,17 @@ function ScanView({ qrCode, setQrCode, openScanner, current, shipments }) {
 function ActionsView({ current, canPickup, hasPickupQrMatch, canCheckpoint, canHandover, doPickup, doCheckpoint, doHandover, checkpointNote, setCheckpointNote, checkpointLocation, setCheckpointLocation, handoverNote, setHandoverNote, handoverProof, setHandoverProof, setHandoverProofFile, actionLoading }) {
   const hasNoCurrent = !current
   const currentIdx = stepIndex(current?.status)
-  function handleProofFile(event) {
+  async function handleProofFile(event) {
     const file = event.target.files?.[0]
     if (!file) return
-    setHandoverProofFile(file)
-    setHandoverProof(`photo:${file.name}:${file.size}`)
+    let proofFile = file
+    try {
+      proofFile = await compressProofImage(file)
+    } catch {
+      proofFile = file
+    }
+    setHandoverProofFile(proofFile)
+    setHandoverProof(`photo:${proofFile.name}:${proofFile.size}`)
   }
   return (
     <div className="mobile-actions">
